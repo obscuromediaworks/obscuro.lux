@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Favicon · Obscuro Mediaworks</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="alternate icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<style>
+  :root { color-scheme: dark; }
+  html, body { background:#0a0a0a; margin:0; font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace; color:#f5f4ef; }
+  body { padding: 64px 48px; }
+  h1 { font-family: 'Geist', Helvetica, Arial, sans-serif; font-weight: 400; font-size: 18px; letter-spacing: 0.02em; margin: 0 0 4px; }
+  p.sub { margin: 0 0 48px; font-size: 12px; color: rgba(245,244,239,0.5); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; max-width: 980px; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; border: 1px solid rgba(245,244,239,0.08); border-radius: 6px; }
+  .cell img { image-rendering: pixelated; background: #0a0a0a; }
+  .cell .label { font-size: 11px; color: rgba(245,244,239,0.6); letter-spacing: 0.04em; }
+  .cell .file { font-size: 10px; color: rgba(245,244,239,0.35); }
+  .light { background: #f5f4ef; padding: 16px; border-radius: 4px; }
+  .row { display:flex; gap:8px; align-items:center; }
+  pre { background: #111; border: 1px solid rgba(245,244,239,0.08); border-radius: 6px; padding: 16px; font-size: 11px; color: rgba(245,244,239,0.75); overflow:auto; margin-top:48px; max-width:980px; }
+  pre b { color: #f5f4ef; font-weight: 500; }
+</style>
+</head>
+<body>
+  <h1>[ obscuro ] · favicon</h1>
+  <p class="sub">Drop into the site root and add the tags below to &lt;head&gt;.</p>
+
+  <div class="grid">
+    <div class="cell">
+      <img src="favicon-16.png" width="64" height="64" alt="16" />
+      <div class="label">16 × 16</div>
+      <div class="file">favicon-16.png</div>
+    </div>
+    <div class="cell">
+      <img src="favicon-32.png" width="64" height="64" alt="32" />
+      <div class="label">32 × 32</div>
+      <div class="file">favicon-32.png</div>
+    </div>
+    <div class="cell">
+      <img src="favicon-48.png" width="96" height="96" alt="48" />
+      <div class="label">48 × 48</div>
+      <div class="file">favicon-48.png</div>
+    </div>
+    <div class="cell">
+      <img src="favicon-180.png" width="120" height="120" alt="180" />
+      <div class="label">180 × 180</div>
+      <div class="file">apple-touch-icon</div>
+    </div>
+    <div class="cell">
+      <img src="favicon-192.png" width="120" height="120" alt="192" />
+      <div class="label">192 × 192</div>
+      <div class="file">android chrome</div>
+    </div>
+    <div class="cell">
+      <img src="favicon-512.png" width="120" height="120" alt="512" />
+      <div class="label">512 × 512</div>
+      <div class="file">PWA / OG</div>
+    </div>
+    <div class="cell">
+      <img src="favicon.svg" width="96" height="96" alt="svg" />
+      <div class="label">SVG (vector)</div>
+      <div class="file">favicon.svg</div>
+    </div>
+    <div class="cell" style="background:#f5f4ef;border-color:#e5e3dc;">
+      <img src="favicon-32.png" width="32" height="32" alt="32 on light" />
+      <div class="label" style="color:#555;">on light · 32px</div>
+      <div class="file" style="color:#999;">tab BG check</div>
+    </div>
+  </div>
+
+<pre>&lt;link rel="icon" type="image/svg+xml" href="<b>/favicon.svg</b>"&gt;
+&lt;link rel="icon" type="image/png" sizes="32x32" href="<b>/favicon-32.png</b>"&gt;
+&lt;link rel="icon" type="image/png" sizes="16x16" href="<b>/favicon-16.png</b>"&gt;
+&lt;link rel="apple-touch-icon" sizes="180x180" href="<b>/favicon-180.png</b>"&gt;
+&lt;link rel="manifest" href="/site.webmanifest"&gt;</pre>
+</body>
+</html>

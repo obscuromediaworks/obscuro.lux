@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Obscuro Mediaworks — Estudio de diseño y desarrollo</title>
+<meta name="description" content="Estudio multidisciplinario. Identidad. Web. Game design. Buenos Aires, Argentina." />
+<meta property="og:title" content="Obscuro Mediaworks" />
+<meta property="og:description" content="Estudio multidisciplinario. Identidad. Web. Game design." />
+<meta property="og:type" content="website" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="theme-color" content="#0a0a0a" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Tenor+Sans&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600&family=VT323&display=swap" rel="stylesheet">
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+    <rect width="400" height="400" fill="#0a0a0a"/>
+    <text x="120" y="180" font-family="JetBrains Mono, monospace" font-size="56" fill="#f5f4ef" font-weight="500"><tspan fill="rgba(245,244,239,0.4)">[</tspan> obscuro <tspan fill="rgba(245,244,239,0.4)">]</tspan></text>
+    <text x="120" y="230" font-family="Space Grotesk, sans-serif" font-size="18" letter-spacing="8" fill="rgba(245,244,239,0.55)">MEDIAWORKS</text>
+  </svg>
+</template>
+
+<style>
+  html, body { background:#0a0a0a; margin:0; }
+  body { font-family: 'Geist', Helvetica, Arial, sans-serif; color:#f5f4ef; }
+  *, *::before, *::after { box-sizing: border-box; }
+  /* Prevent horizontal overflow on small screens while keeping the design-sized layouts intact at >720px. */
+  #root { overflow-x: hidden; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="page-games.jsx"></script>
+<script type="text/babel" src="page-games-mobile.jsx"></script>
+<!-- Legacy combined landing — reachable at #/mediaworks. Kept as fallback. -->
+<script type="text/babel" src="variation-b.jsx"></script>
+<script type="text/babel" src="variation-b-mobile.jsx"></script>
+<!-- LUX — sub-practice for identidad + diseño digital. Lives at #/lux. -->
+<script type="text/babel" src="lux/lux-shared.jsx"></script>
+<script type="text/babel" src="lux/lux-c.jsx"></script>
+<script type="text/babel" src="site-app.jsx"></script>
+</body>
+</html>
