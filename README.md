@@ -33,52 +33,18 @@ deploy/                    Bundle listo para deploy
   site.webmanifest
 ```
 
-## Deploy — Cloudflare Pages
+## Deploy
 
-```powershell
-.\scripts\deploy-site.ps1              # produccion
-.\scripts\deploy-site.ps1 -Preview     # URL de preview, no toca el sitio vivo
-.\scripts\deploy-site.ps1 -BuildOnly   # arma site-dist/ y no sube nada
-.\scripts\deploy-site.ps1 -SiteOnly    # sin /modo-god (mientras no haya Access)
+```bash
+npm run deploy
 ```
 
-Proyecto de Pages: **`obscuro-mediaworks`** → `obscuro-mediaworks.pages.dev`.
+Sube `deploy/` al Worker `obscuro-lux-site`, que tiene los tres dominios.
+**Todo el detalle, las trampas y cómo hacer rollback están en [DEPLOY.md](DEPLOY.md)** — leerlo
+antes de tocar el deploy.
 
-### ⚠️ Este repo NO puede tener un `wrangler.toml` en la raíz
-
-Hay un Worker aparte, **`obscuro-lux-site`**, conectado a este repo por Git: **cada push le dispara
-un build y un deploy automático**. Ese Worker es el que hoy tiene los custom domains
-(`obscuromediaworks.com.ar`, `www`, `lux`) y sirve la **raíz del repo** — por eso el dominio muestra
-el comparador de exploración y no el sitio.
-
-Un `wrangler.toml` en la raíz lo rompe (o peor: le aplica una config que no es la suya). Por eso el
-deploy de Pages pasa todo por flags de CLI (`--project-name`, directorio explícito) y no usa archivo
-de configuración.
-
-`scripts/build-site.py` arma `site-dist/` = el bundle del sitio (`deploy/`) **más** el tablero de
-operaciones en `/modo-god`. Un solo proyecto de Pages (`obscuro-mediaworks`) sirve las dos cosas,
-así que la ruta `/modo-god` sale gratis: no hace falta un Worker que la proxee.
-
-`site-dist/` es generado — no se versiona, no se edita a mano.
-
-### ⚠️ Antes del primer deploy
-
-1. **`npx wrangler login` con permisos de Pages.** El token actual de la cuenta
-   `obscuromediaworks@gmail.com` **no tiene scope de Pages**: `whoami` anda pero
-   `pages project list` responde "Not logged in". Hay que re-loguear y aceptar Pages.
-2. **Dominio.** El apex ya está proxeado por Cloudflare, pero apunta a otro origen. Atarlo al
-   proyecto Pages es un cambio de producción, y **los custom domains se agregan por dashboard o
-   API REST, no por wrangler**. Conviene probar antes con `-Preview`.
-3. **Ojo con el fallback de Pages: toda ruta inexistente devuelve el `index.html` de la raíz con
-   `200`, no un 404.** O sea que si un build sale sin el tablero, `/modo-god` no falla: muestra la
-   home del sitio y parece que anduvo. Verificá el `<title>`, no el status code.
-4. **Proteger `/modo-god` con Cloudflare Access** (Zero Trust → Access → Applications), acotado a
-   hostname + path `/modo-god`. El `robots.txt` y el `_headers` con `noindex` que genera el build
-   son higiene de crawlers, **no** son seguridad.
-
-### Deploy manual (el método anterior)
-
-Subir el contenido de `deploy/` a la raíz del hosting. `deploy/index.html` es self-contained (assets, fonts y scripts inlineados).
+Regla corta: **`deploy/index.html` es el sitio; `index.html` de la raíz NO** (es el comparador de
+exploración, y servirlo deja el dominio en negro).
 
 Para regenerar el bundle (cualquier IDE / proyecto):
 

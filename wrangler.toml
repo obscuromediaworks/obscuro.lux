@@ -1,0 +1,15 @@
+name = "obscuro-lux-site"
+compatibility_date = "2026-06-26"
+
+# Sitio del estudio. Worker de assets estáticos, sin script: sirve deploy/ tal cual.
+#
+# ⚠️ `directory` DEBE apuntar a deploy/, nunca a la raíz del repo.
+# En la raíz vive index.html, que es el comparador de exploración de diseño
+# ("Landing (3 variaciones)"): crashea en React y deja el dominio en pantalla negra.
+# El sitio de verdad es deploy/index.html ("Estudio de diseño y desarrollo").
+#
+# Este Worker tiene atados obscuromediaworks.com.ar, www. y lux.
+# Deploy: `npm run deploy`. Ver DEPLOY.md.
+
+[assets]
+directory = "./deploy"
