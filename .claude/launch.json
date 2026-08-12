@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "obscuro-design-system",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5070", "--directory", "design-system"],
+      "port": 5070
+    },
+    {
+      "name": "modo-god",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["studio/modo-god/modo-god.py", "--no-open"],
+      "port": 5080
+    }
+  ]
+}

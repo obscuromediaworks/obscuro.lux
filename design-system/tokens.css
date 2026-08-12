@@ -1,0 +1,323 @@
+/* ============================================================
+   OBSCURO MEDIAWORKS — Design tokens
+   Fuente de verdad única. Todo lo demás consume estas variables.
+
+   Un solo sistema, tres temas:
+     [data-theme="obscuro"]      Estudio / marca paraguas (default)
+     [data-theme="gamecrafting"] División de videojuegos
+     [data-theme="lux"]          Práctica de identidad y diseño digital
+
+   Los temas cambian SUPERFICIE y ACENTO. La escala, el espaciado,
+   el ritmo y la tipografía son compartidos — eso es lo que hace
+   que las tres se lean como el mismo estudio.
+   ============================================================ */
+
+:root {
+  /* ---------- Paleta base (primitivos, no usar directo en UI) ---------- */
+  --ob-ink-900: #070504;   /* negro cálido, casi marrón — gamecrafting */
+  --ob-ink-800: #0a0a0a;   /* negro neutro — estudio */
+  --ob-ink-700: #0f0f0f;   /* superficie elevada sobre negro */
+  --ob-ink-000: #000000;   /* negro puro — solo LUX */
+
+  --ob-cream-100: #f5f4ef; /* crema neutra — estudio, LUX invertido */
+  --ob-cream-200: #f5e9d4; /* crema cálida — gamecrafting */
+  --ob-paper:     #ffffff; /* blanco puro — solo LUX */
+
+  --ob-gold-500:  #c9a96e; /* oro. EL acento de la marca. */
+  --ob-gold-300:  #ddc79b;
+  --ob-gold-700:  #a1854f;
+
+  --ob-rec-500:   #ff1f3e; /* rojo REC — exclusivo del lenguaje VHS */
+
+  /* ---------- Tipografía ----------
+     4 familias + 1 de uso restringido. Antes eran 8.
+     Deprecadas: Instrument Serif, Tenor Sans, Geist Mono
+     (Geist Mono se unifica en JetBrains Mono). */
+  --ob-font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --ob-font-sans:    "Geist", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ob-font-alt:     "Space Grotesk", "Geist", Helvetica, sans-serif;
+  --ob-font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --ob-font-vhs:     "VT323", ui-monospace, monospace; /* SOLO overlays VHS */
+
+  /* Pesos — el sistema es liviano por diseño. Nada arriba de 600. */
+  --ob-weight-light:   300;
+  --ob-weight-regular: 400;
+  --ob-weight-medium:  500;
+  --ob-weight-semi:    600;
+
+  /* ---------- Escala tipográfica ----------
+     Ratio ~1.33 desde 11px. Los saltos grandes del hero son
+     deliberadamente extremos: el contraste display/cuerpo es marca. */
+  --ob-text-2xs:  10px;  /* caps de metadata, timecodes */
+  --ob-text-xs:   11px;  /* eyebrow mono, etiquetas */
+  --ob-text-sm:   13px;
+  --ob-text-base: 15px;  /* cuerpo por defecto */
+  --ob-text-md:   18px;
+  --ob-text-lg:   28px;  /* lead / bajada */
+  --ob-text-xl:   40px;
+  --ob-text-2xl:  56px;  /* logo hero */
+  --ob-text-3xl:  80px;  /* títulos de sección */
+  --ob-text-display: clamp(96px, 18vw, 280px); /* hero. Era 280px fijo. */
+
+  --ob-leading-tight:  0.85;  /* solo display */
+  --ob-leading-snug:   0.95;  /* títulos */
+  --ob-leading-normal: 1.4;   /* lead */
+  --ob-leading-relaxed:1.75;  /* cuerpo */
+
+  /* Tracking — el aire entre letras es firma del estudio */
+  --ob-track-display: -0.04em;
+  --ob-track-title:   -0.025em;
+  --ob-track-normal:  0;
+  --ob-track-mono:    0.04em;
+  --ob-track-caps:    0.16em;
+  --ob-track-eyebrow: 0.18em;
+  --ob-track-logo:    0.32em;  /* tag "mediaworks" bajo el logotipo */
+
+  /* ---------- Espaciado ---------- base 8, con medios pasos ---------- */
+  --ob-space-1:  4px;
+  --ob-space-2:  8px;
+  --ob-space-3:  12px;
+  --ob-space-4:  16px;
+  --ob-space-5:  24px;
+  --ob-space-6:  32px;
+  --ob-space-7:  48px;
+  --ob-space-8:  64px;
+  --ob-space-9:  80px;
+  --ob-space-10: 120px;
+  --ob-space-11: 160px;  /* aire vertical entre secciones */
+
+  /* Márgenes de página — el ancho del canal define la compostura */
+  --ob-gutter:        48px;  /* obscuro / gamecrafting */
+  --ob-gutter-lux:    64px;  /* LUX respira más */
+  --ob-gutter-mobile: 20px;
+
+  /* ---------- Bordes y radios ---------- */
+  --ob-radius-none: 0;       /* el default. El sistema es de esquina viva. */
+  --ob-radius-pill: 999px;   /* única excepción: chips y botones ghost */
+  --ob-hairline: 1px;
+
+  /* ---------- Movimiento ---------- */
+  --ob-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ob-dur-fast: 180ms;
+  --ob-dur-base: 320ms;
+  --ob-dur-slow: 720ms;   /* reveal on scroll */
+  --ob-marquee-dur: 55s;
+
+  /* ---------- Capas ---------- */
+  --ob-z-base: 0;
+  --ob-z-overlay: 5;   /* grain, VHS, gradientes */
+  --ob-z-nav: 10;
+  --ob-z-modal: 100;
+}
+
+/* ============================================================
+   TEMA — Obscuro (estudio / marca paraguas). Default.
+   ============================================================ */
+:root,
+[data-theme="obscuro"] {
+  --ob-bg:            var(--ob-ink-800);
+  --ob-bg-elevated:   var(--ob-ink-700);
+  --ob-fg:            var(--ob-cream-100);
+  --ob-fg-muted:      rgba(245, 244, 239, 0.70);
+  --ob-fg-subtle:     rgba(245, 244, 239, 0.50);
+  --ob-fg-faint:      rgba(245, 244, 239, 0.30);
+  --ob-accent:        var(--ob-gold-500);
+  --ob-accent-fg:     var(--ob-ink-800);
+  --ob-rule:          rgba(245, 244, 239, 0.12);
+  --ob-rule-soft:     rgba(245, 244, 239, 0.08);
+  --ob-body-font:     var(--ob-font-sans);
+  --ob-page-gutter:   var(--ob-gutter);
+  --ob-grain-opacity: 0.06;
+}
+
+/* ============================================================
+   TEMA — Obscuro Gamecrafting. Más cálido, más atmosférico.
+   Habilita el lenguaje VHS. Es el único tema que lo permite.
+   ============================================================ */
+[data-theme="gamecrafting"] {
+  --ob-bg:            var(--ob-ink-900);
+  --ob-bg-elevated:   #100c09;
+  --ob-fg:            var(--ob-cream-200);
+  --ob-fg-muted:      rgba(245, 233, 212, 0.70);
+  --ob-fg-subtle:     rgba(245, 233, 212, 0.55);
+  --ob-fg-faint:      rgba(245, 233, 212, 0.30);
+  --ob-accent:        var(--ob-gold-500);
+  --ob-accent-fg:     var(--ob-ink-900);
+  --ob-rule:          rgba(245, 233, 212, 0.12);
+  --ob-rule-soft:     rgba(245, 233, 212, 0.08);
+  --ob-rule-accent:   rgba(201, 169, 110, 0.25);
+  --ob-body-font:     var(--ob-font-alt);
+  --ob-page-gutter:   var(--ob-gutter);
+  --ob-grain-opacity: 0.14;
+
+  /* Vignette del hero — cierra la imagen contra el fondo */
+  --ob-hero-scrim: radial-gradient(ellipse at 60% 40%, rgba(201,169,110,0.10) 0%, transparent 60%),
+                   linear-gradient(180deg, rgba(7,5,4,0.35) 0%, rgba(7,5,4,0.10) 40%, rgba(7,5,4,0.92) 100%);
+}
+
+/* ============================================================
+   TEMA — LUX. Blanco, frío, institucional.
+   Sin imagery, sin grain, sin oro. Solo tipografía y aire.
+   ============================================================ */
+[data-theme="lux"] {
+  --ob-bg:            var(--ob-paper);
+  --ob-bg-elevated:   #fafafa;
+  --ob-fg:            var(--ob-ink-000);
+  /* #888 era el gris de LUX, pero da 3.54:1 sobre blanco — no cumple AA.
+     #6b6b6b conserva la frialdad y llega a 5.1:1. */
+  --ob-fg-muted:      #6b6b6b;
+  --ob-fg-subtle:     rgba(0, 0, 0, 0.58);
+  --ob-fg-faint:      rgba(0, 0, 0, 0.25);
+  --ob-accent:        var(--ob-ink-000);  /* LUX no tiene acento cromático */
+  --ob-accent-fg:     var(--ob-paper);
+  --ob-rule:          rgba(0, 0, 0, 0.14);
+  --ob-rule-soft:     rgba(0, 0, 0, 0.07);
+  --ob-body-font:     var(--ob-font-sans);
+  --ob-page-gutter:   var(--ob-gutter-lux);
+  --ob-grain-opacity: 0;  /* LUX nunca lleva grain */
+}
+
+/* ============================================================
+   Reset mínimo + defaults del sistema
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-size: var(--ob-text-base);
+  line-height: var(--ob-leading-relaxed);
+  font-weight: var(--ob-weight-regular);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Todo contenedor tematizado pinta su propia superficie.
+   Sin esto, un [data-theme] anidado cambiaría las variables pero no el fondo
+   —y el <body>, al ser ancestro, se quedaría siempre con el tema por defecto.
+   Como efecto útil, permite anidar un bloque LUX dentro de una página Obscuro. */
+body,
+[data-theme] {
+  background: var(--ob-bg);
+  color: var(--ob-fg);
+  font-family: var(--ob-body-font);
+}
+
+/* ---------- Roles tipográficos ----------
+   Usar estas clases en vez de setear font-family a mano. */
+
+.ob-display {
+  font-family: var(--ob-font-display);
+  font-weight: var(--ob-weight-light);
+  font-size: var(--ob-text-display);
+  line-height: var(--ob-leading-tight);
+  letter-spacing: var(--ob-track-display);
+  margin: 0;
+}
+/* La cursiva del display es donde entra el oro. Es la firma. */
+.ob-display em { color: var(--ob-accent); font-style: italic; }
+
+.ob-title {
+  font-family: var(--ob-font-display);
+  font-weight: var(--ob-weight-light);
+  font-size: var(--ob-text-3xl);
+  line-height: var(--ob-leading-snug);
+  letter-spacing: var(--ob-track-title);
+  margin: 0;
+}
+.ob-title em { color: var(--ob-accent); font-style: italic; }
+
+.ob-lead {
+  font-family: var(--ob-font-display);
+  font-weight: var(--ob-weight-light);
+  font-size: var(--ob-text-lg);
+  line-height: var(--ob-leading-normal);
+  margin: 0;
+}
+
+.ob-body {
+  font-size: var(--ob-text-base);
+  line-height: var(--ob-leading-relaxed);
+  color: var(--ob-fg-muted);
+  margin: 0;
+}
+
+/* Eyebrow — el "(01) Manifiesto" que abre cada sección. */
+.ob-eyebrow {
+  font-family: var(--ob-font-mono);
+  font-size: var(--ob-text-xs);
+  letter-spacing: var(--ob-track-eyebrow);
+  text-transform: uppercase;
+  color: var(--ob-accent);
+}
+
+/* Caps — metadata de documento, navegación de LUX. */
+.ob-caps {
+  font-family: var(--ob-font-sans);
+  font-weight: var(--ob-weight-regular);
+  font-size: var(--ob-text-2xs);
+  letter-spacing: var(--ob-track-caps);
+  text-transform: uppercase;
+}
+
+.ob-mono {
+  font-family: var(--ob-font-mono);
+  font-size: var(--ob-text-xs);
+  letter-spacing: var(--ob-track-mono);
+}
+
+/* ---------- Reglas / hairlines ----------
+   Las secciones se separan con una línea, nunca con una caja. */
+.ob-rule       { border-bottom: var(--ob-hairline) solid var(--ob-rule); }
+.ob-rule-soft  { border-bottom: var(--ob-hairline) solid var(--ob-rule-soft); }
+
+/* ---------- Layout ---------- */
+.ob-section {
+  padding: var(--ob-space-11) var(--ob-page-gutter) var(--ob-space-10);
+  border-bottom: var(--ob-hairline) solid var(--ob-rule-soft);
+}
+
+@media (max-width: 720px) {
+  /* Tiene que incluir [data-theme]: cada tema re-declara --ob-page-gutter,
+     y esa declaración propia gana sobre la heredada de :root. */
+  :root,
+  [data-theme] { --ob-page-gutter: var(--ob-gutter-mobile); }
+  .ob-section { padding: var(--ob-space-9) var(--ob-page-gutter) var(--ob-space-8); }
+  .ob-title   { font-size: var(--ob-text-xl); }
+}
+
+/* ---------- Chip / botón ghost ----------
+   El único componente con radio. Borde de 1px, sin relleno. */
+.ob-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ob-space-2);
+  font-family: var(--ob-font-mono);
+  font-size: var(--ob-text-xs);
+  letter-spacing: var(--ob-track-mono);
+  color: var(--ob-accent);
+  padding: 6px 14px;
+  border: var(--ob-hairline) solid var(--ob-accent);
+  border-radius: var(--ob-radius-pill);
+  text-decoration: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--ob-dur-fast) var(--ob-ease),
+              color var(--ob-dur-fast) var(--ob-ease);
+}
+.ob-chip:hover {
+  background: var(--ob-accent);
+  color: var(--ob-accent-fg);
+}
+
+/* ---------- Reveal on scroll ---------- */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--ob-dur-slow) var(--ob-ease),
+              transform var(--ob-dur-slow) var(--ob-ease);
+}
+[data-reveal][data-revealed] { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}

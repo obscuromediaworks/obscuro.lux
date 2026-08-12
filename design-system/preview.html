@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Obscuro Mediaworks — Sistema de diseño</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  /* Estilos propios del preview — no forman parte del sistema. */
+  .pv-shell { min-height: 100vh; }
+  .pv-head {
+    padding: var(--ob-space-6) var(--ob-page-gutter);
+    border-bottom: 1px solid var(--ob-rule);
+    display: flex; align-items: baseline; justify-content: space-between; gap: var(--ob-space-5);
+    flex-wrap: wrap;
+  }
+  .pv-grid { display: grid; gap: var(--ob-space-4); }
+  .pv-swatches { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .pv-swatch { border: 1px solid var(--ob-rule); }
+  .pv-chip-row { height: 72px; }
+  .pv-meta { display: flex; justify-content: space-between; padding: var(--ob-space-2) var(--ob-space-3); }
+  .pv-specimen { display: grid; gap: var(--ob-space-5); }
+  .pv-row { display: grid; grid-template-columns: 90px 1fr; gap: var(--ob-space-5); align-items: baseline; }
+  .pv-row > .ob-mono { color: var(--ob-fg-faint); }
+  .pv-scale { display: grid; gap: var(--ob-space-3); }
+  .pv-two { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--ob-space-9); align-items: start; }
+  .pv-switch { display: flex; gap: var(--ob-space-2); }
+  .pv-switch button[aria-pressed="true"] { background: var(--ob-accent); color: var(--ob-accent-fg); }
+  @media (max-width: 720px) { .pv-two { grid-template-columns: 1fr; gap: var(--ob-space-6); } }
+</style>
+</head>
+<body>
+<div class="pv-shell" id="shell" data-theme="obscuro">
+
+  <header class="pv-head">
+    <div>
+      <div style="font-family:var(--ob-font-mono);font-weight:500;font-size:28px;letter-spacing:.06em">
+        <span style="color:var(--ob-fg-faint)">[</span> obscuro <span style="color:var(--ob-fg-faint)">]</span>
+      </div>
+      <div style="font-family:var(--ob-font-alt);font-size:11px;letter-spacing:var(--ob-track-logo);color:var(--ob-fg-muted);margin-top:7px">MEDIAWORKS</div>
+    </div>
+    <div class="pv-switch">
+      <button class="ob-chip" data-set="obscuro" aria-pressed="true">Estudio</button>
+      <button class="ob-chip" data-set="gamecrafting" aria-pressed="false">Gamecrafting</button>
+      <button class="ob-chip" data-set="lux" aria-pressed="false">LUX</button>
+    </div>
+  </header>
+
+  <!-- ── Color ───────────────────────────────────────────── -->
+  <section class="ob-section">
+    <div class="ob-eyebrow" style="margin-bottom:var(--ob-space-5)">(01) Color</div>
+    <div class="pv-two">
+      <h2 class="ob-title">Un solo <em>acento</em>.</h2>
+      <p class="ob-body">El oro es el único color de acento del sistema. La jerarquía se
+      resuelve con opacidad del texto y hairlines, no con colores nuevos. LUX no
+      tiene acento cromático en absoluto.</p>
+    </div>
+    <div class="pv-grid pv-swatches" style="margin-top:var(--ob-space-7)">
+      <div class="pv-swatch"><div style="height:72px;background:var(--ob-bg)"></div><div class="pv-meta ob-mono"><span>bg</span></div></div>
+      <div class="pv-swatch"><div style="height:72px;background:var(--ob-bg-elevated)"></div><div class="pv-meta ob-mono"><span>bg-elevated</span></div></div>
+      <div class="pv-swatch"><div style="height:72px;background:var(--ob-fg)"></div><div class="pv-meta ob-mono"><span>fg</span></div></div>
+      <div class="pv-swatch"><div style="height:72px;background:var(--ob-accent)"></div><div class="pv-meta ob-mono"><span>accent</span></div></div>
+      <div class="pv-swatch"><div style="height:72px;background:var(--ob-rule)"></div><div class="pv-meta ob-mono"><span>rule</span></div></div>
+    </div>
+    <div class="pv-grid" style="margin-top:var(--ob-space-5);gap:var(--ob-space-2)">
+      <p style="margin:0;color:var(--ob-fg)">fg — texto principal, 100%</p>
+      <p style="margin:0;color:var(--ob-fg-muted)">fg-muted — cuerpo largo, 70%. Cumple AA.</p>
+      <p style="margin:0;color:var(--ob-fg-subtle)">fg-subtle — metadata secundaria, 50%.</p>
+      <p style="margin:0;color:var(--ob-fg-faint)">fg-faint — decorativo, 30%. Nunca información necesaria.</p>
+    </div>
+  </section>
+
+  <!-- ── Tipografía ──────────────────────────────────────── -->
+  <section class="ob-section">
+    <div class="ob-eyebrow" style="margin-bottom:var(--ob-space-5)">(02) Tipografía</div>
+    <div class="pv-specimen">
+      <div class="pv-row"><span class="ob-mono">display</span><h1 class="ob-display" style="font-size:120px">Hacemos <em>juegos</em>.</h1></div>
+      <div class="pv-row"><span class="ob-mono">title</span><h2 class="ob-title">Audio que <em>recuerdas</em>.</h2></div>
+      <div class="pv-row"><span class="ob-mono">lead</span><p class="ob-lead">Somos un equipo independiente que crea experiencias inmersivas en la intersección de narrativa, diseño de sonido y mecánicas.</p></div>
+      <div class="pv-row"><span class="ob-mono">body</span><p class="ob-body">Trabajamos como sound house y co-desarrollo para estudios indie. Cuando no estamos en eso, hacemos lo nuestro.</p></div>
+      <div class="pv-row"><span class="ob-mono">eyebrow</span><span class="ob-eyebrow">(03) Proyectos</span></div>
+      <div class="pv-row"><span class="ob-mono">caps</span><span class="ob-caps">Buenos Aires · 34.6°S</span></div>
+      <div class="pv-row"><span class="ob-mono">mono</span><span class="ob-mono">Doc. LUX-2026-01 · Rev. 01</span></div>
+    </div>
+
+    <div class="ob-eyebrow" style="margin:var(--ob-space-9) 0 var(--ob-space-5)">Escala</div>
+    <div class="pv-scale">
+      <div class="pv-row"><span class="ob-mono">2xs · 10</span><span style="font-size:var(--ob-text-2xs)">Obscuro Mediaworks</span></div>
+      <div class="pv-row"><span class="ob-mono">xs · 11</span><span style="font-size:var(--ob-text-xs)">Obscuro Mediaworks</span></div>
+      <div class="pv-row"><span class="ob-mono">sm · 13</span><span style="font-size:var(--ob-text-sm)">Obscuro Mediaworks</span></div>
+      <div class="pv-row"><span class="ob-mono">base · 15</span><span style="font-size:var(--ob-text-base)">Obscuro Mediaworks</span></div>
+      <div class="pv-row"><span class="ob-mono">md · 18</span><span style="font-size:var(--ob-text-md)">Obscuro Mediaworks</span></div>
+      <div class="pv-row"><span class="ob-mono">lg · 28</span><span style="font-size:var(--ob-text-lg)">Obscuro Mediaworks</span></div>
+      <div class="pv-row"><span class="ob-mono">xl · 40</span><span style="font-size:var(--ob-text-xl)">Obscuro</span></div>
+      <div class="pv-row"><span class="ob-mono">2xl · 56</span><span style="font-size:var(--ob-text-2xl)">Obscuro</span></div>
+      <div class="pv-row"><span class="ob-mono">3xl · 80</span><span style="font-size:var(--ob-text-3xl)">Obscuro</span></div>
+    </div>
+  </section>
+
+  <!-- ── Componentes ─────────────────────────────────────── -->
+  <section class="ob-section">
+    <div class="ob-eyebrow" style="margin-bottom:var(--ob-space-5)">(03) Componentes</div>
+
+    <div class="pv-two">
+      <div>
+        <span class="ob-caps" style="color:var(--ob-fg-subtle)">Chip</span>
+        <div class="pv-chip-row" style="display:flex;gap:var(--ob-space-3);align-items:center;margin-top:var(--ob-space-3)">
+          <a class="ob-chip" href="#">Press kit</a>
+          <a class="ob-chip" href="#">Ver proyecto ↗</a>
+        </div>
+      </div>
+      <div>
+        <span class="ob-caps" style="color:var(--ob-fg-subtle)">Hairline · separador de sección</span>
+        <div style="margin-top:var(--ob-space-3)">
+          <div class="ob-rule" style="padding-bottom:var(--ob-space-3)"><span class="ob-mono">rule · 12%</span></div>
+          <div class="ob-rule-soft" style="padding:var(--ob-space-3) 0"><span class="ob-mono">rule-soft · 8%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:var(--ob-space-9)">
+      <span class="ob-caps" style="color:var(--ob-fg-subtle)">Fila de metadata — la marca se comporta como un documento</span>
+      <div class="ob-rule" style="display:grid;grid-template-columns:repeat(5,1fr);gap:var(--ob-space-4);padding:var(--ob-space-3) 0;margin-top:var(--ob-space-3);font-family:var(--ob-font-mono);font-size:var(--ob-text-2xs);color:var(--ob-fg-muted)">
+        <span><span style="color:var(--ob-fg)">Doc.</span> OMW-2026-01</span>
+        <span><span style="color:var(--ob-fg)">Estudio.</span> Obscuro</span>
+        <span><span style="color:var(--ob-fg)">Loc.</span> Buenos Aires</span>
+        <span><span style="color:var(--ob-fg)">Año.</span> MMXXVI</span>
+        <span style="text-align:right"><span style="color:var(--ob-fg)">Rev.</span> 01</span>
+      </div>
+    </div>
+
+    <div style="margin-top:var(--ob-space-9)">
+      <span class="ob-caps" style="color:var(--ob-fg-subtle)">Facts — datos concretos antes que adjetivos</span>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--ob-space-4);margin-top:var(--ob-space-4)">
+        <div><div class="ob-title" style="font-size:var(--ob-text-xl)">07</div><div class="ob-mono" style="color:var(--ob-fg-subtle)">años</div></div>
+        <div><div class="ob-title" style="font-size:var(--ob-text-xl)">02</div><div class="ob-mono" style="color:var(--ob-fg-subtle)">disciplinas</div></div>
+        <div><div class="ob-title" style="font-size:var(--ob-text-xl)">03</div><div class="ob-mono" style="color:var(--ob-fg-subtle)">títulos</div></div>
+        <div><div class="ob-title" style="font-size:var(--ob-text-xl)">01</div><div class="ob-mono" style="color:var(--ob-fg-subtle)">estudio</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ob-section" style="border-bottom:none">
+    <div class="ob-mono" style="color:var(--ob-fg-subtle)">Buenos Aires · MMXXVI</div>
+  </footer>
+</div>
+
+<script>
+  // Cambia el tema del shell entero. Los tokens hacen el resto.
+  const shell = document.getElementById('shell');
+  document.querySelectorAll('[data-set]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      shell.setAttribute('data-theme', btn.dataset.set);
+      document.querySelectorAll('[data-set]').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)));
+    });
+  });
+</script>
+</body>
+</html>

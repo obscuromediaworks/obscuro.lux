@@ -1,0 +1,9 @@
+{
+  "projectId": "8d04b840-c145-42d9-a1e6-4edec4c6ec73",
+  "shape": "package",
+  "pkg": "obscuro-mediaworks-ds",
+  "globalName": "ObscuroDS",
+  "buildCmd": "node .ds-sync/obscuro-build.mjs",
+  "cssEntry": "design-system/tokens.css",
+  "readmeHeader": ".design-sync/conventions.md"
+}

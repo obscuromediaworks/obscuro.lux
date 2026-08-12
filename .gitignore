@@ -34,3 +34,12 @@ build/
 screenshots/
 uploads/
 scraps/
+
+# design-sync: staged scripts, generated bundle, machine-local cache/state.
+# El set durable (.design-sync/config.json, NOTES.md, conventions.md, previews/)
+# SI se commitea — ver .design-sync/NOTES.md.
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
