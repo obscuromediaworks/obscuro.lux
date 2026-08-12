@@ -1,10 +1,13 @@
-# Dossier — Obscuro Mediaworks · Sitio + Design System *(interno)*
+# Dossier — OBSCUROMEDIAWORKS · Sitio + Design System + Estudio
 
 | | |
 |---|---|
 | **Repo** | `G:\Github\obscuro.lux` — `obscuromediaworks/obscuro.lux` |
-| **Público** | https://obscuromediaworks.com.ar |
-| **Stack** | HTML estático + React 18 + Babel standalone. **Sin build step, sin npm.** |
+| **Asana** | **OBSCUROMEDIAWORKS — Sitio & Estudio**, gid `1217424610945968` |
+| **Trigger** | "vamos con OBSCUROMEDIAWORKS" |
+| **Público** | https://obscuromediaworks.com.ar · `www.` · `lux.` |
+| **Stack** | HTML estático + React 18 + Babel standalone, servido por un Worker de assets |
+| **Workflow** | Claude Code + Design. Roi diseña, Claude implementa y deploya **cuando Roi lo pide** |
 
 ## Qué contiene
 
@@ -15,8 +18,16 @@
 
 ## Deploy
 
-`deploy/index.html` es self-contained (assets, fonts y scripts inlineados). Se sube el contenido de
-`deploy/` a la raíz del hosting. Regenerar el bundle antes de subir.
+```bash
+npm run deploy
+```
+
+Sube `deploy/` al Worker `obscuro-lux-site`. **Todo el detalle en `DEPLOY.md`** — leerlo antes de
+tocar nada del deploy. Dos cosas que no se negocian:
+
+- **`deploy/index.html` es el sitio; `index.html` de la raíz NO.** Servir la raíz deja el dominio
+  en pantalla negra (el comparador de exploración crashea en React).
+- **Cada push a `main` dispara un deploy automático.** Un push publica.
 
 ## Reglas
 
