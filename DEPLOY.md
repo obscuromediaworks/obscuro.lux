@@ -21,16 +21,21 @@ account id `630e82a95b7e0195814dd7891e25fc8c`.
 
 ## ⚠️ Lo único que no hay que confundir
 
-**`deploy/index.html` es el sitio. `index.html` en la raíz NO.**
+**El sitio es `deploy/index.html`. En la raíz del repo ya NO hay ningún `index.html`,
+y así tiene que quedar.**
 
 | Archivo | `<title>` | Qué es |
 |---|---|---|
 | `deploy/index.html` | `— Estudio de diseño y desarrollo` | **el sitio**, self-contained, 2,1 MB |
-| `index.html` (raíz) | `— Landing (3 variaciones)` | comparador de exploración de diseño |
+| `design-canvas.html` (raíz) | `— Landing (3 variaciones)` | comparador de exploración de diseño |
 
 Ese comparador **crashea en React** (`DesignCanvas` → `AProjects`) y deja el `<body>` con cero
-contenido: el dominio se ve **negro**. Cualquier deploy que sirva la raíz del repo en vez de
-`deploy/` rompe el sitio así. Por eso `wrangler.toml` fija `directory = "./deploy"`.
+contenido. Mientras se llamaba `index.html`, cualquier deploy que sirviera la raíz lo publicaba
+como si fuera el sitio y el dominio se veía **negro** — fue el incidente del 12/8. Se renombró a
+`design-canvas.html` justamente para desactivar la trampa.
+
+**No vuelvas a crear un `index.html` en la raíz.** `wrangler.toml` fija `directory = "./deploy"`,
+pero la defensa real es que no haya nada publicable ahí arriba.
 
 **Cómo verificar un deploy en 5 segundos:** mirá el `<title>` de la pestaña, no el status code.
 

@@ -14,6 +14,8 @@ HTML estático + React 18 + Babel standalone (sin build step). Todo se renderiza
 
 ```
 site.html                  Source — entry HTML, importa todos los .jsx
+design-canvas.html         Comparador de exploración de diseño. NO es el sitio.
+                           (se llamaba index.html: servirlo dejaba el dominio en negro)
 shared.jsx                 Utilidades + LogoMark + datos compartidos
 site-app.jsx               Routing (hash router) + detección desktop/mobile
 page-games.jsx             Obscuro Gamecrafting (desktop)
