@@ -1,0 +1,11 @@
+name = "obscuro-mediaworks"
+compatibility_date = "2026-08-12"
+pages_build_output_dir = "site-dist"
+
+# Proyecto de Cloudflare Pages del sitio del estudio.
+# Cuenta: obscuromediaworks@gmail.com (630e82a95b7e0195814dd7891e25fc8c)
+#
+# El contenido de site-dist/ lo arma `python scripts/build-site.py` -- no se edita
+# a mano y no se versiona. Deploy: `.\scripts\deploy-site.ps1`.
+#
+# Sin build command: el sitio es HTML estático con React por CDN, sin paso de build.

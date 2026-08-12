@@ -31,6 +31,10 @@ build/
 
 __pycache__/
 
+# Bundle que se sube a Cloudflare Pages. Lo arma scripts/build-site.py.
+site-dist/
+.wrangler/
+
 # Modo God: salida del collector. asana-cache.json SI se versiona (lo escribe un agente).
 studio/modo-god/snapshot.json
 
