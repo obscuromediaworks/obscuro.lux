@@ -39,7 +39,10 @@ deploy/                    Bundle listo para deploy
 .\scripts\deploy-site.ps1              # produccion
 .\scripts\deploy-site.ps1 -Preview     # URL de preview, no toca el sitio vivo
 .\scripts\deploy-site.ps1 -BuildOnly   # arma site-dist/ y no sube nada
+.\scripts\deploy-site.ps1 -SiteOnly    # sin /modo-god (mientras no haya Access)
 ```
+
+Proyecto de Pages: **`obscuro-mediaworks`** → `obscuro-mediaworks.pages.dev`.
 
 `scripts/build-site.py` arma `site-dist/` = el bundle del sitio (`deploy/`) **más** el tablero de
 operaciones en `/modo-god`. Un solo proyecto de Pages (`obscuro-mediaworks`) sirve las dos cosas,
@@ -55,7 +58,10 @@ así que la ruta `/modo-god` sale gratis: no hace falta un Worker que la proxee.
 2. **Dominio.** El apex ya está proxeado por Cloudflare, pero apunta a otro origen. Atarlo al
    proyecto Pages es un cambio de producción, y **los custom domains se agregan por dashboard o
    API REST, no por wrangler**. Conviene probar antes con `-Preview`.
-3. **Proteger `/modo-god` con Cloudflare Access** (Zero Trust → Access → Applications), acotado a
+3. **Ojo con el fallback de Pages: toda ruta inexistente devuelve el `index.html` de la raíz con
+   `200`, no un 404.** O sea que si un build sale sin el tablero, `/modo-god` no falla: muestra la
+   home del sitio y parece que anduvo. Verificá el `<title>`, no el status code.
+4. **Proteger `/modo-god` con Cloudflare Access** (Zero Trust → Access → Applications), acotado a
    hostname + path `/modo-god`. El `robots.txt` y el `_headers` con `noindex` que genera el build
    son higiene de crawlers, **no** son seguridad.
 

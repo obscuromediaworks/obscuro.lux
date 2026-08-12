@@ -12,10 +12,12 @@ Arma site-dist/: lo que se sube a Cloudflare Pages.
 Un solo proyecto de Pages sirve las dos cosas, y por eso el tablero queda en
 obscuromediaworks.com.ar/modo-god sin necesidad de un Worker que proxee la ruta.
 
-    python scripts/build-site.py
+    python scripts/build-site.py              con el tablero
+    python scripts/build-site.py --site-only  sin el tablero
 
 ⚠️ /modo-god NO se protege desde acá. Lo protege Cloudflare Access, y es un paso
-manual en el dashboard. Sin eso, el tablero es público para quien adivine la URL.
+manual en el dashboard. Sin eso, el tablero es público para quien adivine la URL
+-- incluida una URL de preview de Pages. Mientras Access no esté, usá --site-only.
 """
 
 import os
@@ -47,12 +49,14 @@ HEADERS = """/modo-god/*
 def main():
     if not os.path.isdir(SRC_SITE):
         sys.exit("No existe deploy/ -- no hay sitio que subir")
+    site_only = "--site-only" in sys.argv
 
     # 1. Regenerar el bundle del tablero para que el snapshot sea de ahora
-    print("-> generando el bundle de Modo God...")
-    r = subprocess.run([sys.executable, "publish.py"], cwd=MODO_GOD)
-    if r.returncode != 0:
-        sys.exit("publish.py falló; corto acá para no subir un tablero viejo")
+    if not site_only:
+        print("-> generando el bundle de Modo God...")
+        r = subprocess.run([sys.executable, "publish.py"], cwd=MODO_GOD)
+        if r.returncode != 0:
+            sys.exit("publish.py falló; corto acá para no subir un tablero viejo")
 
     # 2. Sitio
     if os.path.isdir(OUT):
@@ -60,9 +64,11 @@ def main():
     shutil.copytree(SRC_SITE, OUT)
 
     # 3. Tablero adentro, en /modo-god
-    dst = os.path.join(OUT, "modo-god")
-    os.makedirs(dst, exist_ok=True)
-    shutil.copy2(os.path.join(MODO_GOD, "dist", "index.html"), os.path.join(dst, "index.html"))
+    if not site_only:
+        dst = os.path.join(OUT, "modo-god")
+        os.makedirs(dst, exist_ok=True)
+        shutil.copy2(os.path.join(MODO_GOD, "dist", "index.html"),
+                     os.path.join(dst, "index.html"))
 
     with open(os.path.join(OUT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write(ROBOTS)
@@ -76,7 +82,10 @@ def main():
     ) / (1024 * 1024)
     print("\nsite-dist/ listo -- {} archivos, {:.1f} MB".format(n, mb))
     print("  /            el sitio")
-    print("  /modo-god    el tablero  <-- protegelo con Cloudflare Access")
+    if site_only:
+        print("  (sin /modo-god -- build con --site-only)")
+    else:
+        print("  /modo-god    el tablero  <-- protegelo con Cloudflare Access")
 
 
 if __name__ == "__main__":

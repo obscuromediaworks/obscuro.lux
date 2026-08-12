@@ -3,12 +3,14 @@
 #   .\scripts\deploy-site.ps1              deploy a produccion (rama main)
 #   .\scripts\deploy-site.ps1 -Preview     deploy a una URL de preview, sin tocar el sitio vivo
 #   .\scripts\deploy-site.ps1 -BuildOnly   arma site-dist/ y no sube nada
+#   .\scripts\deploy-site.ps1 -SiteOnly    sin /modo-god (usar mientras no haya Access)
 #
 # Requiere `npx wrangler login` con permisos de Pages. El OAuth caduca ~24 h.
 
 param(
   [switch]$Preview,
-  [switch]$BuildOnly
+  [switch]$BuildOnly,
+  [switch]$SiteOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,7 +21,8 @@ $project = "obscuro-mediaworks"
 $branch  = if ($Preview) { "preview" } else { "main" }
 
 Write-Host "== Armando site-dist/ ==" -ForegroundColor Cyan
-python scripts/build-site.py
+if ($SiteOnly) { python scripts/build-site.py --site-only }
+else           { python scripts/build-site.py }
 if ($LASTEXITCODE -ne 0) { throw "build-site.py fallo" }
 
 if ($BuildOnly) {
