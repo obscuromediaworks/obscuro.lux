@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es" data-theme="obscuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Modo God — Obscuro Mediaworks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-900:#070504; --ink-800:#0a0a0a; --ink-700:#0f0f0f; --ink-600:#161513;
+    --cream:#f5e9d4; --gold:#c9a96e; --gold-dim:#a1854f; --rec:#ff1f3e;
+    --ok:#6ab04c; --warn:#e2b33c;
+    --font-display:"Cormorant Garamond",Georgia,serif;
+    --font-sans:"Space Grotesk","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,monospace;
+    --line:rgba(201,169,110,.18);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink-900);color:var(--cream);font-family:var(--font-sans);
+       font-weight:300;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--gold);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 24px 80px}
+
+  header{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:32px;
+         display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+  h1{font-family:var(--font-display);font-weight:300;font-size:clamp(40px,7vw,72px);
+     line-height:.9;letter-spacing:-.03em;margin:0}
+  h1 small{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;
+           text-transform:uppercase;color:var(--gold);margin-bottom:10px;font-weight:400}
+  .meta{font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;color:#8a8175;text-align:right}
+  .meta b{color:var(--cream);font-weight:500}
+  .stale{color:var(--rec)}
+
+  h2{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+     color:var(--gold);font-weight:400;margin:48px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+  .card{background:var(--ink-700);border:1px solid var(--line);padding:20px 22px 18px;
+        display:flex;flex-direction:column;gap:12px}
+  .card.p1{border-color:var(--gold)}
+  .card-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .name{font-family:var(--font-display);font-size:28px;line-height:1;letter-spacing:-.02em}
+  .badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+         border:1px solid var(--line);padding:3px 8px;color:#8a8175;white-space:nowrap}
+  .badge.launch{border-color:var(--rec);color:var(--rec)}
+  .badge.production{border-color:var(--gold);color:var(--gold)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-family:var(--font-mono);font-size:11px;letter-spacing:.03em;padding:2px 8px;
+        background:var(--ink-600);border:1px solid transparent;color:#a9a094}
+  .chip.clean{color:var(--ok)}
+  .chip.dirty{color:var(--warn);border-color:rgba(226,179,60,.35)}
+  .chip.ahead{color:var(--rec);border-color:rgba(255,31,62,.35)}
+  .chip.branch{color:var(--gold);border-color:var(--line)}
+  .chip.err{color:var(--rec);border-color:var(--rec)}
+
+  .commit{font-family:var(--font-mono);font-size:11.5px;line-height:1.5;color:#8a8175;
+          border-left:2px solid var(--line);padding-left:10px}
+  .commit b{color:var(--cream);font-weight:500}
+  .commit .subject{display:block;color:#a9a094;margin-top:2px;
+                   overflow:hidden;text-overflow:ellipsis;display:-webkit-box;
+                   -webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+  .rowline{display:flex;justify-content:space-between;gap:10px;font-family:var(--font-mono);
+           font-size:11px;color:#8a8175;border-top:1px solid var(--line);padding-top:10px;margin-top:auto}
+  .roles{display:flex;gap:5px}
+  .role{width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--line);
+        font-size:10px;letter-spacing:0;color:var(--gold);text-transform:uppercase}
+  .ship{color:var(--rec)}
+
+  .hl{margin:0;padding:0 0 0 16px;font-size:12px;color:#a9a094;line-height:1.5}
+  .hl li{margin-bottom:2px}
+  .hl li::marker{color:var(--rec)}
+  .pulse{display:flex;align-items:flex-end;gap:2px;height:18px}
+  .pulse i{width:4px;background:var(--gold-dim);display:block}
+
+  table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px}
+  td,th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--gold);font-weight:400;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+  td.muted{color:#8a8175}
+
+  .empty{font-family:var(--font-mono);font-size:12px;color:#8a8175;border:1px dashed var(--line);padding:16px}
+  footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);
+         font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;color:#6f675d}
+  @media(max-width:600px){.wrap{padding:28px 16px 60px}.meta{text-align:left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><small>Obscuro Mediaworks · operaciones</small>Modo God</h1>
+    <div class="meta" id="meta">cargando…</div>
+  </header>
+  <div id="app"><div class="empty">Leyendo el snapshot…</div></div>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c => (
+  {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function ago(iso){
+  if(!iso) return "—";
+  const d = (Date.now() - new Date(iso)) / 1000;
+  if (d < 90) return "recién";
+  if (d < 5400) return Math.round(d/60) + " min";
+  if (d < 172800) return Math.round(d/3600) + " h";
+  return Math.round(d/86400) + " d";
+}
+function daysTo(date){
+  if(!date) return null;
+  return Math.ceil((new Date(date + "T00:00:00") - Date.now()) / 86400000);
+}
+
+function gitChips(g){
+  if(!g || !g.ok) return `<span class="chip err">git: ${esc(g && g.error || "sin datos")}</span>`;
+  const c = [`<span class="chip branch">${esc(g.branch)}</span>`];
+  if(g.dirty) c.push(`<span class="chip dirty">${g.dirty} sin commitear</span>`);
+  if(g.untracked) c.push(`<span class="chip dirty">${g.untracked} sin trackear</span>`);
+  if(!g.dirty && !g.untracked) c.push(`<span class="chip clean">limpio</span>`);
+  if(g.ahead) c.push(`<span class="chip ahead">↑${g.ahead} sin pushear</span>`);
+  if(g.behind) c.push(`<span class="chip dirty">↓${g.behind} atrás</span>`);
+  if(g.upstream === null) c.push(`<span class="chip dirty">sin upstream</span>`);
+  return c.join("");
+}
+
+function pulse(g){
+  const w = (g && g.commits_7d) || 0, m = (g && g.commits_30d) || 0;
+  const bars = [w, Math.max(0, m - w)].map(n => {
+    const h = Math.min(18, 2 + n * 1.2);
+    return `<i style="height:${h}px"></i>`;
+  }).join("");
+  return `<span title="${w} commits en 7d · ${m} en 30d">${w}/${m} <span class="pulse">${bars}</span></span>`;
+}
+
+function card(p){
+  const g = p.git, lc = g && g.last_commit;
+  const d = daysTo(p.ships_on);
+  const ship = d === null ? "" :
+    `<span class="ship">lanza en ${d} d</span>`;
+  const a = p.asana;
+  const asana = a
+    ? `<a href="https://app.asana.com/0/${esc(p.asana_project_gid)}" target="_blank" rel="noopener"
+        >${a.open}/${a.total} abiertas</a>` +
+      (a.overdue ? ` <span class="chip ahead">${a.overdue} vencidas</span>` : "")
+    : (p.asana_project_gid
+        ? `<a href="https://app.asana.com/0/${esc(p.asana_project_gid)}" target="_blank" rel="noopener">Asana</a>`
+        : `<span class="chip dirty">sin board</span>`);
+  const hl = a && a.highlights && a.highlights.length
+    ? `<ul class="hl">${a.highlights.slice(0,6).map(h => `<li>${esc(h)}</li>`).join("")}</ul>` : "";
+  return `
+  <article class="card ${p.priority === 1 ? "p1" : ""}">
+    <div class="card-top">
+      <span class="name">${esc(p.name)}</span>
+      <span class="badge ${esc(p.status)}">${esc(p.status)}</span>
+    </div>
+    <div class="chips">${gitChips(g)}</div>
+    ${lc ? `<div class="commit"><b>${esc(lc.hash)}</b> · ${ago(lc.date)} · ${esc(lc.author)}
+      <span class="subject">${esc(lc.subject)}</span></div>` : ``}
+    ${hl}
+    <div class="rowline">
+      <span>${pulse(g)}</span>
+      <span>${asana}</span>
+    </div>
+    <div class="rowline" style="border-top:none;padding-top:0;margin-top:-4px">
+      <span class="roles">${(p.roles||[]).map(r =>
+        `<span class="role" title="${esc(r)}">${esc(r[0])}</span>`).join("")}</span>
+      <span>${ship || esc(p.engine || "")}</span>
+    </div>
+  </article>`;
+}
+
+function render(s){
+  const gen = new Date(s.generated_at);
+  const stale = (Date.now() - gen) > 86400000;
+  $("#meta").innerHTML =
+    `snapshot: <b class="${stale ? "stale" : ""}">${ago(s.generated_at)}</b>` +
+    (stale ? ` <span class="stale">— desactualizado</span>` : "") +
+    `<br>${esc(gen.toLocaleString("es-AR"))} · ${esc(s.generated_on || "")}` +
+    `<br>Asana: ${s.asana_cache && s.asana_cache.present
+      ? esc(ago(s.asana_cache.generated_at)) : "<span class='stale'>sin caché</span>"}`;
+
+  const games = s.projects.filter(p => p.kind === "game");
+  const other = s.projects.filter(p => p.kind !== "game");
+
+  $("#app").innerHTML = `
+    <h2>Juegos</h2>
+    <div class="grid">${games.map(card).join("")}</div>
+    <h2>Estudio y clientes</h2>
+    <div class="grid">${other.map(card).join("")}</div>
+    <h2>Agentes</h2>
+    <table><tr><th>Rol</th><th>Agente</th><th>Superficie</th><th>Brief</th></tr>
+      ${(s.roles||[]).map(r => `<tr>
+        <td>${esc(r.name)}</td><td>om-${esc(r.id)}</td>
+        <td class="muted">${esc(r.surface)}</td><td class="muted">${esc(r.brief)}</td></tr>`).join("")}
+    </table>
+    <h2>Sin clasificar — decisión de Roi</h2>
+    <table>
+      ${(s.unclassified_asana||[]).map(r => `<tr>
+        <td><a href="https://app.asana.com/0/${esc(r.gid)}" target="_blank" rel="noopener">${esc(r.name)}</a></td>
+        <td class="muted">${esc(r.note)}</td></tr>`).join("")}
+      ${(s.unclassified_repos||[]).map(r => `<tr>
+        <td>${esc(r.path)}</td><td class="muted">${esc(r.note)}</td></tr>`).join("")}
+    </table>`;
+
+  $("#foot").textContent =
+    "El estado de git sale del disco local. El de Asana es una caché que escribe un agente. " +
+    "Esta página no ejecuta nada — es un espejo.";
+}
+
+(async function(){
+  if (window.__SNAPSHOT__) { render(window.__SNAPSHOT__); return; }  // bundle publicado
+  for (const url of ["api/snapshot", "snapshot.json"]) {
+    try {
+      const r = await fetch(url, {cache: "no-store"});
+      if (!r.ok) continue;
+      render(await r.json());
+      return;
+    } catch (e) { /* probar el siguiente */ }
+  }
+  $("#app").innerHTML = `<div class="empty">No encontré el snapshot.
+    Corré <code>python collect.py</code> en studio/modo-god/.</div>`;
+  $("#meta").textContent = "sin datos";
+})();
+</script>
+</body>
+</html>

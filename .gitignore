@@ -29,6 +29,11 @@ build/
 # Logs
 *.log
 
+__pycache__/
+
+# Modo God: salida del collector. asana-cache.json SI se versiona (lo escribe un agente).
+studio/modo-god/snapshot.json
+
 # Project-internal state
 .design-canvas.state.json
 screenshots/

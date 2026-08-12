@@ -1,0 +1,69 @@
+{
+  "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
+  "generated_at": "2026-08-12T04:40:00Z",
+  "generated_by": "sesión de armado del sistema de estudio",
+  "note": "Conteos de get_projects. Vencidas y próximas calculadas a mano para moba-warmup y le2; el resto tiene solo conteos.",
+  "projects": {
+    "moba-warmup": {
+      "board": "MOBA Warmup — Launch v1 (14 ago)",
+      "total": 43,
+      "open": 21,
+      "done": 22,
+      "overdue": 6,
+      "highlights": [
+        "[Lanzamiento] Soft launch beta — vencía 7/8",
+        "[QA] Pasada de QA por modo del núcleo + fixes — vencía 11/8",
+        "[QA] Barrido de los otros drills — sin ver en las dos pasadas del 6/8",
+        "[Marketing] Trailer 30-60s + clips — vencía 11/8",
+        "[Marketing] Grabar gameplay limpio de cada modo — vencía 10/8",
+        "[Build] Bumpear a 1.0.0 ANTES del build final"
+      ]
+    },
+    "le2": {
+      "board": "LE2 — Sprint 01 (VS Spine)",
+      "total": 58,
+      "open": 20,
+      "done": 38,
+      "overdue": null,
+      "highlights": [
+        "8 decisiones pendientes de Lucas (L1-L9)",
+        "D4 — Replicar blockers por bifurcación tras el sismo",
+        "B4 — Calibrar luces de los marcadores de sección",
+        "E1 — Build de prueba + playtest interno con Lucas"
+      ]
+    },
+    "skategang": {
+      "board": "SkateGang: Normie City — Sprint 01 (Core + Sandbox)",
+      "total": 55,
+      "open": 40,
+      "done": 15,
+      "overdue": null,
+      "highlights": []
+    },
+    "weedgang": {
+      "board": "Weedgang — Sprint 01 (Fase 1: jardín + cuidado)",
+      "total": 52,
+      "open": 17,
+      "done": 35,
+      "overdue": null,
+      "highlights": []
+    },
+    "ninja-worm": {
+      "board": "Ninja Worm — Sprint 01",
+      "total": 27,
+      "open": 19,
+      "done": 8,
+      "overdue": null,
+      "highlights": []
+    },
+    "don-atilio": {
+      "board": "Don Atilio — Sprint 01",
+      "total": 19,
+      "open": 4,
+      "done": 15,
+      "overdue": null,
+      "highlights": []
+    },
+    "obscuro-lux": null
+  }
+}
