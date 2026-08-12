@@ -44,6 +44,17 @@ deploy/                    Bundle listo para deploy
 
 Proyecto de Pages: **`obscuro-mediaworks`** → `obscuro-mediaworks.pages.dev`.
 
+### ⚠️ Este repo NO puede tener un `wrangler.toml` en la raíz
+
+Hay un Worker aparte, **`obscuro-lux-site`**, conectado a este repo por Git: **cada push le dispara
+un build y un deploy automático**. Ese Worker es el que hoy tiene los custom domains
+(`obscuromediaworks.com.ar`, `www`, `lux`) y sirve la **raíz del repo** — por eso el dominio muestra
+el comparador de exploración y no el sitio.
+
+Un `wrangler.toml` en la raíz lo rompe (o peor: le aplica una config que no es la suya). Por eso el
+deploy de Pages pasa todo por flags de CLI (`--project-name`, directorio explícito) y no usa archivo
+de configuración.
+
 `scripts/build-site.py` arma `site-dist/` = el bundle del sitio (`deploy/`) **más** el tablero de
 operaciones en `/modo-god`. Un solo proyecto de Pages (`obscuro-mediaworks`) sirve las dos cosas,
 así que la ruta `/modo-god` sale gratis: no hace falta un Worker que la proxee.
