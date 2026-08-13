@@ -198,7 +198,12 @@ class Handler(SimpleHTTPRequestHandler):
         return t
 
     def log_message(self, fmt, *args):
-        if "/api/" in (args[0] if args else ""):
+        # Bug preexistente (no de esta migración): log_error() llama a este mismo método con
+        # args[0] = un código HTTPStatus, no un string -- "in" sobre eso tira TypeError y mata
+        # el thread del request. Ahora que /qa devuelve 404 seguido (slug que no existe, o
+        # items.json faltante), pasaba más. str() lo hace seguro para los dos casos.
+        first = str(args[0]) if args else ""
+        if "/api/" in first:
             return
         super().log_message(fmt, *args)
 
