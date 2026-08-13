@@ -92,6 +92,14 @@ cuándo se generó. Si el snapshot tiene más de un día, se asume desactualizad
 
 Ver `studio/modo-god/README.md`.
 
+**Regla (13/8/2026): toda automatización de posteo en redes se opera desde Modo God, nunca
+directo desde una cuenta o script suelto.** Roi quiere entrenar a `om-marketing` hacia postear de
+forma automatizada por proyecto (las redes que se definan en cada dossier). La ejecución real de
+"publicar" sigue el mismo patrón que `decisions.json`: se automatiza todo hasta la cola —
+redacción, formato, cuenta/horario correctos por proyecto — y el disparo final queda en Modo God
+esperando aprobación explícita de Roi. No reemplaza la regla dura de `roles/marketing.md`
+("nada se publica sin OK explícito"); la implementa con menos fricción manual, no la saltea.
+
 ## 9. Rutina de arranque
 
 Al detectar el trigger de un proyecto (ej. "vamos con OBSCUROMEDIAWORKS"), **antes** de esperar

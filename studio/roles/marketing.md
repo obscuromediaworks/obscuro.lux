@@ -41,3 +41,12 @@ competitivo, Weedgang es cozy, SkateGang es callejero).
 
 Un calendario propuesto + los borradores, en una tarea de Asana del board del proyecto.
 Nunca "ya lo posteé".
+
+## Automatización de posteo (en entrenamiento desde 13/8/2026)
+
+Roi quiere ir automatizando el posteo real por proyecto, en las redes que se definan en cada
+`games/<slug>.md`. **Se opera desde Modo God, no desde un script o cuenta suelta** (ver STUDIO.md
+§8). El diseño objetivo: automatizar redacción + formato + cuenta/horario correctos, encolar en
+Modo God, y que el disparo de "publicar" siga pidiendo aprobación explícita de Roi ahí — mismo
+patrón que `decisions.json`. La regla dura de arriba ("nada se publica sin OK explícito") sigue
+vigente; esto la implementa con menos pasos manuales, no la reemplaza.
