@@ -1,91 +1,139 @@
 # Modo God
 
 Tablero de operaciones de Obscuro Mediaworks: estado de git de todos los repos, tareas abiertas en
-Asana y el dossier de cada proyecto en una pantalla.
+Asana, GDDs y el dossier de cada proyecto en una pantalla.
 
 ## Las dos formas de verlo
 
-### Consola local — en vivo
+### Consola local — en vivo, lee el disco
 
 ```bash
 python studio/modo-god/modo-god.py
 ```
 
 Levanta `http://localhost:5080`. Cada carga vuelve a interrogar a git en los repos de
-`registry.json`: lo que ves es el disco en este momento. **Es la versión que vale para decidir.**
+`registry.json`: lo que ves es el disco en este momento (incluye sin commitear/sin pushear, algo
+que nadie remoto puede ver). **Es la versión que vale para decidir.** También tiene
+`POST /api/decide`, así que acá funciona el botón "Elegir" del panel de decisiones.
 
 También está en `.claude/launch.json` como `modo-god`, así que un agente lo abre con preview.
 
-### Espejo público — congelado
+### Espejo público — en vivo, sincroniza contra APIs
+
+**`https://god.obscuromediaworks.com.ar`** — Cloudflare Pages, proyecto `modo-god`, con un Worker
+(`_worker.js`) que:
+
+1. Sirve el `index.html` estático (mismo archivo que la consola local, sin nada embebido).
+2. `GET /api/snapshot` — devuelve el último snapshot cacheado en KV (`MODOGOD_CACHE`).
+3. `POST /api/sync` — pega a la API de GitHub (commits, ramas) y de Asana (si hay `ASANA_TOKEN`)
+   por cada proyecto de `registry.json`, trae el GDD de cada repo, arma un snapshot nuevo y lo
+   guarda en KV. **No depende del disco local de nadie ni de una sesión de Claude corriendo** — es
+   HTTP puro con tokens guardados como secrets del proyecto Pages.
+
+El botón "↻ Sincronizar" del header llama a `/api/sync` y recarga. Sin nadie apretándolo, la
+página sigue mostrando el último snapshot cacheado (puede quedar viejo — mirá el timestamp).
+
+**Lo que el espejo público NO puede ver:** archivos sin commitear o sin pushear. Eso es
+inherentemente local. El chip de git dice "GitHub — sin ver uncommitted" cuando el dato viene de
+ahí, para que no se confunda con el estado real del disco.
+
+### Deploy de código (cuando cambia index.html o _worker.js)
 
 ```bash
-python studio/modo-god/publish.py --deploy
+python studio/modo-god/publish.py     # arma dist/ (index.html + _worker.js + robots.txt)
+cd studio/modo-god
+npx wrangler pages deploy dist --project-name modo-god
 ```
 
-Escribe `dist/index.html`: **un solo archivo** con el snapshot inlineado. Sin fetch, sin JSON
-suelto, sin chance de que la página y los datos queden desfasados. Imprime el comando de wrangler
-pero **no deploya** — publicar hacia afuera lo decide Roi.
+**Importante:** correr `wrangler` desde `studio/modo-god/`, no desde la raíz del repo — este
+directorio tiene su propio `wrangler.toml` (con el binding de KV `MODOGOD_CACHE`), distinto del
+`wrangler.toml` de la raíz (que es del Worker `obscuro-lux-site`, el sitio del estudio).
 
-La página muestra siempre cuándo se generó, y se marca en rojo si pasó más de un día.
+Esto **ya no hace falta cada vez que cambian los datos** — eso lo resuelve el botón Sincronizar.
+Solo hace falta cuando cambia el código del tablero.
 
-## ⚠️ Antes de publicarlo
+## Auth: Basic Auth propia, no Cloudflare Access
 
-El bundle expone rutas locales, nombres de tareas, fechas de lanzamiento y qué está sin verificar.
-**No sale a internet sin auth adelante.** Estado (2026-08-12): publicado y protegido.
-
-1. ✅ Proyecto Pages `modo-god`, deployado con `npx wrangler pages deploy studio/modo-god/dist
-   --project-name modo-god`.
-2. ✅ Custom domain **`god.obscuromediaworks.com.ar`** atado al proyecto.
-3. ✅ **Auth propia, no Cloudflare Access** — Access pide tarjeta desde que Cloudflare movió
-   Zero Trust a un plan que la requiere incluso en el tier gratis. En cambio: `_worker.js` pone el
-   proyecto en Pages "Advanced Mode" (intercepta toda request antes de servir el bundle) y hace
-   **HTTP Basic Auth** contra un mapa `{"usuario": "password"}` guardado en el secret
-   `MODOGOD_USERS` del proyecto — comparación timing-safe (hash SHA-256 + comparación constante),
-   sin passwords en el código ni en el repo. Sin credenciales válidas: 401. Con ellas: sirve el
-   bundle normal.
+Cloudflare Access (Zero Trust) empezó a pedir tarjeta incluso en el tier gratis. En cambio,
+`_worker.js` pone el proyecto en Pages "Advanced Mode" (intercepta toda request antes de servir
+nada) y hace **HTTP Basic Auth** contra un mapa `{"usuario": "password"}` guardado en el secret
+`MODOGOD_USERS` — comparación timing-safe (hash SHA-256 + comparación constante), sin passwords en
+el código ni en el repo. Sin credenciales válidas: 401.
 
 ### Agregar o sacar gente
 
-El secret es el único lugar donde vive quién tiene acceso. Para agregar a alguien (o cambiar una
-contraseña), armá el JSON completo de nuevo — **pisa** el secret anterior, no lo mergea:
+El secret es el único lugar donde vive quién tiene acceso. Pisa el JSON completo, no lo mergea:
 
 ```bash
-printf '{"roi":"<password-de-roi>","lucas":"<password-nueva>"}' | \
+printf '{"roi":"<password>","persona":"<password>"}' | \
   npx wrangler pages secret put MODOGOD_USERS --project-name modo-god
 ```
 
-**No hace falta redeploy** — el Worker lee `env.MODOGOD_USERS` en cada request, el secret se
-actualiza al toque. Para sacar a alguien, volvé a correr el comando con esa persona afuera del
-JSON.
+**No hace falta redeploy** — se lee en cada request. Para sacar a alguien, correr el comando de
+nuevo sin esa persona en el JSON.
 
-Generar una password random rápida: `python -c "import secrets,string;
+Password random rápida: `python -c "import secrets,string;
 print(''.join(secrets.choice(string.ascii_letters+string.digits) for _ in range(20)))"`.
 
-El `robots.txt` y el `noindex` que genera `publish.py` son higiene de crawlers, **no** son seguridad.
+El `robots.txt`/`noindex` es higiene de crawlers, no la seguridad real.
+
+## Abrir una sesión de Claude Code desde una card
+
+Cada card de juego con `trigger` no-nulo en `registry.json` muestra dos botones:
+
+- **▶ Sesión** — un link `claude-cli://open?q=<trigger>&cwd=<repo_path>`. Es el deep link oficial
+  de Claude Code (`code.claude.com/docs/en/deep-links`): el navegador se lo pasa al SO, que lo
+  resuelve contra un handler que Claude Code registra solo **al mandar el primer prompt de una
+  sesión interactiva** en esa máquina. Si nunca corriste `claude` en modo interactivo ahí, el click
+  no hace nada — no hay forma de detectar eso desde la página. El prompt queda precargado pero
+  **no se manda solo**: hay que confirmar con Enter en la terminal que se abre. Funciona igual
+  desde `localhost:5080` que desde el espejo público — es 100% del lado del cliente, no depende de
+  dónde esté hosteada la página.
+- **⧉ Copiar trigger** — fallback si el link no abre nada (máquina sin el handler registrado, sin
+  Claude Code CLI instalado, o navegador que bloquea `claude-cli://`): copia el trigger al
+  portapapeles para pegarlo a mano.
+
+No existe un equivalente para claude.ai/code (versión web): Anthropic cerró como "not planned" el
+pedido de precargar prompts ahí por URL (`claude.ai/new?q=` existió para el chat normal y lo
+sacaron por riesgo de prompt injection). El deep link `claude-cli://` es el único mecanismo
+soportado, y es solo para la CLI local.
 
 ## De dónde salen los datos
 
-| Sección | Fuente | Quién la actualiza |
+| Sección | Consola local | Espejo público |
 |---|---|---|
-| Git (rama, sin commitear, sin pushear, pulso de commits) | `git` sobre `repo_path` | `collect.py`, en cada carga |
-| Proyectos, roles, boards | `studio/registry.json` | a mano, cuando cambia el estudio |
-| Asana (abiertas, vencidas, highlights) | `asana-cache.json` | **un agente de Claude** |
+| Git (rama, sin commitear, pulso) | `git` sobre `repo_path`, en cada carga | GitHub API (`GITHUB_TOKEN`), solo lo pusheado |
+| GDD | `studio/modo-god/gdd/*.html`, sincronizado a mano con `sync_gdd.py` | `raw.githubusercontent.com` en vivo, cada sync |
+| Asana | `asana-cache.json`, la escribe **un agente de Claude** | Igual que local, o en vivo si hay `ASANA_TOKEN` (secret opcional — sin él, usa la caché committeada) |
+| Proyectos, roles | `studio/registry.json` | `studio/registry.json` vía GitHub raw (rama `main`) |
+| Decisiones | `decisions.json` local, con botón "Elegir" | `decisions.json` vía GitHub raw, **de solo lectura** |
 
-`collect.py` **no** llama a Asana: el conector es MCP, no HTTP. La caché la refresca un agente con
-`get_projects` (da todos los conteos en una llamada) y, si hacen falta las vencidas, `get_tasks` del
-board. La cuenta es FREE: `search_tasks` no funciona.
+`GITHUB_TOKEN` es el token del `gh` CLI ya logueado en esta máquina (`gh auth token`), con scope
+`repo` de lectura — suficiente para leer commits, ramas y archivos de los repos privados del
+estudio. `ASANA_TOKEN` es un Personal Access Token de Asana, opcional: sin él, el espejo público
+muestra la última caché committeada en vez de conteos en vivo.
 
-Tampoco hace `git fetch`. El `↓ atrás` que muestra es contra el remote-tracking local, así que
-puede estar viejo. Es deliberado: el tablero no toca la red ni modifica nada.
+Ninguno de los dos hace `git fetch` para el "atrás" (ahead/behind): la consola local lo calcula
+contra el remote-tracking local (puede estar viejo); el espejo público directamente no lo expone
+(no tiene forma de saberlo sin el disco).
 
 ## Archivos
 
 ```
-collect.py        Interroga git + arma el snapshot. Importable (lo usa el server).
-modo-god.py       Server local. Sirve index.html y /api/snapshot en vivo.
-publish.py        Genera dist/index.html self-contained para el espejo público.
-index.html        El tablero. Lee window.__SNAPSHOT__, luego /api/snapshot, luego snapshot.json.
-asana-cache.json  Caché de Asana. La escribe un agente, no el collector.
-snapshot.json     Salida de `python collect.py`. Generado — no se versiona.
-dist/             Bundle publicable. Generado — no se versiona.
+collect.py        Snapshot local -- interroga git + arma el JSON. Lo usa modo-god.py.
+modo-god.py        Server local. Sirve index.html, /api/snapshot y /api/decide en vivo.
+publish.py         Arma dist/ (index.html + _worker.js + robots.txt) para deployar. Ya no
+                    incrusta datos -- el Worker los sirve en vivo.
+_worker.js          Worker del espejo público: auth (Basic Auth) + /api/sync + /api/snapshot
+                    (backed por KV) + fallback a env.ASSETS.fetch para el resto.
+wrangler.toml       Config de ESTE proyecto Pages (modo-god) -- KV binding. No confundir con
+                    el wrangler.toml de la raíz del repo (obscuro-lux-site).
+sync_gdd.py         Sincroniza los GDD de cada repo a gdd/*.html para la consola LOCAL.
+                    El espejo público los trae solo, vía GitHub raw -- esto es solo para local.
+index.html          El tablero. Mismo archivo para consola local y espejo público.
+decisions.json      Decisiones que un agente no puede resolver solo, con opciones + recomendación.
+asana-cache.json    Caché de Asana. La escribe un agente, no el collector.
+gdd/                GDDs sincronizados para la consola local. Generado por sync_gdd.py.
+snapshot.json       Salida de `python collect.py`. Generado -- no se versiona.
+dist/               Bundle publicable. Generado -- no se versiona.
 ```
