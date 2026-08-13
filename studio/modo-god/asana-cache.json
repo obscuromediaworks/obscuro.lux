@@ -1,22 +1,24 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-13T00:50:00Z",
-  "generated_by": "rutina de arranque (refrescó solo obscuro-lux)",
-  "note": "Conteos de get_projects para el resto de los proyectos (sin refrescar desde el 12/8). obscuro-lux refrescado con get_tasks: 2 tareas cerradas en esta corrida (pipeline de build + redirect de lux).",
+  "generated_at": "2026-08-13T03:07:00Z",
+  "generated_by": "rutina de arranque (refrescó obscuro-lux con get_tasks + conteos de get_projects para moba-warmup tras migrar v0)",
+  "note": "obscuro-lux refrescado con get_tasks. moba-warmup: conteos post-migración de las 17 tareas de v0 (12 a Backlog v2, 3 vigentes, 2 cerradas) -- board v0 quedó en 0 abiertas, listo para archivar desde la UI de Asana. Highlights de moba-warmup sin re-chequear vencimientos individuales desde el 12/8.",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
-      "total": 43,
-      "open": 21,
-      "done": 22,
-      "overdue": 6,
+      "total": 58,
+      "open": 35,
+      "done": 23,
+      "overdue": null,
       "highlights": [
         "[Lanzamiento] Soft launch beta — vencía 7/8",
         "[QA] Pasada de QA por modo del núcleo + fixes — vencía 11/8",
         "[QA] Barrido de los otros drills — sin ver en las dos pasadas del 6/8",
         "[Marketing] Trailer 30-60s + clips — vencía 11/8",
         "[Marketing] Grabar gameplay limpio de cada modo — vencía 10/8",
-        "[Build] Bumpear a 1.0.0 ANTES del build final"
+        "[Build] Bumpear a 1.0.0 ANTES del build final — YA HECHO, build v1.0.0 c415b2d listo",
+        "[Infra] Supabase pausado de nuevo — reactivar antes de limpiar datos de prueba del leaderboard",
+        "+15 migradas hoy desde el board v0 (12 [Backlog v2] + 3 vigentes: assets 3D pendientes, música de Javi, SFX ChampSelect Advisor)"
       ]
     },
     "le2": {
@@ -67,16 +69,12 @@
     "obscuro-lux": {
       "board": "OBSCUROMEDIAWORKS — Sitio & Estudio",
       "total": 13,
-      "open": 8,
-      "done": 5,
+      "open": 2,
+      "done": 11,
       "overdue": 0,
       "highlights": [
-        "[Infra] Decidir integración de Git del Worker — vence 15/8 — decidido: desconectar (falta ejecutarlo en el dashboard)",
-        "[Infra] Borrar el proyecto de Pages huérfano obscuro-mediaworks — vence 15/8 — decidido, falta ejecutar",
-        "[Estudio] Clasificar los repos sueltos de G:\\Github — decidido: archivar bony_00/bony_lite/bony_tale.v0.1.0, falta ejecutar",
-        "[Estudio] Archivar el board histórico MOBA Warmup — v0 — decidido, falta migrar las 17 abiertas",
-        "[Sitio] Mobile dedicado para LUX — sin decisión, es polish, no bloquea",
-        "[Modo God] Publicar el espejo — decidido: subdominio dedicado detrás de Cloudflare Access, falta el setup de Access"
+        "[Estudio] Clasificar los repos sueltos de G:\\Github — bony_lite/bony_tale.v0.1.0 archivados en GitHub; bony_00 sin remote, decisión nueva pendiente (id bony-00-no-remote)",
+        "[Sitio] Mobile dedicado para LUX — sin decisión, es polish, no bloquea"
       ]
     }
   }

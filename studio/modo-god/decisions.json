@@ -27,7 +27,9 @@
       "decision": {
         "option_index": 0,
         "label": "Desconectar la integración de Git. Deploy solo con npm run deploy, cuando Roi dice 'deployá'."
-      }
+      },
+      "executed_at": "2026-08-13T00:00:00Z",
+      "execution_note": "Confirmado en DEPLOY.md: sin deploys nuevos en el historial de versiones entre el 26/6 y el 13/8 pese a varios pushes a main."
     },
     {
       "id": "delete-orphan-pages-project",
@@ -53,7 +55,9 @@
       "decision": {
         "option_index": 0,
         "label": "Borrarlo desde Workers & Pages."
-      }
+      },
+      "executed_at": "2026-08-13T03:02:00Z",
+      "execution_note": "Verificado con `npx wrangler pages project list`: ya no existe. Quedan solo modo-god y mobawarmup."
     },
     {
       "id": "publish-modo-god-mirror",
@@ -84,7 +88,9 @@
       "decision": {
         "option_index": 1,
         "label": "Publicar en subdominio dedicado (modogod.obscuromediaworks.com.ar) detrás de Cloudflare Access."
-      }
+      },
+      "executed_at": "2026-08-13T00:00:00Z",
+      "execution_note": "Publicado en god.obscuromediaworks.com.ar (Cloudflare Pages 'modo-god'). Pivot: Basic Auth propia en vez de Cloudflare Access (Zero Trust ahora pide tarjeta hasta en el tier free). Verificado 13/8: responde 401 sin credenciales."
     },
     {
       "id": "lux-subdomain-scope",
@@ -182,7 +188,35 @@
       "decision": {
         "option_index": 0,
         "label": "Archivar bony_00, bony_lite y bony_tale.v0.1.0 como prototipos abandonados: son la misma iteración de un dog game ('Huesitos') sin actividad desde hace 3-9 meses, sin README ni dossier, ~36 GB combinados en disco. Antes de archivar, salvar el trabajo sin commitear de bony_lite y bony_tale (Wwise/Addressables) en un commit final por si hace falta retomarlos."
-      }
+      },
+      "executed_at": "2026-08-13T03:06:00Z",
+      "execution_note": "bony_lite y bony_tale.v0.1.0: rescate commiteado y pusheado, ambos archivados en GitHub. bony_00 no tiene .git ni remote -- la decisión no contempló ese caso. Ver decisión nueva 'bony-00-no-remote'."
+    },
+    {
+      "id": "bony-00-no-remote",
+      "project": null,
+      "asana_task_gid": "1217442885049193",
+      "due_on": null,
+      "question": "bony_00 no tiene `.git` ni remote -- no se puede \"archivar\" en GitHub como a bony_lite/bony_tale.v0.1.0. ¿Qué hacer?",
+      "context": "Confirmado 13/8: bony_00 (~11,3 GB, proyecto Unity 'Huesitos_0.1v', sin README) nunca se inicializó como repo git. La decisión 'classify-loose-repos' asumía que los tres bony_* podían archivarse igual y no contempló este caso -- descubierto recién al ejecutar. Borrarlo fue explícitamente descartado en esa decisión (bony_00 es la única de las tres sin red de seguridad en un remote).",
+      "options": [
+        {
+          "label": "Dejarlo como está: local, sin git, fuera del registry. Ya cumple el espíritu de 'archivado' por omisión -- no aparece en ningún tablero ni se toca.",
+          "why": "Cero trabajo y cero riesgo. El costo es que sigue ocupando ~11,3 GB en G:\\Github sin ningún historial versionado detrás.",
+          "recommended": true
+        },
+        {
+          "label": "Crear un repo GitHub nuevo (obscuromediaworks/bony_00), pushear el estado actual y archivarlo ahí -- mismo tratamiento que sus hermanos.",
+          "why": "Consistencia con bony_lite/bony_tale y preserva el contenido con historial real, pero implica subir ~11,3 GB de assets Unity a un repo nuevo solo para archivarlo -- trabajo real por consistencia, no por necesidad.",
+          "recommended": false
+        },
+        {
+          "label": "Borrarlo directamente.",
+          "why": "Libera los 11,3 GB, pero es irreversible y esa opción ya se descartó explícitamente en la decisión original por falta de red de seguridad.",
+          "recommended": false
+        }
+      ],
+      "status": "pending"
     },
     {
       "id": "archive-moba-v0-board",
@@ -208,7 +242,9 @@
       "decision": {
         "option_index": 0,
         "label": "Migrar las 17 al board activo una por una (revisar cada una: sigue vigente, ya se resolvió en otro lado, o quedó obsoleta) y recién ahí archivar v0."
-      }
+      },
+      "executed_at": "2026-08-13T03:06:00Z",
+      "execution_note": "Las 17 revisadas una por una: 12 migradas a Launch v1 con prefijo [Backlog v2] (ideas v2+, no bloquean v1), 3 migradas tal cual por seguir vigentes (assets 3D pendientes, música de Javi, SFX ChampSelect Advisor), 2 cerradas por obsoletas/superadas. El board quedó en 0 abiertas. Falta el archivado en sí desde la UI de Asana -- el conector no expone un método para archivar proyectos."
     },
     {
       "id": "deploy-bundle-pipeline",
