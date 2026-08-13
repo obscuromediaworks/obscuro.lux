@@ -16,6 +16,17 @@ Levanta `http://localhost:5080`. Cada carga vuelve a interrogar a git en los rep
 que nadie remoto puede ver). **Es la versión que vale para decidir.** También tiene
 `POST /api/decide`, así que acá funciona el botón "Elegir" del panel de decisiones.
 
+**Tablero de QA embebido.** Cada card de juego con `docs/qa/items.json` muestra un botón "▤ QA"
+que abre `/qa?project=<slug>` -- el tablero que antes era el script suelto
+`~/.claude/skills/qa/qa-board.py` (invocado a mano con `--repo`). Ahora vive en `qa_board.py`,
+junto al resto de Modo God, y resuelve el repo por `slug` contra `registry.json` en vez de un
+flag. El circuito no cambió: cada veredicto se escribe al instante en
+`<repo>/docs/qa/runs/<build>.json` + una línea en `<build>.events.log` (mismo formato de siempre,
+es lo que sigue un Monitor de Claude con `grep FALLA`). Exclusivo de la consola local -- el Worker
+público no sirve `/qa` ni `POST /api/qa/mark` (ver `_worker.js`, `capabilities.qa`). El skill `qa`
+sigue existiendo como script standalone para repos que todavía no están en `registry.json`; ver la
+decisión `qa-skill-future` en `decisions.json` sobre si conviene deprecarlo del todo.
+
 También está en `.claude/launch.json` como `modo-god`, así que un agente lo abre con preview.
 
 **Acceso directo del escritorio (sin pasar por Claude Code):** doble-click en
@@ -138,7 +149,10 @@ contra el remote-tracking local (puede estar viejo); el espejo público directam
 
 ```
 collect.py        Snapshot local -- interroga git + arma el JSON. Lo usa modo-god.py.
-modo-god.py        Server local. Sirve index.html, /api/snapshot y /api/decide en vivo.
+modo-god.py        Server local. Sirve index.html, /api/snapshot, /api/decide, /qa y
+                    /api/qa/mark en vivo.
+qa_board.py         Tablero de QA embebido (Board + plantilla HTML). Resuelve el repo por
+                    slug contra registry.json. Lo usa modo-god.py; no corre solo.
 publish.py         Arma dist/ (index.html + _worker.js + robots.txt) para deployar. Ya no
                     incrusta datos -- el Worker los sirve en vivo.
 _worker.js          Worker del espejo público: auth (Basic Auth) + /api/sync + /api/snapshot

@@ -207,7 +207,9 @@ async function buildSnapshot(env) {
         ? "Conteos abiertas/hechas en vivo vía Asana API; highlights de la última caché committeada."
         : (asanaCacheDoc.note || null) + " (sin ASANA_TOKEN: esto es la última caché committeada, no en vivo)",
     },
-    capabilities: { decide: false, sync: true },
+    // qa: false a propósito -- el tablero de QA (qa_board.py) es exclusivo de la consola local,
+    // no del espejo público. Ver studio/modo-god/README.md.
+    capabilities: { decide: false, sync: true, qa: false },
   };
 }
 

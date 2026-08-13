@@ -97,6 +97,14 @@ def load_json(path):
         return None
 
 
+def qa_for(repo_path):
+    """El botón QA se muestra para cualquier proyecto con repo local -- si todavía no tiene
+    docs/qa/items.json, /qa?project=<slug> lo dice y explica cómo crearlo (ver qa_board.py:
+    SpecNotFound), en vez de ocultar el botón. Antes esto gateaba por la presencia del archivo;
+    eso escondía el botón en 6 de los 7 proyectos del estudio con solo MOBA Warmup teniendo items.json."""
+    return {"available": True}
+
+
 def gdd_for(slug):
     """Contenido del GDD sincronizado (studio/modo-god/gdd/<slug>.html), o None.
 
@@ -132,6 +140,7 @@ def build_snapshot():
         entry["git"] = repo_state(p["repo_path"])
         entry["asana"] = asana_by_slug.get(p["slug"])
         entry["gdd"] = gdd_for(p["slug"]) if p.get("gdd") else None
+        entry["qa"] = qa_for(p["repo_path"]) if os.path.isdir(p.get("repo_path") or "") else {"available": False}
         projects.append(entry)
 
     projects.sort(key=lambda e: e.get("priority") or 999)
@@ -150,9 +159,10 @@ def build_snapshot():
             "generated_at": asana.get("generated_at"),
             "note": asana.get("note"),
         },
-        # local: ya es en vivo (git de verdad en cada carga) y tiene POST /api/decide.
-        # El Worker público no tiene ninguno de los dos -- ver _worker.js.
-        "capabilities": {"decide": True, "sync": False},
+        # local: ya es en vivo (git de verdad en cada carga), tiene POST /api/decide y sirve
+        # /qa + POST /api/qa/mark (ver qa_board.py). El Worker público no tiene nada de eso --
+        # ver _worker.js: el tablero de QA es exclusivo de la consola local, a propósito.
+        "capabilities": {"decide": True, "sync": False, "qa": True},
     }
 
 

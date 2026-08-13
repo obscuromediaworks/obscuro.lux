@@ -19,8 +19,10 @@ import sys
 import webbrowser
 from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlsplit
 
 import collect
+import qa_board
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DECISIONS_PATH = os.path.join(HERE, "decisions.json")
@@ -31,13 +33,19 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*a, directory=HERE, **kw)
 
     def do_GET(self):
-        if self.path.split("?")[0].rstrip("/") in ("/api/snapshot", "api/snapshot"):
+        path = self.path.split("?")[0].rstrip("/")
+        if path in ("/api/snapshot", "api/snapshot"):
             return self.serve_snapshot()
+        if path in ("/qa", "qa"):
+            return self.serve_qa()
         return super().do_GET()
 
     def do_POST(self):
-        if self.path.split("?")[0].rstrip("/") in ("/api/decide", "api/decide"):
+        path = self.path.split("?")[0].rstrip("/")
+        if path in ("/api/decide", "api/decide"):
             return self.handle_decide()
+        if path in ("/api/qa/mark", "api/qa/mark"):
+            return self.handle_qa_mark()
         self.send_response(404)
         self.end_headers()
 
@@ -106,6 +114,76 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
+
+    def qa_query(self):
+        return parse_qs(urlsplit(self.path).query)
+
+    def send_html(self, body, code=200):
+        data = body.encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def serve_qa(self):
+        # Tablero de QA embebido -- ex-tablero standalone (`~/.claude/skills/qa/qa-board.py`),
+        # ver qa_board.py. Solo existe en la consola LOCAL: el Worker público no tiene esta ruta.
+        q = self.qa_query()
+        slug = (q.get("project") or [None])[0]
+        if not slug:
+            return self.send_html(qa_board.render_picker_page())
+
+        repo, name = qa_board.resolve_project(slug)
+        if not repo:
+            return self.send_html(
+                qa_board.not_found_page("No encontré el proyecto '" + slug + "' en registry.json."),
+                404)
+        try:
+            spec = qa_board.load_spec(repo)
+        except qa_board.SpecNotFound as e:
+            return self.send_html(
+                qa_board.not_found_page(
+                    "No hay lista de items en " + str(e) +
+                    " -- crearla antes de abrir el tablero (ver el skill qa)."),
+                404)
+
+        build = (q.get("build") or [None])[0] or spec.get("build") or qa_board.short_head(repo)
+        mark_url = "api/qa/mark?project={}&build={}".format(slug, build)
+        html = qa_board.render_board_page(name, repo, spec, build, mark_url)
+        return self.send_html(html)
+
+    def handle_qa_mark(self):
+        q = self.qa_query()
+        slug = (q.get("project") or [None])[0]
+        build = (q.get("build") or [None])[0]
+        try:
+            if not slug or not build:
+                raise ValueError("falta project o build en la query string")
+            repo, _name = qa_board.resolve_project(slug)
+            if not repo:
+                raise ValueError("no existe el proyecto: " + str(slug))
+            spec = qa_board.load_spec(repo)
+            board = qa_board.get_board(repo, spec, build)
+
+            length = int(self.headers.get("Content-Length", 0) or 0)
+            payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
+            board.mark(payload["id"], payload.get("verdict"), payload.get("note", ""))
+        except Exception as e:
+            body = str(e).encode("utf-8")
+            self.send_response(400)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        self.send_response(204)
+        self.send_header("Content-Length", "0")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
 
     def end_headers(self):
         # SimpleHTTPRequestHandler manda text/html SIN charset y rompe los acentos

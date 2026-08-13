@@ -216,7 +216,12 @@
           "recommended": false
         }
       ],
-      "status": "pending"
+      "status": "decided",
+      "decided_at": "2026-08-13T16:48:23.522456+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Dejarlo como está: local, sin git, fuera del registry. Ya cumple el espíritu de 'archivado' por omisión -- no aparece en ningún tablero ni se toca."
+      }
     },
     {
       "id": "archive-moba-v0-board",
@@ -276,6 +281,53 @@
         "option_index": 0,
         "label": "Construir un pipeline propio (ej. reimplementar el build con esbuild + gzip) que un agente de Code pueda correr solo, sin depender de la sesión de Design."
       }
+    },
+    {
+      "id": "qa-skill-future",
+      "project": null,
+      "asana_task_gid": null,
+      "due_on": null,
+      "question": "El tablero de QA (antes `~/.claude/skills/qa/qa-board.py` standalone) ahora vive dentro de Modo God (`/qa?project=<slug>`, resuelto por registry.json). ¿Qué pasa con el script standalone?",
+      "context": "13/8: migrado. El skill `qa` (`~/.claude/skills/qa/SKILL.md`) ahora abre la consola de Modo God (localhost:5080/qa) en vez de levantar su propio server con `--repo`, para todo proyecto en registry.json -- que hoy es prácticamente todos. El script viejo (`qa-board.py`) quedó intacto como fallback para repos que todavía no están registrados. No hay ningún repo del estudio hoy en esa situación (los 7 de registry.json ya resuelven), así que en la práctica el fallback no se usa -- pero borrarlo es una decisión de alcance de una herramienta a nivel usuario (`~/.claude/skills/`), no del repo, y afecta cómo arranca el skill en cualquier máquina donde Roi lo tenga instalado.",
+      "options": [
+        {
+          "label": "Dejarlo como fallback permanente: si un repo nuevo no está en registry.json todavía, el skill usa el script standalone hasta que se registre. Cero mantenimiento extra -- es código que ya funciona y no estorba.",
+          "why": "No cuesta nada mantenerlo (no se toca salvo que aparezca un bug), y cubre el hueco de 'proyecto nuevo antes de estar en el registry' sin fricción.",
+          "recommended": true
+        },
+        {
+          "label": "Deprecarlo formalmente: borrar qa-board.py y actualizar SKILL.md para que registrar el proyecto en registry.json sea un paso obligatorio antes de poder correr QA.",
+          "why": "Una sola fuente de verdad del tablero (menos superficie para que diverjan). El costo es forzar un paso de registro antes de la primera pasada de QA de un proyecto nuevo, que hoy es opcional.",
+          "recommended": false
+        }
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "qa-board-palette-per-project",
+      "project": null,
+      "asana_task_gid": null,
+      "due_on": null,
+      "question": "El tablero de QA embebido (`qa_board.py`) heredó la paleta Hextech (LoL 2016) tal cual del script original -- pensada para MOBA Warmup. Ahora que el mismo tablero sirve a cualquier proyecto del registry (LE2, SkateGang, Weedgang, etc.), ¿se generaliza a un tema neutro o por-proyecto, o se deja fija?",
+      "context": "13/8, durante la migración a Modo God: no toqué la paleta -- 'no cambiarla sin necesidad' era la instrucción explícita, y hoy es el único proyecto con docs/qa/items.json (MOBA Warmup) así que no hay conflicto real todavía. Pero en cuanto otro juego arme su primer docs/qa/items.json, va a ver el tablero con colores de MOBA Warmup encima del suyo -- lo mismo que STUDIO.md §6 dice que no hay que hacer al revés (aplicar tokens del estudio a un juego).",
+      "options": [
+        {
+          "label": "Dejarla fija en Hextech por ahora. Se revisita cuando un segundo proyecto realmente tenga una pasada de QA que correr.",
+          "why": "Cero trabajo hasta que el problema sea real -- hoy sigue siendo cosmético y sin usuario afectado.",
+          "recommended": true
+        },
+        {
+          "label": "Tema neutro (paleta de Modo God: dorado/crema sobre negro) para todos, sin identidad de juego.",
+          "why": "Consistente con que QA es una herramienta del estudio, no del juego -- pero pierde la señal visual de 'esto es MOBA Warmup' que hoy da la paleta LoL.",
+          "recommended": false
+        },
+        {
+          "label": "Tema por proyecto (un campo `theme` en registry.json o en items.json que elige la paleta).",
+          "why": "Lo más prolijo a largo plazo, pero es trabajo real de diseño+código por cada juego que sume su identidad -- no se justifica todavía con un solo proyecto activo.",
+          "recommended": false
+        }
+      ],
+      "status": "pending"
     }
   ]
 }
