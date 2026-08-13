@@ -187,11 +187,10 @@ obscuromediaworks.com.ar
 Buenos Aires · MMXXVI
 ```
 
-Nota chica de meta: el `<title>` de la página hoy es literalmente "OBSCURO" (el display name
-corto). Con el banner puesto, el `<h1>` deja de verse (itch lo oculta cuando hay banner), pero
-el display name sigue siendo lo que sale en la pestaña del navegador y en `og:title`/
-`twitter:title`. Vale la pena que Roi decida si lo deja en "OBSCURO" (consistente con el
-wordmark corto) o lo cambia a "Obscuro Mediaworks" — cosmético, no bloqueante.
+**Display name — decidido por Roi (13/8/2026): "OBSCURO GAMECRAFTING".** Ni "OBSCURO" a secas ni
+"Obscuro Mediaworks" — la división de juegos, no la marca paraguas entera. Es lo que va a salir en
+la pestaña del navegador y en `og:title`/`twitter:title` una vez que Roi lo cambie en Account →
+Profile (paso manual, no bloqueante).
 
 ### 6. Limitaciones reales — sin suavizar
 
@@ -227,7 +226,8 @@ cuenta:
 4. Setear los colores/fuentes/radius de la tabla de §4, y opcionalmente `grain-tile-160x160.png`
    como background image con repeat.
 5. Reemplazar el texto de "Edit profile" por la bio de §5 (o la versión que Roi prefiera).
-6. Decidir si pide CSS access a itch (opcional, no bloqueante) y si cambia el display name.
+6. Cambiar el display name a "OBSCURO GAMECRAFTING" (decidido 13/8). Opcional, no bloqueante:
+   pedir CSS access a itch si más adelante hace falta ir más allá del editor de temas.
 
 Ningún paso de estos lo puede hacer un agente — todos requieren la sesión logueada de Roi
 en itch.io.
