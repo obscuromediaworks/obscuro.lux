@@ -2,9 +2,11 @@ name = "obscuro-lux-site"
 compatibility_date = "2026-06-26"
 main = "src/index.js"
 
-# Sitio del estudio. deploy/ se sirve tal cual vía el binding ASSETS; el único
-# código de Worker que hay es el redirect de lux. -> apex/#/lux (src/index.js,
-# decisions.json id lux-subdomain-scope).
+# Sitio del estudio. deploy/ se sirve vía el binding ASSETS. El único código de
+# Worker que hay es el redirect de lux. -> apex/#/lux (src/index.js, decisions.json
+# id lux-subdomain-scope). run_worker_first=true es necesario: sin eso, Cloudflare
+# sirve paths que matchean un asset (como "/") directo, sin pasar por el Worker --
+# la raíz de lux. nunca hubiera visto el redirect (probado 13/8, no era cache).
 #
 # ⚠️ `directory` DEBE apuntar a deploy/, nunca a la raíz del repo.
 # En la raíz vive index.html, que es el comparador de exploración de diseño
@@ -17,3 +19,4 @@ main = "src/index.js"
 [assets]
 directory = "./deploy"
 binding = "ASSETS"
+run_worker_first = true
