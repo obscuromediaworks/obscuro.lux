@@ -13,7 +13,8 @@
     { "id": "marketing", "name": "Marketing / Redes", "surface": "cowork", "brief": "studio/roles/marketing.md" },
     { "id": "dev",       "name": "Desarrollo",        "surface": "code",   "brief": "studio/roles/dev.md" },
     { "id": "qa",        "name": "QA",                "surface": "cowork+code", "brief": "studio/roles/qa.md" },
-    { "id": "art",       "name": "Arte / Diseño",     "surface": "design+code+cowork", "brief": "studio/roles/art.md" }
+    { "id": "art",       "name": "Arte / Diseño",     "surface": "design+code+cowork", "brief": "studio/roles/art.md" },
+    { "id": "content",   "name": "Contenido / Edición", "surface": "design+cowork+code", "brief": "studio/roles/content.md" }
   ],
   "projects": [
     {
@@ -34,7 +35,7 @@
       "socials": { "x": "@MOBAWarmupGame", "tiktok": "@mobawarmup", "youtube": "@MOBAWarmup" },
       "dossier": "studio/games/moba-warmup.md",
       "gdd": "docs/gdd-complete.html",
-      "roles": ["marketing", "dev", "qa", "art"]
+      "roles": ["marketing", "dev", "qa", "art", "content"]
     },
     {
       "slug": "le2",
