@@ -1,8 +1,8 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-12T17:45:00Z",
-  "generated_by": "primera corrida de la rutina de arranque (refrescó solo obscuro-lux)",
-  "note": "Conteos de get_projects. Vencidas y próximas calculadas a mano para moba-warmup, le2 y obscuro-lux; el resto tiene solo conteos del armado inicial (12/8, sin refrescar desde entonces).",
+  "generated_at": "2026-08-13T00:50:00Z",
+  "generated_by": "rutina de arranque (refrescó solo obscuro-lux)",
+  "note": "Conteos de get_projects para el resto de los proyectos (sin refrescar desde el 12/8). obscuro-lux refrescado con get_tasks: 2 tareas cerradas en esta corrida (pipeline de build + redirect de lux).",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
@@ -66,16 +66,17 @@
     },
     "obscuro-lux": {
       "board": "OBSCUROMEDIAWORKS — Sitio & Estudio",
-      "total": 12,
-      "open": 10,
-      "done": 2,
+      "total": 13,
+      "open": 8,
+      "done": 5,
       "overdue": 0,
       "highlights": [
-        "[Infra] Decidir integración de Git del Worker — vence 15/8",
-        "[Infra] Borrar el proyecto de Pages huérfano obscuro-mediaworks — vence 15/8",
-        "[Sitio] Regenerar deploy/index.html desde site.html + los .jsx",
-        "[Estudio] Archivar el board histórico MOBA Warmup — v0",
-        "[Estudio] Clasificar ECOPLASTIK y los repos sueltos de G:\\Github"
+        "[Infra] Decidir integración de Git del Worker — vence 15/8 — decidido: desconectar (falta ejecutarlo en el dashboard)",
+        "[Infra] Borrar el proyecto de Pages huérfano obscuro-mediaworks — vence 15/8 — decidido, falta ejecutar",
+        "[Estudio] Clasificar los repos sueltos de G:\\Github — decidido: archivar bony_00/bony_lite/bony_tale.v0.1.0, falta ejecutar",
+        "[Estudio] Archivar el board histórico MOBA Warmup — v0 — decidido, falta migrar las 17 abiertas",
+        "[Sitio] Mobile dedicado para LUX — sin decisión, es polish, no bloquea",
+        "[Modo God] Publicar el espejo — decidido: subdominio dedicado detrás de Cloudflare Access, falta el setup de Access"
       ]
     }
   }
