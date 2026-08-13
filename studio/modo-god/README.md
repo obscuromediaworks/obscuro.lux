@@ -18,6 +18,23 @@ que nadie remoto puede ver). **Es la versión que vale para decidir.** También 
 
 También está en `.claude/launch.json` como `modo-god`, así que un agente lo abre con preview.
 
+**Acceso directo del escritorio (sin pasar por Claude Code):** doble-click en
+`studio/modo-god/start-modo-god.bat` levanta el server + abre el navegador solo. Hay un acceso
+directo "Modo God" ya creado en el escritorio de Roi que apunta ahí — para recrearlo en otra
+máquina (o si se borra), correr esto en PowerShell:
+
+```powershell
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:USERPROFILE\Desktop\Modo God.lnk")
+$s.TargetPath = "<ruta al repo>\studio\modo-god\start-modo-god.bat"
+$s.WorkingDirectory = "<ruta al repo>\studio\modo-god"
+$s.IconLocation = "shell32.dll,15"
+$s.Save()
+```
+
+Si el puerto 5080 ya está ocupado por una instancia previa (ej. se clickeó el ícono dos veces),
+`modo-god.py` lo detecta con un connect TCP crudo (no HTTP -- `/api/snapshot` puede tardar, un
+GET con timeout corto daba falso negativo) y solo abre el navegador ahí en vez de crashear.
+
 ### Espejo público — en vivo, sincroniza contra APIs
 
 **`https://god.obscuromediaworks.com.ar`** — Cloudflare Pages, proyecto `modo-god`, con un Worker

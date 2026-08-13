@@ -14,6 +14,7 @@ obscuromediaworks.com.ar/modo-god lee un snapshot.json congelado; ésta no.
 
 import json
 import os
+import socket
 import sys
 import webbrowser
 from datetime import datetime, timezone
@@ -124,12 +125,38 @@ class Handler(SimpleHTTPRequestHandler):
         super().log_message(fmt, *args)
 
 
+def already_running(port):
+    # http.server.HTTPServer trae allow_reuse_address=1: en Windows eso deja bindear un puerto
+    # que YA está escuchando (a diferencia de Linux, donde tiraría OSError) -- así que un bind
+    # exitoso no alcanza para saber si hay otra instancia. Un connect TCP crudo sí lo confirma
+    # (nada de HTTP: /api/snapshot recorre git en TODOS los repos y puede tardar bastante más que
+    # un timeout corto, dando falsos negativos).
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+            return True
+    except OSError:
+        return False
+
+
 def main():
     port = 5080
     if "--port" in sys.argv:
         port = int(sys.argv[sys.argv.index("--port") + 1])
     url = "http://localhost:{}/".format(port)
-    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+
+    if already_running(port):
+        # Ya hay una instancia corriendo (ej. se abrió el acceso directo dos veces) -- no hace
+        # falta una segunda, solo abrir el navegador a la que ya está.
+        print("Modo God ya está corriendo en " + url + "  -- abriendo el navegador ahí.")
+        if "--no-open" not in sys.argv:
+            webbrowser.open(url)
+        return
+
+    try:
+        server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    except OSError as e:
+        print("No pude levantar el puerto {}: {}".format(port, e))
+        return
     print("Modo God en " + url + "   (Ctrl+C para cortar)")
     if "--no-open" not in sys.argv:
         webbrowser.open(url)
