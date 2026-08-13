@@ -1,0 +1,111 @@
+{
+  "$comment": "Cola de contenido de Modo God -- mismo espíritu que decisions.json: se arma acá (a mano o por un agente), pero el disparo real de 'publicar' pasa por la consola local (/publish, POST /api/publish/fire) y espera aprobación explícita de Roi (ver STUDIO.md §8). status: draft (recién armado, nadie lo revisó) -> queued (Roi lo aprobó, listo para disparar cuando toque) -> posted (ya salió) / failed (se intentó y falló, ver result.error). network discord/youtube = disparo automático real desde el tablero. network x/tiktok = asistido: el tablero da 'copiar texto' + 'abrir compose', el click real lo hace Roi a mano. Reddit queda AFUERA de esta pasada por decisión explícita de Roi (13/8/2026) -- no hay entradas ni código para esa red todavía.",
+  "items": [
+    {
+      "id": "moba-devlog-buildsize-discord",
+      "project": "moba-warmup",
+      "network": "discord",
+      "status": "draft",
+      "text": "El build de MOBA Warmup Gym pesaba 71% texturas. No era compresión -- era resolución: bajamos los atlas de Synty a 512 y la VRAM pasó de 58 a 31,6 MB, sin que se note a simple vista (comparado con diff de píxeles, no a ojo). Sumado a la pasada de audio, el zip bajó de 47,6 a 35,9 MB.",
+      "media_path": null,
+      "target": {},
+      "suggested_at": "2026-08-13T18:00:00-03:00",
+      "source": "commits d3d8f6f, 0b04b02, adb18bc -- medido en MOBAWarmup/webgl-performance.md; copy base de MOBAWarmup/docs/social-content-calendar.md #2",
+      "created_by": "om-dev",
+      "created_at": "2026-08-13",
+      "posted_at": null,
+      "result": null
+    },
+    {
+      "id": "moba-shorts-adckite-pierce",
+      "project": "moba-warmup",
+      "network": "youtube",
+      "status": "draft",
+      "text": "Kite Mode: el bot telegrafía el golpe, vos lo esquivás y seguís last-hitteando. MOBA Warmup Gym -- entrená la rutina auto-step-auto en el navegador, gratis, sin instalar. mobawarmup.obscuromediaworks.com.ar",
+      "media_path": "docs/gifs/adckite-pierce-telegraph.gif",
+      "target": {
+        "title": "Dodge the telegraph, keep last-hitting -- MOBA Warmup Gym",
+        "tags": [
+          "MOBA Warmup",
+          "League of Legends",
+          "last hit",
+          "kiting",
+          "LoL training"
+        ],
+        "privacy_status": "unlisted"
+      },
+      "suggested_at": "2026-08-16T17:00:00-03:00",
+      "source": "MOBAWarmup/docs/gifs/adckite-pierce-telegraph.gif -- GIF, se convierte a mp4 con ffmpeg al disparar (ver social_publisher.gif_to_mp4)",
+      "created_by": "om-dev",
+      "created_at": "2026-08-13",
+      "posted_at": null,
+      "result": null
+    },
+    {
+      "id": "moba-teaser-launch-x",
+      "project": "moba-warmup",
+      "network": "x",
+      "status": "draft",
+      "text": "Mañana.",
+      "media_path": "docs/screenshots/loading_mode.png",
+      "target": {},
+      "suggested_at": "2026-08-13T20:00:00-03:00",
+      "source": "MOBAWarmup/docs/social-content-calendar.md -- fila 'Jue 13/8 (hoy)'. Asistido: sin API gratis que alcance para postear en X, se copia el texto y se abre el compose a mano.",
+      "created_by": "om-marketing",
+      "created_at": "2026-08-13",
+      "posted_at": null,
+      "result": null
+    },
+    {
+      "id": "slot-moba-warmup-devlog-2026-08-24",
+      "project": "moba-warmup",
+      "network": "discord",
+      "status": "draft",
+      "text": "",
+      "media_path": null,
+      "target": {},
+      "suggested_at": "2026-08-24T12:00:00-03:00",
+      "source": "Un commit real de la semana (bug arreglado, medición, decisión técnica) -- mismo criterio que docs/social-content-calendar.md: nunca anuncio vacío, siempre algo que realmente pasó (git log / docs/qa-log.md).",
+      "created_by": "publish_rotation.py",
+      "created_at": "2026-08-13",
+      "posted_at": null,
+      "result": null,
+      "slot": true,
+      "bucket": "devlog"
+    },
+    {
+      "id": "slot-moba-warmup-gameplay_clip-2026-08-26",
+      "project": "moba-warmup",
+      "network": "youtube",
+      "status": "draft",
+      "text": "",
+      "media_path": null,
+      "target": {},
+      "suggested_at": "2026-08-26T12:00:00-03:00",
+      "source": "MOBAWarmup/docs/gifs/*.gif -- elegir uno sin usar todavía en publish-queue.json. Se convierte a mp4 solo, al disparar (ver social_publisher.gif_to_mp4).",
+      "created_by": "publish_rotation.py",
+      "created_at": "2026-08-13",
+      "posted_at": null,
+      "result": null,
+      "slot": true,
+      "bucket": "gameplay_clip"
+    },
+    {
+      "id": "slot-moba-warmup-community_engagement-2026-08-28",
+      "project": "moba-warmup",
+      "network": "x",
+      "status": "draft",
+      "text": "",
+      "media_path": null,
+      "target": {},
+      "suggested_at": "2026-08-28T12:00:00-03:00",
+      "source": "MOBAWarmup/docs/community-posts-draft.md, o una pregunta abierta sobre una feature reciente -- termina en pregunta, no en pitch. Asistido: copiar + abrir compose, no dispara solo.",
+      "created_by": "publish_rotation.py",
+      "created_at": "2026-08-13",
+      "posted_at": null,
+      "result": null,
+      "slot": true,
+      "bucket": "community_engagement"
+    }
+  ]
+}

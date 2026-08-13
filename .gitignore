@@ -38,6 +38,11 @@ site-dist/
 # Modo God: salida del collector. asana-cache.json SI se versiona (lo escribe un agente).
 studio/modo-god/snapshot.json
 
+# Modo God -- Publish: credenciales reales (webhook de Discord, OAuth de YouTube). Mismo criterio
+# que ASANA_TOKEN o la service_role key de Supabase: nunca al repo. publish-credentials.example.json
+# SI se versiona (es la plantilla, sin datos reales).
+studio/modo-god/publish-credentials.json
+
 # Project-internal state
 .design-canvas.state.json
 screenshots/

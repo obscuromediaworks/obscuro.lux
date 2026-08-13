@@ -160,9 +160,11 @@ def build_snapshot():
             "note": asana.get("note"),
         },
         # local: ya es en vivo (git de verdad en cada carga), tiene POST /api/decide y sirve
-        # /qa + POST /api/qa/mark (ver qa_board.py). El Worker público no tiene nada de eso --
-        # ver _worker.js: el tablero de QA es exclusivo de la consola local, a propósito.
-        "capabilities": {"decide": True, "sync": False, "qa": True},
+        # /qa + POST /api/qa/mark (ver qa_board.py) y /publish + POST /api/publish/fire (ver
+        # publish_board.py). El Worker público no tiene nada de eso -- ver _worker.js: el tablero
+        # de QA y el de Publish son exclusivos de la consola local, a propósito (STUDIO.md §8: el
+        # espejo público nunca escribe, y menos todavía dispara un post real hacia afuera).
+        "capabilities": {"decide": True, "sync": False, "qa": True, "publish": True},
     }
 
 

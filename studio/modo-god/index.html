@@ -160,6 +160,7 @@
   <header>
     <h1><small>Obscuro Mediaworks · operaciones</small>Modo God</h1>
     <div class="header-right">
+      <a id="publish-link" href="publish" style="display:none" class="session-open">📣 Publish</a>
       <button id="sync-btn" type="button" style="display:none">↻ Sincronizar</button>
       <div class="meta" id="meta">cargando…</div>
     </div>
@@ -180,7 +181,7 @@ const $ = (s) => document.querySelector(s);
 // El backend (consola local vs Worker público) declara qué puede hacer en snapshot.capabilities.
 // Local: decide=true (POST /api/decide), sync=false (ya es en vivo, no necesita botón).
 // Worker público: decide=false (nadie resuelve decisiones sin contexto), sync=true (botón).
-let CAPS = { decide: false, sync: false };
+let CAPS = { decide: false, sync: false, qa: false, publish: false };
 let SNAP = null; // último snapshot renderizado, para que el modal de GDD busque por slug
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c => (
   {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -253,6 +254,9 @@ function card(p){
   const qaBtn = (CAPS.qa && p.qa && p.qa.available)
     ? `<a class="qa-open" href="qa?project=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener"
         title="Abre el tablero de QA de este proyecto en una pestaña nueva.">▤ QA</a>` : "";
+  const publishBtn = CAPS.publish
+    ? `<a class="qa-open" href="publish?project=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener"
+        title="Abre la cola de Publish filtrada a este proyecto.">📣 Publish</a>` : "";
   return `
   <article class="card ${p.priority === 1 ? "p1" : ""}">
     <div class="card-top">
@@ -272,8 +276,8 @@ function card(p){
         `<span class="role" title="${esc(r)}">${esc(r[0])}</span>`).join("")}</span>
       <span>${ship || esc(p.engine || "")}</span>
     </div>
-    ${(session || qaBtn) ? `<div class="rowline session-row" style="border-top:none;padding-top:0;margin-top:-4px">
-      ${session}${qaBtn}
+    ${(session || qaBtn || publishBtn) ? `<div class="rowline session-row" style="border-top:none;padding-top:0;margin-top:-4px">
+      ${session}${qaBtn}${publishBtn}
     </div>` : ""}
   </article>`;
 }
@@ -394,6 +398,7 @@ function render(s){
     </table>`;
 
   $("#sync-btn").style.display = CAPS.sync ? "" : "none";
+  $("#publish-link").style.display = CAPS.publish ? "" : "none";
 
   $("#foot").textContent = CAPS.decide
     ? "El estado de git sale del disco local en vivo. El de Asana es una caché que escribe un agente. " +

@@ -1,0 +1,26 @@
+{
+  "$comment": "Horario sugerido por red -- config simple, no un scheduler: publish_board.py lo usa solo para proponer un 'suggested_at' a quien arma una entrada nueva de publish-queue.json a mano. TODO: si aparece MOBAWarmup/docs/social-posting-schedule.md (lo puede armar Marketing en paralelo, ver STUDIO.md §8), reemplazar estos defaults por lo que diga ese archivo. Hoy (13/8/2026) lo que existe es MOBAWarmup/docs/social-content-calendar.md -- un calendario de contenido con fechas puntuales para la semana de lanzamiento (13-21/8), no una config genérica de horario por red; no es el mismo documento, no reemplaza esto.",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "networks": {
+    "discord": {
+      "default_time_local": "12:00",
+      "mode": "auto",
+      "note": "Sin canal/server propio confirmado todavía -- Roi define dónde vive el webhook al crearlo."
+    },
+    "youtube": {
+      "default_time_local": "17:00",
+      "mode": "auto",
+      "note": "Shorts. Requiere publish-credentials.json con youtube.* cargado (ver youtube_oauth_setup.py)."
+    },
+    "x": {
+      "default_time_local": "10:00",
+      "mode": "assisted",
+      "note": "Sin API gratis que alcance para postear (el tier que sirve es pago, ~$100/mes) -- Roi prefiere no depender de eso. Se queda en copiar texto + abrir compose."
+    },
+    "tiktok": {
+      "default_time_local": "19:00",
+      "mode": "assisted",
+      "note": "Content Posting API existe pero pide revisión/audit de la app por parte de TikTok -- no es prender y listo. Se queda en copiar texto + abrir la página de upload."
+    }
+  }
+}

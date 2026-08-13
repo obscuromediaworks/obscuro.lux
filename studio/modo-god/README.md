@@ -16,6 +16,38 @@ Levanta `http://localhost:5080`. Cada carga vuelve a interrogar a git en los rep
 que nadie remoto puede ver). **Es la versión que vale para decidir.** También tiene
 `POST /api/decide`, así que acá funciona el botón "Elegir" del panel de decisiones.
 
+**Tablero de Publish (cola de contenido para redes).** `http://localhost:5080/publish` — la cola
+vive en `publish-queue.json` (mismo espíritu que `decisions.json`): cada item tiene proyecto, red,
+texto, archivo opcional, horario sugerido y `status` (`draft` → `queued` → `posted`/`failed`).
+**Discord y YouTube disparan de verdad** desde el botón "Disparar" (`POST /api/publish/fire`, ver
+`publish_board.py` + `social_publisher.py`): Discord vía webhook (sin OAuth, sin costo), YouTube
+vía Data API v3 (OAuth device flow, ver `youtube_oauth_setup.py` — Roi corre ese script una vez
+después de crear las credenciales en Google Cloud Console). **X y TikTok quedan asistidos**:
+el botón copia el texto formateado y abre la página de compose, el click real lo hace Roi a mano
+— sin API paga (X) ni pasar por la revisión de app pendiente (TikTok Content Posting API). Roi
+confirmó (13/8) que más adelante quiere pagar el tier de X que sirve para automatizarlo de
+verdad, pero explícitamente **después** de que Discord/YouTube estén sólidos — ver la tarea de
+Asana `1217475928610505`, no arrancar esa parte todavía. **Reddit queda afuera de esta pasada**
+por decisión explícita de Roi (no hay código ni entradas de cola para esa red).
+
+Las credenciales (`discord.webhook_url`, `youtube.client_id/client_secret/refresh_token`) viven en
+`publish-credentials.json` — **gitignoreado, nunca al repo**, mismo criterio que `ASANA_TOKEN` o
+la `service_role` key de Supabase. Ver `publish-credentials.example.json` para el formato.
+
+**Rotación semanal.** `publish-rotation.json` define un ciclo simple (lunes devlog / miércoles
+clip de gameplay / viernes engagement de comunidad) para DESPUÉS de la ventana de lanzamiento
+fechada en `MOBAWarmup/docs/social-content-calendar.md` (13-21/8). Correr
+`python publish_rotation.py [--week YYYY-MM-DD]` agrega a la cola un SLOT vacío (`status: draft`,
+`slot: true`, sin texto ni archivo) por cada entrada del ciclo — no genera copy, eso lo llena una
+corrida futura de `om-marketing` (o a mano), y recién ahí pasa por la aprobación de Roi como
+cualquier item. Un slot vacío nunca se puede disparar (el tablero ni muestra el botón, y
+`post_discord()`/`youtube_upload_video()` rechazan texto+media vacíos igual). Idempotente por
+semana — correrlo dos veces no duplica.
+
+Exclusivo de la consola local, igual que QA y Decisiones — el Worker público no sirve `/publish`
+ni `POST /api/publish/fire` (ver `_worker.js`, `capabilities.publish`). El espejo público jamás
+dispara un post real hacia afuera.
+
 **Tablero de QA embebido.** Cada card de juego con `docs/qa/items.json` muestra un botón "▤ QA"
 que abre `/qa?project=<slug>` -- el tablero que antes era el script suelto
 `~/.claude/skills/qa/qa-board.py` (invocado a mano con `--repo`). Ahora vive en `qa_board.py`,
@@ -153,6 +185,14 @@ modo-god.py        Server local. Sirve index.html, /api/snapshot, /api/decide, /
                     /api/qa/mark en vivo.
 qa_board.py         Tablero de QA embebido (Board + plantilla HTML). Resuelve el repo por
                     slug contra registry.json. Lo usa modo-god.py; no corre solo.
+publish_board.py    Tablero de Publish (cola + plantilla HTML + fire()). Lo usa modo-god.py;
+                    no corre solo.
+social_publisher.py Disparo real: POST a webhook de Discord, OAuth device flow + upload de
+                    YouTube Data API v3, conversión gif->mp4 con ffmpeg. Solo stdlib.
+youtube_oauth_setup.py  Script standalone -- lo corre Roi UNA vez para autorizar YouTube y
+                    escribir el refresh_token en publish-credentials.json.
+publish_rotation.py Genera slots vacíos (draft) para la rotación semanal de contenido en
+                    publish-queue.json, según publish-rotation.json. No corre solo (sin cron).
 publish.py         Arma dist/ (index.html + _worker.js + robots.txt) para deployar. Ya no
                     incrusta datos -- el Worker los sirve en vivo.
 _worker.js          Worker del espejo público: auth (Basic Auth) + /api/sync + /api/snapshot
@@ -163,6 +203,12 @@ sync_gdd.py         Sincroniza los GDD de cada repo a gdd/*.html para la consola
                     El espejo público los trae solo, vía GitHub raw -- esto es solo para local.
 index.html          El tablero. Mismo archivo para consola local y espejo público.
 decisions.json      Decisiones que un agente no puede resolver solo, con opciones + recomendación.
+publish-queue.json  Cola de contenido para redes -- items draft/queued/posted/failed.
+publish-schedule.json   Horario sugerido por red (config simple, no un scheduler).
+publish-rotation.json   Ciclo semanal de tipos de contenido, para después de la ventana de
+                    lanzamiento fechada. Lo consume publish_rotation.py.
+publish-credentials.example.json  Plantilla de credenciales -- SI se versiona.
+publish-credentials.json          Credenciales reales -- gitignoreado, NUNCA al repo.
 asana-cache.json    Caché de Asana. La escribe un agente, no el collector.
 gdd/                GDDs sincronizados para la consola local. Generado por sync_gdd.py.
 snapshot.json       Salida de `python collect.py`. Generado -- no se versiona.

@@ -1,0 +1,23 @@
+{
+  "$comment": "Rotación semanal de tipos de contenido para DESPUÉS de la ventana de lanzamiento fechada en MOBAWarmup/docs/social-content-calendar.md (13-21/8) -- mientras esa ventana siga vigente, manda ella, no esto. publish_rotation.py usa este archivo para poblar publish-queue.json con SLOTS vacíos (status draft, sin texto ni media) -- la ROTACIÓN es lo que arma esta pasada, el CONTENIDO de cada slot lo llena una corrida futura de Marketing (o a mano) y recién ahí Roi lo aprueba como cualquier otro item de la cola. Un slot vacío no se puede disparar: post_discord()/youtube_upload_video() rechazan texto+media vacíos.",
+  "starts_after": "2026-08-21",
+  "buckets": {
+    "devlog": {
+      "network": "discord",
+      "source_hint": "Un commit real de la semana (bug arreglado, medición, decisión técnica) -- mismo criterio que docs/social-content-calendar.md: nunca anuncio vacío, siempre algo que realmente pasó (git log / docs/qa-log.md)."
+    },
+    "gameplay_clip": {
+      "network": "youtube",
+      "source_hint": "MOBAWarmup/docs/gifs/*.gif -- elegir uno sin usar todavía en publish-queue.json. Se convierte a mp4 solo, al disparar (ver social_publisher.gif_to_mp4)."
+    },
+    "community_engagement": {
+      "network": "x",
+      "source_hint": "MOBAWarmup/docs/community-posts-draft.md, o una pregunta abierta sobre una feature reciente -- termina en pregunta, no en pitch. Asistido: copiar + abrir compose, no dispara solo."
+    }
+  },
+  "cycle": [
+    { "weekday": "monday", "bucket": "devlog" },
+    { "weekday": "wednesday", "bucket": "gameplay_clip" },
+    { "weekday": "friday", "bucket": "community_engagement" }
+  ]
+}

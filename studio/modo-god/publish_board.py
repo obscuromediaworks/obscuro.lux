@@ -1,0 +1,377 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Modo God -- tablero de Publish (cola de contenido para redes).
+
+Foco de esta pasada (13/8/2026): Discord (webhook, auto) y YouTube (Data API v3, OAuth, auto)
+lo más completo posible; X y TikTok quedan asistidos (copiar texto + abrir compose, sin API);
+Reddit queda AFUERA por decisión explícita de Roi -- no hay código ni entradas para esa red acá.
+
+Mismo patrón que qa_board.py: vive junto al resto de Modo God, lo sirve modo-god.py, y el disparo
+real (`POST /api/publish/fire`) es **exclusivo de la consola local** -- el Worker público
+(`_worker.js`) no tiene esta ruta ni la de `/publish`, igual que `/api/decide` y `/api/qa/mark`
+(ver STUDIO.md §8 y la regla de que el espejo público nunca escribe).
+
+    GET  /publish[?project=<slug>]        -> el tablero
+    POST /api/publish/fire                -> {"id": "<item-id>"} dispara un item auto (discord/youtube)
+"""
+
+import json
+import os
+
+import qa_board  # reusa resolve_project() -- ya sabe mapear slug -> repo_path contra registry.json
+import social_publisher as sp
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+QUEUE_PATH = os.path.join(HERE, "publish-queue.json")
+SCHEDULE_PATH = os.path.join(HERE, "publish-schedule.json")
+
+AUTO_NETWORKS = ("discord", "youtube")
+ASSISTED_NETWORKS = ("x", "tiktok")
+
+
+# ── Cola: leer/escribir ───────────────────────────────────────────────────────
+
+def load_queue():
+    if not os.path.isfile(QUEUE_PATH):
+        return {"items": []}
+    with open(QUEUE_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_queue(doc):
+    tmp = QUEUE_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(doc, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    os.replace(tmp, QUEUE_PATH)
+
+
+def load_schedule():
+    if not os.path.isfile(SCHEDULE_PATH):
+        return {}
+    with open(SCHEDULE_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def resolve_media_path(item):
+    """media_path en la cola es relativo al repo del proyecto (ej. 'docs/gifs/x.gif'), salvo que
+    ya sea absoluto. Sin esto cada item tendría que repetir G:\\Github\\MOBAWarmup a mano."""
+    media = item.get("media_path")
+    if not media:
+        return None
+    if os.path.isabs(media):
+        return media
+    repo, _name = qa_board.resolve_project(item.get("project"))
+    if not repo:
+        return media
+    return os.path.join(repo, media)
+
+
+def now_iso():
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
+
+
+# ── Disparo real (solo discord/youtube) ──────────────────────────────────────
+
+def fire(item_id):
+    """Dispara un item auto. Devuelve {"ok": bool, ...}. Escribe el resultado en
+    publish-queue.json pase lo que pase (posted o failed), para que quede rastro de qué se
+    intentó -- nunca se borra silenciosamente un intento fallido."""
+    doc = load_queue()
+    item = next((it for it in doc.get("items", []) if it.get("id") == item_id), None)
+    if item is None:
+        return {"ok": False, "error": "no existe el item: " + str(item_id)}
+
+    network = item.get("network")
+    if network not in AUTO_NETWORKS:
+        return {"ok": False, "error": "'{}' es una red asistida -- no hay disparo automático, copiá el texto y abrí la página a mano.".format(network)}
+    if item.get("status") == "posted":
+        return {"ok": False, "error": "este item ya está marcado como posteado -- si hace falta repetirlo, cambiá el status a mano primero."}
+
+    creds = sp.load_credentials()
+    try:
+        if network == "discord":
+            result = _fire_discord(item, creds)
+        else:
+            result = _fire_youtube(item, creds)
+    except Exception as e:
+        result = {"ok": False, "error": str(e)}
+
+    if result.get("ok"):
+        item["status"] = "posted"
+        item["posted_at"] = now_iso()
+    else:
+        item["status"] = "failed"
+    item["result"] = result
+    save_queue(doc)
+    return result
+
+
+def _fire_discord(item, creds):
+    webhook = (creds.get("discord") or {}).get("webhook_url")
+    media_path = resolve_media_path(item)
+    return sp.post_discord(webhook, item.get("text") or "", file_path=media_path)
+
+
+def _fire_youtube(item, creds):
+    yt = creds.get("youtube") or {}
+    missing = [k for k in ("client_id", "client_secret", "refresh_token")
+               if sp._looks_like_placeholder(yt.get(k))]
+    if missing:
+        return {"ok": False, "error": "falta(n) {} en publish-credentials.json -- correr youtube_oauth_setup.py primero.".format(", ".join(missing))}
+
+    media_path = resolve_media_path(item)
+    if not media_path:
+        return {"ok": False, "error": "el item no tiene media_path -- YouTube necesita un archivo de video."}
+    if not os.path.isfile(media_path):
+        return {"ok": False, "error": "no existe el archivo: " + media_path}
+
+    upload_path = media_path
+    if media_path.lower().endswith(".gif"):
+        try:
+            upload_path = sp.gif_to_mp4(media_path)
+        except Exception as e:
+            return {"ok": False, "error": "no pude convertir el gif a mp4: " + str(e)}
+
+    try:
+        access_token = sp.youtube_refresh_access_token(yt["client_id"], yt["client_secret"], yt["refresh_token"])
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+    target = item.get("target") or {}
+    return sp.youtube_upload_video(
+        access_token, upload_path,
+        title=target.get("title") or (item.get("text") or "")[:95],
+        description=item.get("text") or "",
+        tags=target.get("tags"),
+        privacy_status=target.get("privacy_status", "unlisted"),
+    )
+
+
+# ── Tablero HTML ──────────────────────────────────────────────────────────────
+
+PAGE = """<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Publish · Modo God</title>
+<style>
+  :root { color-scheme: dark;
+    --ink-900:#070504; --ink-800:#0a0a0a; --ink-700:#0f0f0f; --ink-600:#161513;
+    --cream:#f5e9d4; --gold:#c9a96e; --gold-dim:#a1854f; --rec:#ff1f3e;
+    --ok:#6ab04c; --warn:#e2b33c; --line:rgba(201,169,110,.18);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0 auto; padding:2.2rem 1.2rem 5rem; max-width:78ch;
+    background:var(--ink-900); color:var(--cream);
+    font:400 1rem/1.6 "Space Grotesk","Helvetica Neue",Arial,sans-serif; }
+  a.back { font:500 .74rem/1 ui-monospace,Consolas,monospace; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--gold); text-decoration:none; }
+  h1 { font:300 2.2rem/1.1 "Cormorant Garamond",Georgia,serif; margin:.8rem 0 .3rem; }
+  .lede { margin:0 0 1.6rem; max-width:64ch; color:#a9a094; font-size:.92rem; }
+  h2 { margin:2rem 0 .6rem; font:500 .72rem/1 ui-monospace,Consolas,monospace; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--gold); border-bottom:1px solid var(--line); padding-bottom:.4rem; }
+  .filters { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.4rem; }
+  .filters a { font:500 .7rem/1 ui-monospace,Consolas,monospace; text-transform:uppercase;
+    letter-spacing:.06em; color:#8a8175; border:1px solid var(--line); padding:.35rem .7rem; text-decoration:none; }
+  .filters a.on { color:var(--gold); border-color:var(--gold-dim); }
+
+  .item { position:relative; background:var(--ink-700); border:1px solid var(--line);
+    padding:1rem 1.1rem; margin-bottom:.8rem; }
+  .item.posted { border-color:rgba(106,176,76,.5); }
+  .item.failed { border-color:var(--rec); }
+  .head { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-bottom:.5rem; }
+  .tag { font:500 .66rem/1.5 ui-monospace,Consolas,monospace; letter-spacing:.1em; text-transform:uppercase;
+    border:1px solid currentColor; padding:.1rem .5rem; white-space:nowrap; }
+  .tag.net-discord { color:#7289da; }
+  .tag.net-youtube { color:#ff4444; }
+  .tag.net-x { color:var(--cream); }
+  .tag.net-tiktok { color:#69c9d0; }
+  .tag.mode-auto { color:var(--gold); }
+  .tag.mode-assisted { color:#8a8175; }
+  .tag.status-draft { color:#8a8175; }
+  .tag.status-queued { color:var(--warn); }
+  .tag.status-posted { color:var(--ok); }
+  .tag.status-failed { color:var(--rec); }
+  .proj { font:500 .78rem/1 ui-monospace,Consolas,monospace; color:var(--gold); margin-left:auto; }
+
+  .text { font-size:.94rem; line-height:1.55; white-space:pre-wrap; margin:0 0 .5rem; color:var(--cream); }
+  .meta { font:400 .78rem/1.6 ui-monospace,Consolas,monospace; color:#8a8175; margin:0 0 .7rem; }
+  .meta code { color:var(--gold-dim); }
+  .result { font:400 .78rem/1.5 ui-monospace,Consolas,monospace; margin:.5rem 0 0; padding:.5rem .7rem;
+    border-left:2px solid var(--line); white-space:pre-wrap; }
+  .result.ok { border-color:var(--ok); color:#a9c99a; }
+  .result.err { border-color:var(--rec); color:#e79a9a; }
+
+  .actions { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.4rem; }
+  button, .btnlink { appearance:none; cursor:pointer; font:500 .72rem/1 ui-monospace,Consolas,monospace;
+    letter-spacing:.06em; text-transform:uppercase; background:transparent; color:var(--gold);
+    border:1px solid var(--gold-dim); padding:.5rem .9rem; text-decoration:none; display:inline-block; }
+  button:hover, .btnlink:hover { background:var(--gold); color:var(--ink-900); }
+  button:disabled { opacity:.4; cursor:default; background:transparent; color:var(--gold); }
+  .btn-fire { border-color:var(--gold); }
+  .btn-copy.done { color:var(--ok); border-color:var(--ok); }
+
+  .empty { font-family:ui-monospace,Consolas,monospace; font-size:.85rem; color:#8a8175;
+    border:1px dashed var(--line); padding:1rem; }
+  footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--line);
+    font-size:.85rem; color:#8a8175; }
+</style></head>
+<body>
+  <a class="back" href="/">&larr; Modo God</a>
+  <h1>Publish</h1>
+  <p class="lede">Cola de contenido para redes. Discord y YouTube disparan de verdad desde acá
+    (webhook / Data API v3). X y TikTok quedan asistidos: copiás el texto y abrís la página de
+    compose a mano -- sin API paga ni revisión pendiente de por medio.</p>
+  <div class="filters">__FILTERS__</div>
+  <div id="items">__ITEMS__</div>
+  <footer>El disparo real (Discord/YouTube) es exclusivo de esta consola local -- el espejo
+    público de Modo God no tiene este endpoint. Las credenciales viven en
+    <code>publish-credentials.json</code>, gitignoreado.</footer>
+
+<script>
+function fire(id, btn) {
+  if (!confirm("¿Disparar este post de verdad? No hay vuelta atrás.")) return;
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = "Publicando…";
+  fetch("api/publish/fire", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({id})
+  }).then(r => r.json()).then(data => {
+    location.reload();
+  }).catch(err => {
+    btn.disabled = false;
+    btn.textContent = original;
+    alert("Fallo de red disparando el post: " + err.message);
+  });
+}
+
+async function copyText(text, btn) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    window.prompt("No pude copiar solo -- copiá a mano:", text);
+    return;
+  }
+  const original = btn.textContent;
+  btn.textContent = "✓ Copiado";
+  btn.classList.add("done");
+  setTimeout(() => { btn.textContent = original; btn.classList.remove("done"); }, 1500);
+}
+
+document.getElementById("items").addEventListener("click", (e) => {
+  const fireBtn = e.target.closest("[data-fire]");
+  const copyBtn = e.target.closest("[data-copy]");
+  if (fireBtn) fire(fireBtn.getAttribute("data-fire"), fireBtn);
+  else if (copyBtn) copyText(copyBtn.getAttribute("data-copy"), copyBtn);
+});
+</script>
+</body></html>
+"""
+
+NETWORK_LABEL = {"discord": "Discord", "youtube": "YouTube", "x": "X", "tiktok": "TikTok"}
+
+COMPOSE_URL = {
+    "x": lambda text: "https://twitter.com/intent/tweet?text=" + _urlenc(text),
+    "tiktok": lambda text: "https://www.tiktok.com/upload?lang=en",
+}
+
+
+def _urlenc(s):
+    from urllib.parse import quote
+    return quote(s or "", safe="")
+
+
+def _esc(s):
+    if s is None:
+        return ""
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;"))
+
+
+def _item_html(item):
+    network = item.get("network", "?")
+    status = item.get("status", "draft")
+    mode = "auto" if network in AUTO_NETWORKS else "assisted"
+    text = item.get("text") or ""
+    media = item.get("media_path")
+    # Slot de la rotación semanal (publish_rotation.py) sin llenar todavía -- o cualquier item sin
+    # contenido real por otro motivo. Nunca se puede disparar (post_discord/youtube_upload_video
+    # rechazan texto+media vacíos), así que ni se muestra el botón: evita un click que solo daría error.
+    is_empty = not text and not media
+
+    tags = [
+        '<span class="tag net-{n}">{label}</span>'.format(n=_esc(network), label=_esc(NETWORK_LABEL.get(network, network))),
+        '<span class="tag mode-{m}">{m}</span>'.format(m=mode),
+        '<span class="tag status-{s}">{s}</span>'.format(s=_esc(status)),
+    ]
+    if item.get("slot"):
+        tags.append('<span class="tag" style="color:#8a8175">slot · {b}</span>'.format(b=_esc(item.get("bucket") or "?")))
+
+    meta_bits = []
+    if item.get("suggested_at"):
+        meta_bits.append("sugerido " + _esc(item["suggested_at"]))
+    if media:
+        meta_bits.append("archivo <code>" + _esc(media) + "</code>")
+    if item.get("source"):
+        meta_bits.append("fuente: " + _esc(item["source"]))
+    meta_html = " · ".join(meta_bits)
+
+    actions = []
+    if is_empty:
+        actions.append('<span class="tag" style="color:#8a8175">sin contenido todavía — lo llena una corrida de Marketing (o a mano), después se aprueba como cualquier item</span>')
+    elif mode == "auto":
+        disabled = " disabled" if status == "posted" else ""
+        actions.append('<button class="btn-fire" type="button" data-fire="{id}"{dis}>Disparar</button>'.format(
+            id=_esc(item.get("id")), dis=disabled))
+    else:
+        actions.append('<button class="btn-copy" type="button" data-copy="{text}">Copiar texto</button>'.format(text=_esc(text)))
+        url_fn = COMPOSE_URL.get(network)
+        if url_fn:
+            actions.append('<a class="btnlink" href="{url}" target="_blank" rel="noopener">Abrir compose ↗</a>'.format(
+                url=_esc(url_fn(text))))
+
+    result_html = ""
+    r = item.get("result")
+    if r:
+        ok = r.get("ok")
+        cls = "ok" if ok else "err"
+        detail = json.dumps(r, ensure_ascii=False, indent=None)
+        result_html = '<div class="result {cls}">{detail}</div>'.format(cls=cls, detail=_esc(detail))
+
+    return """
+  <article class="item {status}" data-id="{id}">
+    <div class="head">{tags}<span class="proj">{project}</span></div>
+    <p class="text">{text}</p>
+    <p class="meta">{meta}</p>
+    <div class="actions">{actions}</div>
+    {result}
+  </article>""".format(
+        status=_esc(status), id=_esc(item.get("id")), tags="".join(tags),
+        project=_esc(item.get("project") or ""), text=_esc(text) or "&mdash;", meta=meta_html,
+        actions="".join(actions), result=result_html,
+    )
+
+
+def render_page(project_filter=None):
+    doc = load_queue()
+    items = doc.get("items", [])
+    if project_filter:
+        items = [it for it in items if it.get("project") == project_filter]
+
+    projects = sorted({it.get("project") for it in doc.get("items", []) if it.get("project")})
+    filters = ['<a href="/publish"{on}>todos</a>'.format(on=" class=\"on\"" if not project_filter else "")]
+    for p in projects:
+        on = " class=\"on\"" if p == project_filter else ""
+        filters.append('<a href="/publish?project={p}"{on}>{p}</a>'.format(p=p, on=on))
+
+    if not items:
+        items_html = '<div class="empty">Nada en la cola' + (" para " + _esc(project_filter) if project_filter else "") + '. Agregar entradas a mano en publish-queue.json.</div>'
+    else:
+        # draft/queued/failed primero -- lo que necesita atención; posted al final.
+        order = {"queued": 0, "draft": 1, "failed": 2, "posted": 3}
+        items = sorted(items, key=lambda it: order.get(it.get("status"), 1))
+        items_html = "".join(_item_html(it) for it in items)
+
+    return PAGE.replace("__FILTERS__", "".join(filters)).replace("__ITEMS__", items_html)

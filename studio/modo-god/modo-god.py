@@ -22,6 +22,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
 import collect
+import publish_board
 import qa_board
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +39,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.serve_snapshot()
         if path in ("/qa", "qa"):
             return self.serve_qa()
+        if path in ("/publish", "publish"):
+            return self.serve_publish()
         return super().do_GET()
 
     def do_POST(self):
@@ -46,6 +49,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.handle_decide()
         if path in ("/api/qa/mark", "api/qa/mark"):
             return self.handle_qa_mark()
+        if path in ("/api/publish/fire", "api/publish/fire"):
+            return self.handle_publish_fire()
         self.send_response(404)
         self.end_headers()
 
@@ -184,6 +189,39 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
+
+    def serve_publish(self):
+        # Tablero de Publish -- cola de contenido para redes (ver publish_board.py). Exclusivo de
+        # la consola LOCAL: el Worker público (_worker.js) no sirve /publish ni /api/publish/fire,
+        # mismo criterio que /qa y /api/decide (STUDIO.md §8: el espejo público nunca escribe).
+        q = self.qa_query()
+        project = (q.get("project") or [None])[0]
+        html = publish_board.render_page(project_filter=project)
+        return self.send_html(html)
+
+    def handle_publish_fire(self):
+        # Único disparo real de "publicar" del estudio -- POST a Discord/YouTube de verdad.
+        # Solo dispara items network=discord/youtube (los que tienen mode auto); x/tiktok quedan
+        # asistidos a propósito, ver publish_board.AUTO_NETWORKS.
+        try:
+            length = int(self.headers.get("Content-Length", 0) or 0)
+            payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
+            item_id = payload.get("id")
+            if not item_id:
+                raise ValueError("falta id")
+            result = publish_board.fire(item_id)
+            code = 200
+        except Exception as e:
+            result = {"ok": False, "error": str(e)}
+            code = 400
+
+        body = json.dumps(result, ensure_ascii=False).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
 
     def end_headers(self):
         # SimpleHTTPRequestHandler manda text/html SIN charset y rompe los acentos
