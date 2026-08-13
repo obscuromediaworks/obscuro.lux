@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weedgang — Game Design Document</title>
+<style>
+  :root {
+    --bg:        #0a0b0a;
+    --bg2:       #121412;
+    --bg3:       #1b1e1b;
+    --border:    #2c312c;
+    --text:      #d9ded9;
+    --muted:     #7d887d;
+    --accent:    #6fbf5f;   /* verde brote (principal) */
+    --green:     #8ede76;   /* verde brillante (énfasis) */
+    --green-dim: rgba(111,191,95,.15);
+    --warm:      #e8b84b;   /* amarillo sol (secundario) */
+    --warm-dim:  rgba(232,184,75,.14);
+    --font:      -apple-system, 'Segoe UI', sans-serif;
+    --mono:      'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    --sidebar-w: 250px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.65;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ─────────────────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    overflow-y: auto;
+    padding: 24px 0 40px;
+    z-index: 100;
+  }
+
+  #sidebar .logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  #sidebar .logo .title {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  #sidebar .logo .sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  #sidebar nav a {
+    display: block;
+    padding: 6px 20px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    transition: color .15s, background .15s;
+    border-left: 2px solid transparent;
+  }
+
+  #sidebar nav a:hover,
+  #sidebar nav a.active {
+    color: var(--text);
+    background: var(--bg3);
+    border-left-color: var(--accent);
+  }
+
+  #sidebar nav .section-label {
+    padding: 14px 20px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Main ────────────────────────────────────────────────── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 48px 56px 80px;
+    max-width: 920px;
+  }
+
+  /* ── Hero ────────────────────────────────────────────────── */
+  .hero {
+    margin-bottom: 56px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    background: linear-gradient(135deg, var(--green), var(--warm));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .hero .tagline {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .hero .meta { display: flex; gap: 16px; flex-wrap: wrap; }
+  .meta-item { font-size: 12px; color: var(--muted); }
+  .meta-item strong { color: var(--text); }
+
+  /* ── Sections ────────────────────────────────────────────── */
+  .section { margin-bottom: 56px; }
+
+  .section h2 {
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section h2 .num { font-size: 12px; color: var(--accent); font-weight: 700; }
+
+  .section h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 24px 0 10px;
+  }
+
+  .section p { color: var(--text); margin-bottom: 12px; }
+  .section ul, .section ol { margin: 8px 0 16px 20px; }
+  .section li { margin-bottom: 4px; color: var(--text); }
+  .em { color: var(--text); font-weight: 600; }
+
+  /* ── Badges ──────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .badge-done    { background: var(--green-dim); color: var(--green); }
+  .badge-active  { background: var(--warm-dim); color: var(--warm); }
+  .badge-planned { background: rgba(125,136,125,.12); color: var(--muted); }
+  .badge-mvp     { background: rgba(111,191,95,.24); color: var(--green); }
+
+  /* ── Tables ──────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+
+  th {
+    background: var(--bg3);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: var(--bg3); }
+
+  /* Tiers de rareza */
+  .tier-comun     { color: var(--muted); }
+  .tier-criolla   { color: #a8b8a0; }
+  .tier-serrana   { color: var(--accent); }
+  .tier-ancestral { color: var(--warm); }
+  .tier-mitica    { color: var(--green); font-weight: 700; }
+
+  kbd {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--text);
+  }
+
+  /* ── Code ────────────────────────────────────────────────── */
+  pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #b8c2b8;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--green);
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  /* ── Callouts ────────────────────────────────────────────── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--bg3);
+    padding: 14px 16px;
+    border-radius: 0 6px 6px 0;
+    margin: 16px 0;
+  }
+  .callout.warm { border-color: var(--warm); }
+  .callout.gray { border-color: var(--muted); }
+  .callout p { margin: 0; font-size: 13px; }
+  .callout p + p { margin-top: 8px; }
+  .callout strong { color: var(--accent); }
+  .callout.warm strong { color: var(--warm); }
+  .callout.gray strong { color: var(--muted); }
+
+  /* ── Cards ───────────────────────────────────────────────── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 16px 0 24px;
+  }
+
+  .card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: var(--accent); }
+
+  .card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+  .card .card-name { font-weight: 700; font-size: 14px; color: var(--text); }
+  .card .card-tag { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .card .card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Roadmap ─────────────────────────────────────────────── */
+  .roadmap { position: relative; padding-left: 24px; margin: 16px 0; }
+  .roadmap::before {
+    content: ''; position: absolute; left: 7px; top: 6px; bottom: 6px;
+    width: 2px; background: var(--border);
+  }
+  .roadmap-item { position: relative; margin-bottom: 24px; padding-left: 16px; }
+  .roadmap-item::before {
+    content: ''; position: absolute; left: -18px; top: 6px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--border); border: 2px solid var(--bg2);
+  }
+  .roadmap-item.active::before { background: var(--accent); }
+  .roadmap-item.next::before   { background: #556055; }
+  .roadmap-item.future::before { background: var(--border); }
+
+  .roadmap-version {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .roadmap-item.active .roadmap-version { color: var(--accent); }
+  .roadmap-item.next .roadmap-version   { color: #b0bab0; }
+  .roadmap-item.future .roadmap-version { color: var(--muted); }
+  .roadmap-desc { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .roadmap-items { font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 780px) {
+    #sidebar { display: none; }
+    #main { margin-left: 0; padding: 32px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="logo">
+    <div class="title">Weed<span style="color:var(--text)">gang</span></div>
+    <div class="sub">GDD · v0.1</div>
+  </div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="#resumen">Resumen</a>
+    <a href="#pilares">Pilares de diseño</a>
+    <a href="#publico">Público y tono</a>
+    <a href="#referencias">Referencias</a>
+    <div class="section-label">Diseño core</div>
+    <a href="#loop">Core loop</a>
+    <a href="#cultivo">Sistema de cultivo</a>
+    <a href="#reloj">Ritmo del reloj</a>
+    <a href="#economia">Economía</a>
+    <div class="section-label">Online + Social</div>
+    <a href="#multiplayer">Multiplayer híbrido</a>
+    <a href="#karma">Karma de jardín</a>
+    <a href="#arquitectura">Networking y persistencia</a>
+    <div class="section-label">Contenido</div>
+    <a href="#minijuegos">Minijuegos</a>
+    <a href="#monetizacion">Progresión y monetización</a>
+    <a href="#arte">Arte y audio</a>
+    <div class="section-label">Producción</div>
+    <a href="#stack">Plataforma y stack</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#arquetipos">Arquetipos de jardinero</a>
+    <a href="#metricas">Métricas de éxito</a>
+    <a href="#no-objetivos">No-objetivos</a>
+    <a href="#pendientes">Decisiones y pendientes</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+  <div class="hero" id="top">
+    <h1>Weedgang</h1>
+    <div class="tagline">Cozy-game online de cultivo — tamagotchi de plantas, no idle-game.</div>
+    <div class="meta">
+      <div class="meta-item"><strong>Motor:</strong> Unity 6 (6000.3.10f1) · URP 3D</div>
+      <div class="meta-item"><strong>Target:</strong> WebGL</div>
+      <div class="meta-item"><strong>Backend:</strong> Nakama self-hosted</div>
+      <div class="meta-item"><strong>Audio:</strong> FMOD</div>
+      <div class="meta-item"><strong>Estado:</strong> Setup inicial (Fase 1)</div>
+    </div>
+  </div>
+
+  <!-- ── RESUMEN ──────────────────────────────────────────── -->
+  <section class="section" id="resumen">
+    <h2><span class="num">01</span> Resumen</h2>
+    <p>Weedgang es un cozy-game online de cultivo de cannabis con estética low-poly. El <span class="em">Grower</span> —así se llama el jugador, ver <a href="#publico" style="color:var(--green)">§03</a>— cuida plantas de distinta rareza y complejidad genética, que exigen <span class="em">atención activa</span> (riego, luz, poda, nutrientes) al estilo tamagotchi.</p>
+    <p>El mundo es persistente y multiplayer híbrido: cada Grower tiene su propio jardín, pero puede visitar jardines ajenos, intercambiar semillas de forma asíncrona, y participar en actividades cooperativas en tiempo real (invernaderos comunitarios, ferias). La progresión se financia jugando minijuegos que generan la moneda del juego, el <span class="em">Rocío</span>.</p>
+    <div class="callout">
+      <p><strong>El jardín no se simula con un tick.</strong> Se guarda estado + <code>timestampUltimaEvaluacion</code>, y el servidor calcula deterministicamente qué pasó cuando alguien lo lee. Eso da progresión offline, anti-cheat y costo de hosting casi cero — es el principio de arquitectura del proyecto (ver <a href="#arquitectura" style="color:var(--green)">§10</a>).</p>
+    </div>
+    <div class="callout gray">
+      <p><strong>Alcance Fase 1 (MVP):</strong> jardín individual, sistema de cuidado, cosecha con nota de calidad, un minijuego (riego/poda con timing) y economía básica de compra/venta. <span class="em">Sin</span> visitas, trueque, season pass ni multiplayer — primero se valida que el loop de cuidado solo sea divertido.</p>
+    </div>
+  </section>
+
+  <!-- ── PILARES ──────────────────────────────────────────── -->
+  <section class="section" id="pilares">
+    <h2><span class="num">02</span> Pilares de diseño</h2>
+    <ol>
+      <li><strong>Cozy, no punitivo.</strong> No hay fail-state duro: una planta descuidada se estresa o pierde calidad, no "muere" de forma irreversible salvo abandono prolongado y avisado.</li>
+      <li><strong>Atención activa, no un timer pasivo.</strong> Más cerca de un tamagotchi que de un idle-game: hay ventanas de tiempo donde una acción específica (podar, regar en el momento justo) cambia el resultado.</li>
+      <li><strong>Rareza como narrativa, no como pay-to-win.</strong> Las genéticas raras se consiguen jugando, cruzando o socializando, no comprando ventaja.</li>
+      <li><strong>Cooperar &gt; competir.</strong> El diseño multiplayer premia ayudar jardines ajenos y compartir semillas por sobre el ranking competitivo.</li>
+      <li><strong>Low-poly cálido.</strong> Paleta pastel, formas simples, lectura clara del estado de cada planta a simple vista.</li>
+    </ol>
+  </section>
+
+  <!-- ── PÚBLICO ──────────────────────────────────────────── -->
+  <section class="section" id="publico">
+    <h2><span class="num">03</span> Público y tono</h2>
+    <p>Jugadores de cozy-games (fans de vida simulada, cuidado de mascotas o granjas) <span class="em">mayores de 18 años</span>, dado el tema. Tono relajado, algo pícaro/humorístico, pero nunca gráfico ni instructivo sobre consumo real — el eje es la jardinería y el coleccionismo, no el uso.</p>
+    <div class="callout warm">
+      <p><strong>Nota de contenido.</strong> El juego se trata como "jardinería de una planta con historia cultural", en la línea de los simuladores de granja, evitando cualquier mensaje que fomente el consumo. Esto es también lo que hace viable la clasificación de edad y la distribución (ver <a href="#stack" style="color:var(--warm)">§14</a>).</p>
+    </div>
+
+    <h3>El jugador es un Grower</h3>
+    <p><span class="em">Grower</span> es el nombre in-world del jugador — como "Summoner" en LoL o "Trainer" en Pokémon. Le da identidad al rol y refuerza el tono: el eje es la jardinería y el coleccionismo. Plural: <span class="em">Growers</span>.</p>
+    <div class="callout gray">
+      <p><strong>Dónde aplica.</strong> En UI, narrativa, logros, perfiles y todo lo que ve el usuario, siempre "Grower" — nunca "jugador". En código entra natural porque ya es inglés (<code>growerPresent</code>, <code>growerId</code>); la API de Unity (<code>PlayerSettings</code>, <code>BuildPlayer</code>) no se toca.</p>
+      <p>En la prosa de este documento se usa "Grower" para el actor in-world (el que visita jardines ajenos, acumula karma, cosecha) y se mantiene "jugador" donde se habla de la persona real en términos analíticos: retención, sesiones por día, playtesting.</p>
+    </div>
+  </section>
+
+  <!-- ── REFERENCIAS ──────────────────────────────────────── -->
+  <section class="section" id="referencias">
+    <h2><span class="num">04</span> Referencias</h2>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-header"><span class="card-name">Coral Island</span></div>
+        <div class="card-tag">Farm-sim 3D</div>
+        <div class="card-desc">Estética cálida, pesca, insectos, mecánicas de cuidado profundas.</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-name">Cozy Grove</span></div>
+        <div class="card-tag">Cuidado diario</div>
+        <div class="card-desc">Tamagotchi con progresión atada a volver todos los días. La referencia más cercana al loop.</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-name">Hokko Life</span></div>
+        <div class="card-tag">Crafting relajado</div>
+        <div class="card-desc">Decoración y crafting; buen ejemplo de "juntar y coleccionar".</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-name">Dinkum / Animal Crossing</span></div>
+        <div class="card-tag">Loop social</div>
+        <div class="card-desc">Recolectar, vender, decorar y socializar.</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-name">Slime Rancher</span></div>
+        <div class="card-tag">Rareza</div>
+        <div class="card-desc">Criaturas coleccionables con variantes — la lógica de rareza aplicada a genéticas de plantas.</div>
+      </div>
+    </div>
+    <h3>Assets</h3>
+    <p>Licencia de <span class="em">Synty Studios POLYGON</span> ya disponible. El <span class="em">POLYGON Farm Pack</span> incluye plantas de "Hemp" (cáñamo) dentro de sus 173 props de plantas, además de invernaderos, silos y granjas — base directa para el arte de cultivo. El <span class="em">POLYGON Nature Pack</span> aporta shader de agua estilizado, vegetación animada y partículas (luciérnagas, hojas cayendo). Ambos compatibles con Unity 6 / URP.</p>
+  </section>
+
+  <!-- ── CORE LOOP ────────────────────────────────────────── -->
+  <section class="section" id="loop">
+    <h2><span class="num">05</span> Core loop</h2>
+    <h3>Loop corto — sesión de 5–15 min</h3>
+    <ol>
+      <li>Entrar al jardín → revisar estado de plantas (agua, luz, plagas, ánimo).</li>
+      <li>Atender 1–3 acciones puntuales (regar, podar, cosechar, curar plaga).</li>
+      <li>Visitar 1 jardín de amigo / responder al buzón de trueque.</li>
+      <li>Jugar un minijuego corto para plata extra.</li>
+      <li>Comprar/plantar algo nuevo con lo ganado.</li>
+    </ol>
+    <h3>Loop medio — por día</h3>
+    <ul>
+      <li>Rotación de pedidos del mercado (qué variedad se paga mejor hoy).</li>
+      <li>Eventos del invernadero comunitario (objetivo cooperativo semanal).</li>
+      <li>Cosechas grandes que obligan a decidir: vender, cruzar, o guardar semilla.</li>
+    </ul>
+    <h3>Loop largo — semanas</h3>
+    <ul>
+      <li>Coleccionar el árbol genético completo de una familia de plantas.</li>
+      <li>Subir de nivel el jardín (más parcelas, más slots de invernadero).</li>
+      <li>Season pass temático (ver <a href="#monetizacion" style="color:var(--green)">§12</a>).</li>
+    </ul>
+  </section>
+
+  <!-- ── CULTIVO ──────────────────────────────────────────── -->
+  <section class="section" id="cultivo">
+    <h2><span class="num">06</span> Sistema de cultivo</h2>
+
+    <h3>6.1 Rareza y genética</h3>
+    <p>Cada semilla tiene una genética con cinco atributos: <span class="em">Potencia visual</span> (color/brillo), <span class="em">Aroma</span>, <span class="em">Tamaño de cogollo</span>, <span class="em">Resistencia a plagas</span> y <span class="em">Tiempo de floración</span>.</p>
+    <table>
+      <thead><tr><th>Tier</th><th>Multiplicador de tiempo</th><th>Notas</th></tr></thead>
+      <tbody>
+        <tr><td class="tier-comun">Común</td><td>×1.0</td><td>Punto de entrada; se consigue en el vivero base.</td></tr>
+        <tr><td class="tier-criolla">Criolla</td><td>×1.25</td><td>Primer salto de calidad; cruce sencillo.</td></tr>
+        <tr><td class="tier-serrana">Serrana</td><td>×1.5</td><td>Requiere cruce dirigido o trueque.</td></tr>
+        <tr><td class="tier-ancestral">Ancestral</td><td>×2.0</td><td>Eventos, ferias y vivero rotativo.</td></tr>
+        <tr><td class="tier-mitica">Mítica</td><td>×3.0</td><td>Fin del árbol genético de una familia.</td></tr>
+      </tbody>
+    </table>
+    <p>Los nombres suenan a <span class="em">origen</span>, no a stat — refuerza el pilar "rareza como narrativa".</p>
+    <p>Las genéticas raras se obtienen por cruce de dos plantas (Mendel-lite: dominante/recesivo simplificado), trueque con otros jugadores, recompensas de minijuegos/eventos, o clima/estación especial. En el cruce, el jugador combina dos plantas madre en un "banco de semillas"; el resultado es probabilístico pero con <span class="em">pistas visuales</span> (ej. flores brillantes = mayor chance de rareza) para que se sienta jugable, no azar puro.</p>
+
+    <h3>6.2 Cuidado tipo tamagotchi</h3>
+    <p>Cada planta tiene estados que decaen con el tiempo real:</p>
+    <table>
+      <thead><tr><th>Estado</th><th>Comportamiento</th></tr></thead>
+      <tbody>
+        <tr><td><span class="em">Agua</span></td><td>Se seca gradual. Regar de más también daña (sobre-riego) — no es un botón que siempre conviene apretar.</td></tr>
+        <tr><td><span class="em">Luz</span></td><td>Mover macetas o ajustar toldos según la etapa de crecimiento.</td></tr>
+        <tr><td><span class="em">Nutrientes</span></td><td>Aplicar abono en ventanas específicas de la fase vegetativa.</td></tr>
+        <tr><td><span class="em">Plagas / hongos</span></td><td>Aparecen aleatoriamente; se resuelven con un mini-QTE de poda o con productos comprados.</td></tr>
+        <tr><td><span class="em">Ánimo / estrés</span></td><td>Métrica compuesta que resume las anteriores y determina la calidad final de cosecha.</td></tr>
+      </tbody>
+    </table>
+    <p>Fases de crecimiento: <span class="em">Semilla → Plántula → Vegetativa → Floración → Cosecha</span>. Cada fase tiene su propia necesidad dominante (ej. floración exige más luz y menos nutriente nitrogenado), lo que da variedad a la rutina diaria en vez de repetir siempre la misma acción.</p>
+    <div class="callout">
+      <p><strong>Modo letargo.</strong> Si el jugador se ausenta varios días, las plantas no mueren: dejan de avanzar y pierden algo de calidad. Evita castigar a quien no juega todos los días, pero conserva la tensión de tamagotchi para quien sí vuelve seguido.</p>
+    </div>
+
+    <h3>6.3 Cosecha y calidad</h3>
+    <p>La cosecha da una nota de calidad — <span class="em">Baja / Media / Alta / Premium</span> — según qué tan bien se cuidó la planta. Calidad alta significa mejor precio de venta, mejores ingredientes para el minijuego de cocina/extracción, y mayor chance de que la semilla resultante herede rareza.</p>
+  </section>
+
+  <!-- ── RELOJ ────────────────────────────────────────────── -->
+  <section class="section" id="reloj">
+    <h2><span class="num">07</span> Ritmo del reloj de juego <span class="badge badge-active">A playtestear</span></h2>
+    <p>Punto de partida, no un número final. <span class="em">Ancla de diseño:</span> el jugador objetivo entra 1–2 veces por día, 5–15 min, y el ciclo completo de una planta común dura ~3 días reales — así en una semana cosecha dos veces y siente progreso.</p>
+    <table>
+      <thead><tr><th>Fase</th><th>Duración real</th><th>Necesidad dominante</th></tr></thead>
+      <tbody>
+        <tr><td>Semilla</td><td>2 h</td><td>Agua</td></tr>
+        <tr><td>Plántula</td><td>10 h</td><td>Luz</td></tr>
+        <tr><td>Vegetativa</td><td>24 h</td><td>Nutrientes</td></tr>
+        <tr><td>Floración</td><td>30 h</td><td>Luz + poda</td></tr>
+        <tr><td>Ventana de cosecha</td><td>168 h (1 semana)</td><td>Cosechar (si se pasa, baja calidad — nunca muere)</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><span class="em">Barra de agua:</span> de llena a vacía en 16 h, con zona verde amplia (100%–40%). Una sola visita al día alcanza para no ser penalizado; dos visitas dan calidad Premium. <strong style="color:var(--accent)">Ese diferencial es el corazón del loop diario.</strong></li>
+      <li><span class="em">Letargo:</span> a las 72 h sin entrar. Pierde 1 nivel de calidad, nunca muere.</li>
+      <li><span class="em">Ventana de cosecha ampliada (2026-08-11):</span> era 12 h. El hallazgo del Grower de fin de semana (<a href="#arquetipos" style="color:var(--green)">§17</a>) no era de crecimiento sino de esta ventana — el hueco máximo entre visitas de ese perfil es ~138 h (domingo a la tarde → sábado a la mañana), y con 12 h la cosecha se perdía sola entre semana sin que nadie la viera. Ningún tuning del letargo lo arreglaba, porque el límite real era este número.</li>
+      <li><span class="em">Genéticas raras:</span> multiplican estos tiempos (×1.25 a ×3, ver tabla de tiers) — es a la vez el balanceo de rareza y el motivo para tener varias parcelas en fases distintas.</li>
+    </ul>
+    <div class="callout warm">
+      <p><strong>Requisito técnico.</strong> Todos estos números viven en un JSON server-side, <span class="em">no compilados en el build</span>. El tuneo de ritmo va a cambiar muchas veces durante el playtesting y no puede depender de un build de WebGL nuevo por cada ajuste.</p>
+    </div>
+  </section>
+
+  <!-- ── ECONOMÍA ─────────────────────────────────────────── -->
+  <section class="section" id="economia">
+    <h2><span class="num">08</span> Economía</h2>
+    <p>Moneda única del jardín: <span class="em">Rocío</span>. Evita jerga de consumo (que complicaría el rating) y encaja con el pilar cozy. Se gana vendiendo cosecha, jugando minijuegos, cumpliendo pedidos del mercado y en eventos cooperativos.</p>
+    <ul>
+      <li>Los precios del mercado fluctúan por día ("pizarra de precios").</li>
+      <li>Gasto principal: nuevas parcelas, macetas y decoración, mejoras de invernadero, productos de cuidado (fertilizante, repelente), y semillas raras del vivero rotativo.</li>
+      <li><span class="em">Sin moneda premium pay-to-win.</span> El season pass vende cosmética y conveniencia, no ventaja de cultivo.</li>
+    </ul>
+  </section>
+
+  <!-- ── MULTIPLAYER ──────────────────────────────────────── -->
+  <section class="section" id="multiplayer">
+    <h2><span class="num">09</span> Multiplayer híbrido</h2>
+    <p>Modelo híbrido: combina asíncrono y tiempo real según la zona.</p>
+    <h3>Asíncrono (siempre disponible)</h3>
+    <ul>
+      <li>Visitar el jardín de un amigo aunque no esté conectado: regar una planta ajena como favor (con <span class="em">límite diario</span>, para que no reemplace el cuidado del dueño), dejar un regalo, o robar-cosechar solo si el dueño lo habilitó.</li>
+      <li>Buzón de trueque de semillas: se ofrece una semilla propia a cambio de otra, o se regala directamente a amigos/gremio.</li>
+    </ul>
+    <h3>Tiempo real (zonas compartidas)</h3>
+    <ul>
+      <li><span class="em">Invernadero comunitario:</span> espacio compartido por un gremio, donde todos cuidan plantas grandes que ninguno podría sacar adelante solo.</li>
+      <li><span class="em">Feria de plantas:</span> evento en vivo donde varios Growers exhiben a la vez (ver <a href="#minijuegos" style="color:var(--green)">§11.4</a>).</li>
+      <li><span class="em">Mesa de truco:</span> hasta 4 jugadores.</li>
+    </ul>
+
+    <h3>9.1 Vinilos: playlists como objeto de trueque <span class="badge badge-active">Propuesta — no aprobada</span></h3>
+    <p><strong>Propuesta original.</strong> Sumar los vinilos como una segunda economía de trueque, en paralelo a las semillas, pero para música en vez de genética. Un vinilo es un objeto in-game con id, título, autor, URL de playlist (Spotify, YouTube Music, SoundCloud, Bandcamp, Apple Music) y tapa (subida por el jugador o autogenerada). No se guarda audio ni se llama a ninguna API de terceros: el cliente solo persiste el link, y al reproducir se muestra el <span class="em">embed público</span> que la plataforma ya ofrece sin autenticación. Vive en un tocadiscos como decoración del jardín; reproducir reemplaza momentáneamente la capa de música adaptativa de FMOD por el embed (no se mezclan), y al pausar FMOD retoma.</p>
+
+    <div class="callout warm">
+      <p><strong>Veredicto del costo/beneficio.</strong> El tocadiscos se sostiene; el trueque no. La escasez de un vinilo es falsa —una semilla se consume, una URL se copia— así que la "economía" hay que inventarla con fricción artificial, justo lo contrario del pilar cozy. Y el link se pega en Discord en dos segundos. Recomendación: capas A+B, descartar C.</p>
+    </div>
+
+    <h3>Realidades técnicas que cambian el diseño</h3>
+    <p>La premisa "cero lío técnico" es cierta para <em>nosotros</em> (no hay OAuth, tokens ni rate limits que mantener), pero no para el jugador.</p>
+    <ul>
+      <li><span class="em">El embed de Spotify da 30 segundos, no la canción.</span> Sin sesión de Premium logueada en ese mismo browser, reproduce previews. Para música de fondo eso es peor que nada. <strong style="color:var(--text)">La plataforma por defecto pasa a ser YouTube</strong>, cuyo embed reproduce completo, gratis y sin login (con ads).</li>
+      <li><span class="em">El iframe no puede vivir dentro de la escena 3D.</span> Unity WebGL dibuja en un <code>&lt;canvas&gt;</code>; el iframe es DOM y va siempre encima. Hay que posicionarlo desde <code>.jslib</code> sobre las coordenadas de pantalla del tocadiscos y re-posicionarlo en cada resize, scroll y fullscreen. Es la partida más cara y la más frágil en mobile.</li>
+      <li><span class="em">El handoff con FMOD es de una sola vía.</span> El iframe es cross-origin: no se puede leer si el jugador pausó <em>dentro</em> del reproductor. Spotify, YouTube y SoundCloud emiten eventos de playback por <code>postMessage</code>; Bandcamp y Apple Music no. Regla: el retorno de FMOD solo se garantiza cuando el stop lo dispara la UI del juego — por eso v1 soporta únicamente plataformas con API de eventos.</li>
+      <li><span class="em">Una URL de jugador es superficie de inyección.</span> Nunca inyectar la URL cruda en el <code>src</code>: allowlist de origins, extraer el id con regex y <strong style="color:var(--text)">reconstruir</strong> la URL del embed. Iframe con <code>sandbox</code> + <code>allow="encrypted-media"</code>.</li>
+    </ul>
+
+    <h3>Las tres capas y su costo</h3>
+    <table>
+      <thead><tr><th>Capa</th><th>Qué incluye</th><th>Costo</th><th>Veredicto</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--text)">A — Tocadiscos personal</strong></td>
+          <td>Decoración + colección propia + overlay del embed + handoff con FMOD + tapas autogeneradas</td>
+          <td>~4 días</td>
+          <td><span class="badge badge-planned">Sí · Fase 3</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">B — Vitrina social</strong></td>
+          <td>Al visitar un jardín ves su tocadiscos y podés copiarte un vinilo. Sin escasez, sin buzón, sin economía</td>
+          <td>+1 día</td>
+          <td><span class="badge badge-planned">Sí, si A funciona</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">C — Trueque + tapas subidas</strong></td>
+          <td>Objeto escaso, buzón de trueque, upload de imágenes, moderación, reportes y takedowns</td>
+          <td>+10–12 días <em>y costo operativo permanente</em></td>
+          <td><span class="badge badge-active">No</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Por qué el trueque (capa C) no cierra</h3>
+    <ul>
+      <li><span class="em">La escasez es falsa.</span> Una semilla se consume: por eso el trueque de genética funciona. Un vinilo no se gasta, se copia. Inventar escasez (prensados limitados, cupos) es fricción que el jugador lee como arbitraria.</li>
+      <li><span class="em">El mercado se rompe solo.</span> El link circula fuera del juego y cualquier valor de trueque se evapora.</li>
+      <li><span class="em">Las tapas subidas son el costo real, no el reproductor.</span> UGC de imágenes entre jugadores = storage, moderación, cola de reportes, panel de admin y takedowns <em>mientras el juego esté vivo</em>. Única partida con cola operativa infinita; para un proyecto de una persona, es la que hay que sacar. Tapas autogeneradas (paleta derivada del hash del id + tipografía) dan el 90% del encanto con cero riesgo.</li>
+      <li><span class="em">Legal:</span> linkear al embed público es exactamente para lo que el embed existe — riesgo bajo. El riesgo está en el UGC, que es lo que se descarta.</li>
+    </ul>
+
+    <h3>Alcance recomendado si se aprueba (A + B)</h3>
+    <ul>
+      <li>El tocadiscos es decoración comprable con Rocío, no un sistema económico.</li>
+      <li>Colección personal persistida en Nakama storage como parte del jardín.</li>
+      <li>Solo plataformas con API de eventos de playback (YouTube, Spotify, SoundCloud) en v1.</li>
+      <li>Tapas <span class="em">siempre</span> autogeneradas. Sin upload de imágenes.</li>
+      <li>Copiar un vinilo de un jardín visitado es gratis e ilimitado — sin escasez, sin buzón, sin karma asociado.</li>
+      <li>El vinilo copiado acredita al Grower de origen ("de la colección de X"): el reconocimiento es la recompensa social, no la escasez.</li>
+    </ul>
+  </section>
+
+  <!-- ── KARMA ────────────────────────────────────────────── -->
+  <section class="section" id="karma">
+    <h2><span class="num">10</span> Karma de jardín (reputación)</h2>
+    <p>El comportamiento hacia jardines ajenos se forja en una reputación de <span class="em">dos ejes</span>, no un solo número: <span class="em">Buen vecino</span> (cuidar jardines ajenos, regalar semillas, cumplir trueques) y <span class="em">Reincidencia</span> (robar cosecha sin permiso, abandonar el invernadero comunitario a medio evento).</p>
+    <h3>Refuerzo positivo</h3>
+    <p>Reputación de "Buen vecino" alta desbloquea más cupos de visita diaria, acceso prioritario a invernaderos comunitarios de otros grupos, mejores ofertas de trueque, y una insignia visible en el perfil.</p>
+    <h3>Consecuencia por reincidencia</h3>
+    <p>Escalable al estilo del sistema de honor de RDR2 — nunca un ban permanente:</p>
+    <ol>
+      <li><span class="em">Aviso.</span> El vecindario "se entera"; la insignia del perfil cambia.</li>
+      <li><span class="em">Restricción.</span> Pierde el privilegio de visitar/regar jardines ajenos por un tiempo.</li>
+      <li><span class="em">"Allanamiento"</span> (flavor, no literal). Su propio jardín queda temporalmente visitable/saqueable por la comunidad, como contrapeso simétrico a lo que hizo.</li>
+    </ol>
+    <div class="callout">
+      <p><strong>Nunca es irreversible.</strong> El contador de reincidencia decae con el tiempo o se repara jugando bien (cuidar jardines ajenos, donar semillas) — mantiene el pilar cozy/no punitivo.</p>
+      <p>Y solo aplica en jardines donde el dueño habilitó el robo (<span class="em">opt-in</span>): si no lo habilitó, no hay nada que robar y no se acumula reincidencia por esa vía.</p>
+    </div>
+  </section>
+
+  <!-- ── ARQUITECTURA ─────────────────────────────────────── -->
+  <section class="section" id="arquitectura">
+    <h2><span class="num">11</span> Networking y persistencia <span class="badge badge-done">Decidido</span></h2>
+    <p><span class="em">Nakama, no Netcode for GameObjects.</span> El 95% del juego es estado persistente asíncrono (el jardín, que tiene que existir y avanzar aunque nadie esté conectado). El 5% en tiempo real que queda — truco (por turnos, no por frames), invernadero comunitario (acciones puntuales sobre estado compartido) y feria (presencia + votación) — no necesita replicación frame a frame, que es para lo que está pensado NGO.</p>
+    <p>Además NGO no resuelve auth, storage, amigos, gremios ni buzón: habría que montar ese backend igual, y encima operar servidores headless de Unity para las mesas de truco. Dos sistemas donde uno alcanza.</p>
+    <table>
+      <thead><tr><th>Necesidad del GDD</th><th>Qué lo cubre en Nakama</th></tr></thead>
+      <tbody>
+        <tr><td>Auth de usuario</td><td>Nativo (device, email, social)</td></tr>
+        <tr><td>Estado del jardín persistente</td><td>Storage Engine (JSON por objeto, permisos read/write server-only)</td></tr>
+        <tr><td>Visitas asíncronas a jardines</td><td>Lectura de storage ajeno con permiso público</td></tr>
+        <tr><td>Buzón de trueque</td><td>Notifications + storage</td></tr>
+        <tr><td>Gremios</td><td>Groups (nativo, con roles)</td></tr>
+        <tr><td>Truco / invernadero / feria en vivo</td><td>Authoritative Match Handler (TypeScript o Go)</td></tr>
+        <tr><td>Matchmaking liviano</td><td>Matchmaker nativo</td></tr>
+        <tr><td>Season pass / XP de temporada</td><td>Leaderboards + storage</td></tr>
+      </tbody>
+    </table>
+    <p>Todo corre sobre WebSocket, así que WebGL entra sin fricción.</p>
+    <div class="callout warm">
+      <p><strong>Sobre el adapter de WebSocket en WebGL.</strong> El SDK de Unity ya lo resuelve solo: <code>ClientExtensions.NewSocket()</code> elige <code>JsWebSocketAdapter</code> bajo <code>#if UNITY_WEBGL &amp;&amp; !UNITY_EDITOR</code>, respaldado por <code>UnityWebGLSocketBridge.jslib</code>.</p>
+      <p>El riesgo real no es acordarse del adapter — es <span class="em">bypassear <code>NewSocket()</code></span>. Si alguien arma el socket a mano con un adapter propio, en WebGL se rompe. Regla: siempre <code>client.NewSocket(useMainThread: true)</code>, nunca a mano (WebGL es single-threaded).</p>
+      <p>Y sigue valiendo que <span class="em">el Editor no puede validar esto</span>: el guard incluye <code>!UNITY_EDITOR</code>, así que en el Editor siempre se ejercita el path nativo. La verificación va contra un build de WebGL real.</p>
+    </div>
+    <div class="callout warm">
+      <p><strong>La identidad del Grower en WebGL.</strong> <code>SystemInfo.deviceUniqueIdentifier</code> <span class="em">no existe en el browser</span>: devuelve el identificador no soportado. Si el fallback genera un GUID al vuelo, cada recarga de la página autentica una cuenta nueva y el jardín vuelve a empezar de cero — el pilar tamagotchi deja de funcionar justo en la plataforma de lanzamiento.</p>
+      <p>Regla: el device id se genera <span class="em">una sola vez</span> y se guarda en <code>PlayerPrefs</code>, que en WebGL vive en IndexedDB y sobrevive la recarga. Verificado en un build real: dos cargas seguidas devuelven el mismo <code>userId</code> y el mismo jardín.</p>
+      <p>Consecuencia de diseño para Fase 2: esa identidad está atada al browser y al origen. Cambiar de máquina, de navegador o borrar los datos del sitio = jardín perdido. Antes de que haya progreso que valga la pena, hace falta un <code>linkEmail</code>/social sobre la misma cuenta.</p>
+    </div>
+
+    <h3>Principio de arquitectura</h3>
+    <p>Más importante que el backend elegido: <span class="em">el jardín no se simula con un tick.</span> Se guarda el estado de la planta junto a su <code>timestampUltimaEvaluacion</code>, y cuando alguien lee el jardín (el dueño al entrar, o un visitante) el servidor calcula deterministicamente qué pasó en el tiempo transcurrido y persiste el resultado.</p>
+    <pre><code>// pseudo — corre server-side, en el Nakama runtime
+function leerJardin(userId) {
+  const jardin = storage.read(userId, "jardin");
+  const ahora  = Date.now();
+  for (const planta of jardin.plantas) {
+    evaluar(planta, ahora - planta.timestampUltimaEvaluacion);
+    planta.timestampUltimaEvaluacion = ahora;
+  }
+  storage.write(userId, "jardin", jardin);
+  return jardin;
+}</code></pre>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-header"><span class="card-name">Progresión offline</span></div>
+        <div class="card-desc">El pilar tamagotchi funciona con el jugador desconectado, sin costo de servidor.</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-name">Anti-cheat</span></div>
+        <div class="card-desc">El cliente nunca escribe estado: solo manda intenciones ("regar planta 3"), y el servidor valida si la ventana estaba abierta.</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-name">Hosting casi gratis</span></div>
+        <div class="card-desc">No hay proceso corriendo por jugador.</div>
+      </div>
+    </div>
+    <p>El cliente solo <span class="em">interpola visualmente</span> entre la última evaluación y ahora, para que la barra de agua se vea bajando en vivo.</p>
+
+    <h3>Hosting</h3>
+    <p>Nakama self-hosted en Docker + Postgres para desarrollo (gratis, local). La decisión de hosting de producción — Nakama Cloud vs. VPS propio — queda para Fase 2; la Fase 1 corre 100% contra un Nakama local.</p>
+  </section>
+
+  <!-- ── MINIJUEGOS ───────────────────────────────────────── -->
+  <section class="section" id="minijuegos">
+    <h2><span class="num">12</span> Minijuegos</h2>
+    <p>Son la vía principal para ganar Rocío fuera de vender cosecha, y todos deben poder jugarse en sesiones cortas.</p>
+
+    <h3>12.1 Truco <span class="badge badge-planned">Fase 2</span></h3>
+    <p>Juego de cartas rioplatense, hasta 4 jugadores en tiempo real (o vs. IA si no hay suficientes). Se apuesta plata del jardín; sirve también como espacio social, con chat y emotes en la mesa.</p>
+    <div class="callout gray">
+      <p><strong>Por qué no es el MVP.</strong> Es, con diferencia, la pieza más cara del documento: reglas completas (envido, flor, truco/retruco/vale cuatro), IA que juegue decente, mesa multijugador en tiempo real, apuestas y chat — un proyecto en sí mismo. Ponerlo en Fase 1 significaría meses sin poder validar si el loop de cuidado, que <em>es</em> el juego, funciona. Pasa a Fase 2, cuando Nakama ya está probado por las visitas asíncronas y sumar la mesa en vivo es incremental.</p>
+    </div>
+
+    <h3>12.2 Pesca <span class="badge badge-planned">Fase 2</span></h3>
+    <p>Minijuego de timing (barra/QTE) ambientado en el estanque del jardín o zonas visitables. Da ingredientes para cocina/extracción y decoración (peceras).</p>
+
+    <h3>12.3 Riego y poda con timing <span class="badge badge-mvp">MVP</span></h3>
+    <p>No es solo mantenimiento pasivo: una vez por cosecha aparece un minijuego de precisión (cortar en el momento justo, regar siguiendo un ritmo) que si se hace bien sube directamente la nota de calidad de esa cosecha. Es la puerta de entrada para que el cuidado diario se sienta como una <span class="em">habilidad</span>, no un checklist.</p>
+    <div class="callout">
+      <p><strong>Por eso abre la Fase 1.</strong> Es single-player y sin networking, así que responde la pregunta que importa antes que ninguna otra: <em>¿volver a regar una planta es entretenido?</em></p>
+    </div>
+
+    <p><span class="em">Estructura:</span> dos fases encadenadas. Primero <span class="em">riego</span> — 5 pulsos, un marcador barre la barra y hay que apretar cuando cruza la zona objetivo. Cada pulso es un 12% más rápido que el anterior, con un piso para que la rampa nunca lo vuelva injugable. Después <span class="em">poda</span> — un solo corte, ventana más angosta, que vale el 35% del puntaje final.</p>
+
+    <table>
+      <thead><tr><th>Parámetro</th><th>Riego</th><th>Poda</th></tr></thead>
+      <tbody>
+        <tr><td>Intentos</td><td>5 pulsos</td><td>1 corte</td></tr>
+        <tr><td>Duración del barrido</td><td>1,6 s, −12% por pulso</td><td>1,0 s</td></tr>
+        <tr><td>Ventana perfecta (±)</td><td>0,05</td><td>0,035</td></tr>
+        <tr><td>Ventana buena (±)</td><td>0,16</td><td>0,11</td></tr>
+        <tr><td>Peso en el puntaje</td><td>65%</td><td>35%</td></tr>
+      </tbody>
+    </table>
+
+    <p>Dentro de la ventana buena el puntaje interpola entre 1,0 y un piso de 0,35, así que rozar el objetivo <span class="em">suma</span> — no es todo o nada. Dejar vencer un barrido cuenta como fallo y avanza igual: el minijuego nunca se traba.</p>
+
+    <div class="callout gray">
+      <p><strong>El patrón se ata a la planta.</strong> Los centros de las zonas objetivo salen de hashear <code>(plantId, índice de pulso)</code>, igual que las plagas. Así el ritmo no se memoriza de una planta a la otra, pero es reproducible para una planta dada — que es lo que permite testearlo con puntajes exactos.</p>
+      <p>El resultado (0..1) entra a <code>PlantActions.Harvest</code> como bonus: <span class="em">cierra parte de la brecha hacia el cuidado perfecto</span>, así que puede levantar una nota pero nunca rescatar una planta abandonada.</p>
+    </div>
+
+    <div class="callout">
+      <p><strong>La lógica es pura y sin engine</strong>, igual que el evaluador: el tiempo lo avanza el llamador y el input llega como llamadas explícitas. Eso deja la puerta abierta a correr el mismo scoring server-side, para que un cliente no pueda simplemente declarar una corrida perfecta.</p>
+    </div>
+
+    <h3>12.4 Feria / exhibición de plantas <span class="badge badge-planned">Fase 3</span></h3>
+    <p>Evento semanal donde los Growers presentan su mejor ejemplar en una categoría (más rara, más grande, mejor combo estético). Votación de la comunidad o jurado NPC. Premios en semillas raras y cosmética, <span class="em">no</span> en poder de cultivo.</p>
+
+    <h3>12.5 Cocina / extracción <span class="badge badge-planned">Fase 3</span></h3>
+    <p>Minijuego de crafteo: combina cosecha + ingredientes de pesca/mercado para producir bienes vendibles (aceites, cremas, comestibles temáticos tratados de forma abstracta/simbólica, sin instrucciones reales) que dan mejor margen que vender la planta cruda. Además da un <span class="em">sumidero de economía</span> a las cosechas de baja calidad.</p>
+  </section>
+
+  <!-- ── MONETIZACIÓN ─────────────────────────────────────── -->
+  <section class="section" id="monetizacion">
+    <h2><span class="num">13</span> Progresión y monetización</h2>
+    <p>Modelo elegido: <span class="em">season pass</span> (suscripción por temporada), no pago único ni F2P puramente cosmético suelto.</p>
+    <ul>
+      <li>Cada temporada trae una genética exclusiva temática, cosmética de jardín/avatar, y misiones de temporada.</li>
+      <li>La progresión de la season pass se gana <span class="em">jugando</span> — todos los loops cuentan XP de temporada, no solo pagando.</li>
+      <li>Nada de la season pass afecta la probabilidad de rareza en cruces ni la velocidad de crecimiento de forma directa: mantiene "cooperar &gt; competir" y evita pay-to-win.</li>
+    </ul>
+  </section>
+
+  <!-- ── ARTE Y AUDIO ─────────────────────────────────────── -->
+  <section class="section" id="arte">
+    <h2><span class="num">14</span> Arte y audio</h2>
+    <p><span class="em">Estilo:</span> low-poly, paleta pastel/cálida, formas redondeadas. Lectura clara de estado con <span class="em">íconos flotantes sobre la planta</span> (agua/luz/plaga) en vez de barras finas difíciles de leer a distancia.</p>
+    <p><span class="em">Base de assets:</span> Synty POLYGON Farm Pack (hemp/plantas, invernaderos, granjas, personajes) + POLYGON Nature Pack (agua, vegetación animada, partículas ambientales). Evaluar POLYGON Meadow Forest Nature Biome como capa extra de ambientación.</p>
+    <p><span class="em">Audio (FMOD):</span> música adaptativa por zona — jardín propio calmo, invernadero comunitario más social/festivo, mesa de truco con ambiente de peña — y stingers cortos para eventos de cuidado (planta feliz/estresada), para reforzar el feedback tamagotchi sin depender solo de UI.</p>
+    <div class="callout gray">
+      <p><strong>Por qué FMOD y no Wwise.</strong> FMOD soporta HTML5/WebGL de forma oficial; Wwise en WebGL es terreno mucho más pantanoso. Se mantiene FMOD acá aunque otros proyectos del estudio (LE2) usen Wwise.</p>
+    </div>
+
+    <h3>14.1 La pantalla del jardín</h3>
+    <p><span class="em">UI Toolkit</span>, con el layout en UXML y los estilos en USS. Se eligió sobre uGUI porque son archivos de <span class="em">texto</span>: se diffean en un PR igual que el código, y encajan con la regla de que nada armado a mano en el Editor es fuente de verdad. Los íconos flotantes sobre la planta siguen siendo world-space y no cambian.</p>
+    <p><span class="em">Toda</span> la paleta vive en <code>Assets/UI/tokens.uss</code> y nada más define un color. La de hoy es un placeholder deliberado —tierra y verde apagados— hasta que salga el moodboard sobre assets reales de Synty; cuando salga, se recolorea ese archivo y el layout no se toca.</p>
+    <p>Reglas de composición que sostienen la pantalla:</p>
+    <ul>
+      <li><span class="em">El centro queda libre.</span> El jardín es el contenido; la UI se acomoda en los bordes. La cámara está corrida a propósito para que las seis parcelas caigan en el hueco que deja el panel de la planta.</li>
+      <li><span class="em">Un color por necesidad</span>, y el mismo en el medidor, el ícono y el botón: "azul = agua" se aprende una sola vez.</li>
+      <li><span class="em">Un punto de alerta por parcela</span>, por urgencia (cosechar &gt; plaga &gt; agua &gt; nutrientes). Dos puntos a la vez no dicen qué hacer, y el punto es poder jugar mirando la fila sin abrir cada parcela.</li>
+      <li><span class="em">El medidor de luz lleva la marca de la luz ideal de la fase.</span> Sin ella el Grower ve "65%" y no sabe si mover la maceta hacia el sol o hacia la sombra — el medidor informa pero no instruye.</li>
+      <li><span class="em">Las parcelas bloqueadas se ven</span>, apagadas. Ocultarlas dejaba el jardín inicial como una maceta perdida en un campo vacío, sin la meta visible que sostiene todo el loop económico.</li>
+    </ul>
+    <div class="callout warm">
+      <p><strong>Los controles de tiempo no son UI del juego.</strong> Viven detrás de la tecla <code>T</code>. No se pueden borrar: una común tarda 66 h reales en llegar a cosecha y sin saltar el reloj el loop de cuidado no se puede probar. Pero tampoco pueden estar en la pantalla que ve un jugador.</p>
+    </div>
+  </section>
+
+  <!-- ── STACK ────────────────────────────────────────────── -->
+  <section class="section" id="stack">
+    <h2><span class="num">15</span> Plataforma y stack técnico</h2>
+    <table>
+      <thead><tr><th>Pieza</th><th>Decisión</th></tr></thead>
+      <tbody>
+        <tr><td>Motor</td><td>Unity 6 (6000.3.10f1), URP 3D</td></tr>
+        <tr><td>Build inicial</td><td>WebGL, navegador</td></tr>
+        <tr><td>Backend</td><td>Nakama self-hosted (Docker + Postgres) — auth, storage, buzón, gremios, matchmaking, leaderboards</td></tr>
+        <tr><td>Networking</td><td>Authoritative Match Handler para truco/invernadero/feria; el jardín va por storage con evaluación determinística</td></tr>
+        <tr><td>Audio</td><td>FMOD</td></tr>
+      </tbody>
+    </table>
+    <h3>Presupuesto de peso del build</h3>
+    <div class="callout warm">
+      <p><strong>Objetivo: &lt;50 MB comprimidos para la primera carga.</strong> En WebGL el peso muerde rápido — en MOBA Warmup el 71% del peso eran texturas, y por <em>resolución</em> más que por compresión. Los packs de Synty traen atlas grandes y muchos props que no se van a usar.</p>
+      <p>Curaduría de assets <span class="em">desde el día uno</span>: es mucho más barato no importar que borrar después.</p>
+    </div>
+    <h3>Mobile</h3>
+    <p>Visión a futuro, no en el MVP. Las tiendas (Google Play, App Store) tienen políticas estrictas contra apps que promocionen o faciliten cannabis, incluso en tono cozy/ficticio — hay que revisar las políticas vigentes antes de planear ese lanzamiento, y posiblemente ajustar naming/temática para esa versión. En navegador (WebGL, distribución propia o itch.io) el riesgo regulatorio es mucho menor. Fase 4 es el momento correcto; no bloquea nada antes.</p>
+  </section>
+
+  <!-- ── ROADMAP ──────────────────────────────────────────── -->
+  <section class="section" id="roadmap">
+    <h2><span class="num">16</span> Roadmap</h2>
+    <div class="roadmap">
+      <div class="roadmap-item active">
+        <div class="roadmap-version">Fase 1 — MVP</div>
+        <div class="roadmap-desc">Jardín + cuidado + 1 minijuego + economía básica. Valida si el loop de cuidado es divertido <em>antes</em> de invertir en multiplayer.</div>
+        <div class="roadmap-items">Jardín individual · sistema de cuidado (riego/luz/nutrientes/plagas) · 3–4 niveles de rareza · cosecha con nota de calidad · minijuego de riego y poda con timing (single player, cero networking) · compra/venta básica · sin visitas ni trueque · corre 100% contra un Nakama local</div>
+      </div>
+      <div class="roadmap-item next">
+        <div class="roadmap-version">Fase 2 — Social asíncrono + Truco</div>
+        <div class="roadmap-desc">Se abre el mundo compartido y llega el primer minijuego social.</div>
+        <div class="roadmap-items">Visitas a jardines de amigos · buzón de trueque · sistema de cruce/genética completo · minijuegos de Pesca y Truco · decisión de hosting de producción</div>
+      </div>
+      <div class="roadmap-item future">
+        <div class="roadmap-version">Fase 3 — Cooperativo en vivo + monetización</div>
+        <div class="roadmap-desc">Tiempo real real y el modelo de negocio.</div>
+        <div class="roadmap-items">Invernadero comunitario · Feria/exhibición · minijuego de Cocina/extracción · lanzamiento del season pass</div>
+      </div>
+      <div class="roadmap-item future">
+        <div class="roadmap-version">Fase 4 — Expansión de plataforma</div>
+        <div class="roadmap-desc">Mobile, una vez resuelto el riesgo de políticas de tienda.</div>
+        <div class="roadmap-items">Evaluación de Google Play / App Store · posible ajuste de naming y temática para esa versión</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ARQUETIPOS ───────────────────────────────────────── -->
+  <section class="section" id="arquetipos">
+    <h2><span class="num">17</span> Arquetipos de jardinero <span class="badge badge-active">Fase 1: los 3 de cultivo</span></h2>
+
+    <p>
+      Al crear la cuenta el Grower elige un <strong>oficio</strong> entre 8 arquetipos, cada uno
+      con 3 bonus pasivos suaves y (a futuro) una habilidad activa con cooldown de reloj real.
+      Spec completo en <code>docs/Weedgang_Personajes_Spec.md</code>; acá va lo que el juego
+      hace hoy y las reglas que el código sostiene.
+    </p>
+
+    <p>
+      <strong>Reglas duras.</strong> Cero debuffs — todos parten de la línea base del
+      <a href="#reloj" style="color:var(--green)">§07</a> y solo suman. No bloquea contenido:
+      los 8 llegan a Mítica y a Premium, cambia el camino y no el techo. No se vende: ni el
+      arquetipo, ni la maestría, ni el respec pueden entrar al season pass. Presupuesto de
+      <strong>4 puntos</strong> por arquetipo (mayor = 2, menor = 1), y ningún multiplicador
+      pasa de ×1.5 ni baja de ×0.6.
+    </p>
+
+    <div class="callout">
+      Esas reglas no viven en este documento: viven en <code>ArchetypeTests.cs</code>, que las
+      verifica sobre el JSON que se shippea. El presupuesto, la dirección de cada bonus, el
+      techo de los multiplicadores y que ningún stat tenga dos bonus mayores fallan el build
+      si alguien los rompe tuneando. Un número de balance en un doc es una intención; en un
+      test es una garantía.
+    </div>
+
+    <h3>Los tres de Fase 1</h3>
+    <table>
+      <thead><tr><th>Oficio</th><th>Bonus mayor</th><th>Menores</th><th>Sirve más para</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Criollo de Patio</strong></td>
+          <td>Letargo 72 h → 120 h</td>
+          <td>Zona verde del agua 100–40% → 100–30% · +2,5 de nota</td>
+          <td>Jugar salteado</td>
+        </tr>
+        <tr>
+          <td><strong>Yuyero/a</strong></td>
+          <td>Chance de plaga ×0.60</td>
+          <td>Aviso de plaga 4 h antes · insumos ×0.85</td>
+          <td>Genéticas raras y lentas</td>
+        </tr>
+        <tr>
+          <td><strong>Invernaderista</strong></td>
+          <td>Floración ×0.85</td>
+          <td>Tolerancia de luz ×1.25 · +2,5 de nota</td>
+          <td>Rotar cosechas rápido</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      <strong>Desvío del spec, decidido con el simulador:</strong> en la ficha del
+      <code>Personajes_Spec §3.1</code> el bonus mayor del Criollo es la tolerancia de agua y
+      el letargo es menor. Acá está al revés. El arquetipo existe para que jugar salteado
+      progrese, y el umbral de letargo es lo que decide eso; además el bonus de agua como
+      mayor le daba al Grower casual ×3,2 de ingreso, lo que no es un "bonus suave". El
+      presupuesto de 4 puntos se respeta igual.
+    </p>
+
+    <div class="callout">
+      <strong>El swap de letargo NO alcanzaba, y la causa era otra.</strong> Medido con el
+      simulador: aun con el letargo como bonus mayor (120 h), el Grower de fin de semana
+      seguía sin progresar — mismas 8 cosechas, 1 parcela, nunca expande. La ausencia real
+      de ese perfil (~138 h) supera hasta el techo que el propio spec permite para ese stat.
+      Y el límite de verdad no era el letargo: era la <a href="#reloj" style="color:var(--green)">ventana de cosecha</a>
+      de 12 h, que se cerraba sola entre semana sin que nadie estuviera para cosechar. Se
+      subió a 168 h como regla de sistema — no del arquetipo — y ahora el simulador muestra
+      progresión real para ese perfil.
+    </div>
+
+    <div class="callout">
+      <strong>El bonus del Invernaderista tampoco estaba roto — era el simulador.</strong> El
+      perfil "dedicado" visitaba a las 9:00:00 y 21:00:00 exactas, todos los días. Esa
+      regularidad de reloj suizo hacía que el ciclo de la planta y el bonus de floración
+      colapsaran siempre sobre la misma visita, sin importar el número. Se agregó
+      <code>visitJitterHours</code> al simulador (±1 h, determinista) y con visitas
+      realistas el bonus sí se nota: más cosechas, expansión un día antes. No hizo falta
+      tocar el arquetipo — pero cualquier bonus de timing fino hay que confirmarlo con un
+      perfil con jitter antes de tocar sus números.
+    </div>
+
+    <div class="callout">
+      <strong>+2,5 de nota, no +5 — el "bonus suave" más engañoso de los tres.</strong> La
+      ficha del spec dice "+5 puntos hacia la nota" para el Criollo y el Invernaderista, y
+      0.05 sobre el promedio de cuidado (0..1) suena trivial. Medido con el simulador: le
+      daba al Grower casual ×3 de ingreso. La causa es que el promedio de cuidado de ese
+      perfil vive muy cerca del umbral de Premium (0.85) — correr el umbral 0.05 empujaba a
+      la mitad de sus cosechas de Alta a Premium (×2.0 → ×3.4 de precio), y eso se
+      amplificaba en cascada por toda la economía (mejor calidad → parcelas antes → más
+      cosechas). Es un stat tipo <em>cliff</em>, no una pendiente suave: 0.02 no hacía nada
+      medible, 0.03 ya daba ×2.2. El valor final es 0.025, con margen del lado seguro
+      (×1,3–1,6 según el perfil).
+      <br><br>
+      Esto es justo el riesgo que el propio spec anticipa en §12 ("un arquetipo se vuelve
+      claramente el mejor") y que el techo de ×1.5 sobre los <em>modificadores</em>
+      (§4.1) no alcanza a prevenir por sí solo — el techo está en el número, el problema
+      está en el efecto. Por eso hay tres tests nuevos (<code>ArchetypeBalanceGuardTests</code>)
+      que corren el simulador de balance y fallan si el ingreso de 60 días de cualquier
+      arquetipo pasa ×1.7 contra el mismo hábito sin oficio — la definición de "bonus
+      suave" queda medida, no solo declarada.
+    </div>
+
+    <p>
+      Los otros cinco (Agrónomo/a, Baqueano/a, Feriante, Puntero/a de Barrio, Coleccionista)
+      actúan sobre cruce, trueque, mercado fluctuante y visitas — sistemas que el MVP no tiene.
+      Se diseñaron ahora y se shippean con sus sistemas en Fase 2 y 3. Cada vez que entra uno
+      nuevo, respec gratis para toda la población.
+    </p>
+
+    <h3>Maestría y respec</h3>
+    <p>
+      Tres rangos, se suben haciendo las acciones <em>propias del oficio</em> (el Yuyero cura
+      plagas, el Criollo riega, el Invernaderista cosecha). Rango 1 rinde los bonus al 60% y
+      rango 2 al 100%, a las ~15 acciones. Arranca al 60% para que nadie tenga que entender
+      el sistema para jugar bien las primeras horas, y para que respecar temprano no duela.
+      <strong>La maestría se congela al cambiar de oficio, no se borra</strong>, y por eso se
+      persiste un contador por arquetipo y no uno solo.
+    </p>
+    <p>
+      El primer cambio es gratis dentro de las primeras 72 h; después cuesta 2.500 Rocío con
+      14 días de cooldown. Lo decide el servidor, siempre.
+    </p>
+
+    <h3>Cómo se implementa</h3>
+    <div class="callout">
+      <strong>El evaluador no sabe que los arquetipos existen.</strong> Cada stat de los tres
+      oficios de cultivo ya era un número del tuning, así que aplicar un bonus es derivar un
+      <code>GardenTuning</code> distinto para ese Grower y evaluar con él
+      (<code>Archetypes.Effective</code>). Eso deja intactas las tres propiedades del
+      evaluador —determinista, componible, pura—, no toca los vectores de paridad C#↔TS, y
+      hace que un arquetipo que solo mueva números existentes sea una edición de JSON.
+      <br><br>
+      El precio: los stats que <em>no</em> son un número del tuning (lectura genética, slots
+      de buzón) no entran por ese camino. Ninguno es de Fase 1, pero los de Fase 2 sí van a
+      necesitar otra vía.
+    </div>
+    <ul>
+      <li>La tabla de modificadores vive en <code>garden-tuning.json</code>, junto al resto del ritmo. Ningún número está compilado en el build.</li>
+      <li><code>archetypeId</code>, la maestría por arquetipo y el historial de respec viven en el storage de Nakama, con escritura server-only.</li>
+      <li>El servidor aplica los bonus dentro de la evaluación determinística. El cliente lee el <code>archetypeId</code> para presentación y para que su predicción optimista use el mismo tuning — nunca para decidir nada.</li>
+      <li>Hay vectores de paridad por arquetipo: el port de TypeScript tiene que <em>derivar</em> el tuning efectivo por su cuenta y llegar al mismo resultado que el C#.</li>
+    </ul>
+  </section>
+
+  <!-- ── MÉTRICAS ─────────────────────────────────────────── -->
+  <section class="section" id="metricas">
+    <h2><span class="num">18</span> Métricas de éxito</h2>
+    <p>A validar con datos reales una vez en vivo.</p>
+    <table>
+      <thead><tr><th>Métrica</th><th>Qué mide</th></tr></thead>
+      <tbody>
+        <tr><td>Retención D1 / D7 / D30</td><td>La más importante en un juego de cuidado: el loop entero depende de que la gente vuelva.</td></tr>
+        <tr><td>% que completa ≥1 cruce de genética por semana</td><td>Si el sistema de rareza engancha.</td></tr>
+        <tr><td>% que visita o intercambia con ≥1 amigo por semana</td><td>Si el pilar cooperativo funciona.</td></tr>
+        <tr><td>Ingresos por temporada vs. activos de esa temporada</td><td>Salud del season pass.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── NO-OBJETIVOS ─────────────────────────────────────── -->
+  <section class="section" id="no-objetivos">
+    <h2><span class="num">19</span> No-objetivos</h2>
+    <p>Fuera de scope, deliberadamente:</p>
+    <ul>
+      <li>Nada de simulación realista de consumo o dosis — el juego no instruye sobre uso real.</li>
+      <li>Sin PvP competitivo directo (robo agresivo, sabotaje) en el MVP. Si se agrega, debe ser opt-in y regirse por el karma de jardín (<a href="#karma" style="color:var(--green)">§10</a>).</li>
+      <li>Sin economía con dinero real entre jugadores: el trading es semilla-por-semilla o regalo, nunca marketplace con plata real.</li>
+      <li>Mobile no entra hasta Fase 4.</li>
+    </ul>
+  </section>
+
+  <!-- ── PENDIENTES ───────────────────────────────────────── -->
+  <section class="section" id="pendientes">
+    <h2><span class="num">20</span> Decisiones y pendientes</h2>
+    <table>
+      <thead><tr><th>Tema</th><th>Estado</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Transport de networking para WebGL</td>
+          <td><span class="badge badge-done">Resuelto</span></td>
+          <td>Nakama sobre WebSocket + adapter específico para WebGL. Validar en un build real la primera semana.</td>
+        </tr>
+        <tr>
+          <td>Persistencia server-side</td>
+          <td><span class="badge badge-done">Resuelto</span></td>
+          <td>Nakama Storage Engine, sin backend propio aparte (<a href="#arquitectura" style="color:var(--green)">§11</a>).</td>
+        </tr>
+        <tr>
+          <td>Nombre de moneda y rareza</td>
+          <td><span class="badge badge-done">Resuelto</span></td>
+          <td>Moneda <strong style="color:var(--text)">Rocío</strong>; rareza Común → Criolla → Serrana → Ancestral → Mítica. Falta pasada final de narrativa.</td>
+        </tr>
+        <tr>
+          <td>Ritmo del reloj de juego</td>
+          <td><span class="badge badge-active">Abierto</span></td>
+          <td>Hay punto de partida (<a href="#reloj" style="color:var(--warm)">§07</a>), pero los números finales salen de playtesting. Deben vivir en JSON server-side.</td>
+        </tr>
+        <tr>
+          <td>Clasificación de edad / rating</td>
+          <td><span class="badge badge-active">Abierto</span></td>
+          <td>No es bloqueo legal, es cuestionario auto-declarado (IARC). Esperable ESRB M / PEGI 18. itch.io OK con tag adulto; sitio propio necesita age gate 18+ desde el MVP.</td>
+        </tr>
+        <tr>
+          <td>Moodboard</td>
+          <td><span class="badge badge-active">Abierto</span></td>
+          <td>Con los packs de Synty instalados se pueden generar capturas del Farm Pack en batchmode y elegir paleta sobre assets reales.</td>
+        </tr>
+        <tr>
+          <td>Hosting de producción</td>
+          <td><span class="badge badge-planned">Fase 2</span></td>
+          <td>Nakama Cloud vs. VPS propio. No se decide ahora.</td>
+        </tr>
+        <tr>
+          <td>Docker Desktop</td>
+          <td><span class="badge badge-active">Bloqueante parcial</span></td>
+          <td>No instalado en la máquina de desarrollo. Bloquea levantar Nakama local; <em>no</em> bloquea el trabajo de Fase 1 offline-first.</td>
+        </tr>
+        <tr>
+          <td>Vinilos / tocadiscos</td>
+          <td><span class="badge badge-active">Propuesta abierta</span></td>
+          <td>Recomendación: aprobar solo capas A+B (~5 días, Fase 3) y descartar la capa C — trueque con escasez artificial + tapas subidas por el jugador (<a href="#multiplayer" style="color:var(--warm)">§9.1</a>). No entra antes de cerrar el MVP.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout gray">
+      <p><strong>Documento vivo.</strong> Este HTML es el GDD canónico del proyecto: se actualiza con todo cambio de código o de spec. La versión markdown (<code>docs/weedgang-gdd.md</code>) existe para diffear en PRs; si divergen, gana este archivo.</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Resalta en el sidebar la sección visible
+  const links = [...document.querySelectorAll('#sidebar nav a')];
+  const secs  = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  secs.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>

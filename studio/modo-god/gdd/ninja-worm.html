@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ninja Worm! — GDD</title>
+<style>
+  :root{
+    --ink-900:#070504; --ink-700:#0f0f0f; --cream:#f5e9d4; --gold:#c9a96e;
+    --line:rgba(201,169,110,.18); --font-mono:"JetBrains Mono",ui-monospace,monospace;
+    --font-sans:"Space Grotesk","Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink-900);color:var(--cream);font-family:var(--font-sans);
+       font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+  .badge{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+         color:var(--gold);border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px;display:block}
+  pre{white-space:pre-wrap;word-wrap:break-word;font-family:var(--font-mono);font-size:13px;
+      line-height:1.7;color:var(--cream);margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">Ninja Worm! · notas de diseño (fuente: docs/design.md)</span>
+  <pre># Ninja Worm! — design notes
+
+## The pitch
+
+One mechanic, deep: the **ninja rope**. You are a worm with a grappling hook and a headband. Fire,
+swing, wrap around a corner, reel in at the bottom of the arc to convert the drop into speed, let go
+at the apex, fire again mid-air. Reach the torii gate. Every course is new.
+
+## Why the rope is a pivot polyline and not a joint
+
+A `DistanceJoint2D` gets you a pendulum, but it gets you the *wrong* pendulum. The thing that makes
+the Worms rope a skill mechanic is that it catches on geometry: swing past a ledge and the rope bends
+around it, your radius shortens, and you suddenly accelerate. Swing back and it unwinds.
+
+So the rope is stored as a list of pivots. Only the last one is live; everything behind it is locked
+length. Three rules drive the whole thing:
+
+1. **The constraint only pulls.** Slack rope does nothing. When the worm is further out than the free
+   length, it is clamped to the circle and its *outward radial* velocity is removed. Tangential speed
+   is preserved, which is what makes the swing carry.
+2. **A blocked line of sight means a new pivot.** Ray from worm to active pivot every frame; if it
+   hits, push a pivot at the corner and subtract that span from the free length.
+3. **A flipped winding sign means a pivot pops.** Each pivot stores the sign of
+   `cross(pivot - previous, worm - pivot)`. When it flips *and* the worm can see the previous pivot,
+   unwind.
+
+Reeling changes the total deployed length; the free span is the remainder after wrapped segments.
+
+## Why levels are generated from their solution
+
+Generating terrain and then asking &quot;is this beatable?&quot; needs a solver, and a solver for a swinging
+game is a physics search. The cheap and total answer is to invert it: **generate the solution first,
+then build a level that cannot contradict it.**
+
+A *hop* is one intended swing — stand at `from`, fire at `anchor`, swing, land on `to`. The chain of
+hops is sampled with hard constraints (both ends in rope range, anchor well above both, radii within
+5 units of each other so the reel-in is reasonable). Platforms go under each landing, anchor blocks
+go above each anchor point with their underside at exactly the bite point.
+
+The **swing corridor** is the union of:
+
+- the swing itself, modelled as a spiral (angle sweeps launch→landing bearing while the radius
+  interpolates — a player reeling in mid-swing traces exactly this)
+- the rope&#x27;s line of sight from both ends of the hop to the anchor
+- headroom above every platform, so you can always stand and aim
+
+Every hazard and every decorative rock, pillar and stalactite is tested against that corridor and
+thrown away if it intrudes. Decoration is *carved*, never negotiated.
+
+`LevelValidator` then re-derives all of it from the finished data as an independent check, and
+`LevelGenerator.Generate` re-rolls until it passes — falling back to level-0 difficulty and fresh
+seeds rather than ever handing out something unvalidated.
+
+`NinjaWormTests.SoakLevels` runs 2000 levels across the difficulty ramp as the regression test.
+
+## Difficulty ramp
+
+Everything scales off `t = clamp01(levelIndex / 12)`:
+
+| | level 1 | level 13+ |
+|---|---|---|
+| hops | 5–7 | 12–14 |
+| hop distance | 6–9 u | 8–13 u |
+| platform width | 5.0 u | 2.6 u |
+| hazard chance per hop | 15% | 75% |
+| props | ~3 per hop | ~6 per hop |
+
+## Scoring
+
+- Shuriken sit on the intended line, so they reward flying the clean arc rather than detouring.
+- Combo multiplies per shuriken up to ×8 and resets when you touch the ground — the incentive is to
+  stay airborne, which is the incentive to keep using the rope.
+- Clearing gives a time bonus and a perfect-clear bonus for every shuriken on the course.
+
+## Juice inventory
+
+| Trigger | Response |
+|---|---|
+| rope bites | hitstop 35 ms, sparks, shockwave ring, shake, chroma punch, thunk |
+| rope wraps a corner | tick, sparks, small shake, rope wobble |
+| shuriken | rising pitch per combo, star burst, ring, score pop, HUD punch |
+| landing hard | dust scaled by impact, shake and hitstop over a threshold |
+| death | hitstop 90 ms, gib burst, red flash, 0.25× slow motion, music duck |
+| goal | fanfare, 0.35× slow motion, green flash, star shower |
+| always | speed-driven bloom / chroma / vignette / lens distortion / saturation, camera lookahead, speed zoom, anchor lean, procedural worm whip, squash and stretch, rope sag |
+
+`Juicer` owns `Time.timeScale`, so hitstop and slow motion layer instead of overwriting each other.
+
+## Known gaps / next up
+
+- Rope wrapping on very thin geometry can pop a pivot a frame late; the skin offset hides it but a
+  proper corner search would be cleaner.
+- No checkpoints: death restarts the level with the same seed. Fast enough that it reads as a retry.
+- Level intro camera sweep, and a proper title screen.
+- Music is a single four-bar loop; it is generated from a seed and could vary per level.
+</pre>
+</div>
+</body>
+</html>

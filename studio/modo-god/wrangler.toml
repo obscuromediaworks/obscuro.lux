@@ -1,0 +1,13 @@
+name = "modo-god"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-06-26"
+
+# Espejo público de Modo God. dist/ (generado por publish.py) trae index.html + _worker.js
+# (auth + sync remoto) + robots.txt. Deploy desde ESTA carpeta:
+#   npx wrangler pages deploy dist --project-name modo-god
+# (no confundir con el wrangler.toml de la raíz del repo -- ese es del Worker obscuro-lux-site,
+# un proyecto de Cloudflare totalmente distinto)
+
+[[kv_namespaces]]
+binding = "MODOGOD_CACHE"
+id = "13e234b7c2de461cba5b6d03e61a9c6b"

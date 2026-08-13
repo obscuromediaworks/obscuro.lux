@@ -91,3 +91,32 @@ El espejo se alimenta de un snapshot que se publica a mano — **nunca es en viv
 cuándo se generó. Si el snapshot tiene más de un día, se asume desactualizado.
 
 Ver `studio/modo-god/README.md`.
+
+## 9. Rutina de arranque
+
+Al detectar el trigger de un proyecto (ej. "vamos con OBSCUROMEDIAWORKS"), **antes** de esperar
+instrucción puntual de Roi:
+
+1. **Refrescar la caché de Asana del proyecto** — `get_tasks` del board (cuenta FREE, nunca
+   `search_tasks`), escribir/actualizar la entrada correspondiente en
+   `studio/modo-god/asana-cache.json`. Éste *es* el disparador de la automatización que pedía el
+   task de Asana "automatizar el refresco": no hay cron, el refresco pasa cuando arranca la sesión.
+2. **Clasificar cada tarea abierta en dos baldes:**
+   - **Ejecutable por un agente** — no depende de una decisión de alcance, arquitectura, borrado
+     o publicación de infra, ni de un juicio ambiguo (¿qué es esto? ¿sigue vivo?). Se reparte al
+     rol correspondiente (`om-dev`, `om-art`, `om-qa`, `om-marketing`) y se pone a trabajar.
+   - **Decisión de Roi** — todo lo demás. Éstas **no se preguntan en el chat**: se escriben (o
+     actualizan) en `studio/modo-god/decisions.json` con 2-4 opciones concretas y una marcada
+     `recommended: true` con su porqué. Si hace falta investigar antes de poder ofrecer opciones
+     reales (ej. "¿qué hay en estos repos sueltos?"), se despacha esa investigación a un agente
+     primero — la decisión queda en `status: "investigating"` hasta que vuelva con hallazgos.
+3. **Avisar en una línea** qué se puso a trabajar y cuántas decisiones quedaron esperando en el
+   tablero — no repetir el contenido de cada una en el chat, para eso está `/modo-god`.
+
+Roi resuelve las decisiones desde la consola local (`localhost:5080`) o pidiéndolas acá; cuando
+resuelve una, se marca `"status": "decided"` en `decisions.json` (deja de listarla el collector,
+pero el archivo conserva el historial).
+
+**Esto es infraestructura general del estudio** (`decisions.json` vive junto al resto de
+`studio/modo-god/`), pero hoy solo está en uso para el proyecto `obscuro-lux` — extenderlo a los
+demás triggers es una decisión de Roi, no algo que un agente asuma solo.

@@ -22,6 +22,8 @@ STUDIO = os.path.dirname(HERE)
 REGISTRY = os.path.join(STUDIO, "registry.json")
 SNAPSHOT = os.path.join(HERE, "snapshot.json")
 ASANA_CACHE = os.path.join(HERE, "asana-cache.json")
+DECISIONS = os.path.join(HERE, "decisions.json")
+GDD_DIR = os.path.join(HERE, "gdd")
 
 
 def git(repo, *args):
@@ -95,6 +97,20 @@ def load_json(path):
         return None
 
 
+def gdd_for(slug):
+    """Contenido del GDD sincronizado (studio/modo-god/gdd/<slug>.html), o None.
+
+    sync_gdd.py es quien lo escribe -- este collector solo lee lo que ya está ahí.
+    """
+    path = os.path.join(GDD_DIR, slug + ".html")
+    if not os.path.isfile(path):
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    synced_at = datetime.fromtimestamp(os.path.getmtime(path), tz=timezone.utc).isoformat()
+    return {"html": content, "synced_at": synced_at}
+
+
 def build_snapshot():
     registry = load_json(REGISTRY)
     if registry is None:
@@ -102,6 +118,9 @@ def build_snapshot():
 
     asana = load_json(ASANA_CACHE) or {}
     asana_by_slug = asana.get("projects", {})
+
+    decisions_doc = load_json(DECISIONS) or {}
+    decisions = [d for d in decisions_doc.get("decisions", []) if d.get("status") != "decided"]
 
     projects = []
     for p in registry.get("projects", []):
@@ -112,6 +131,7 @@ def build_snapshot():
         )}
         entry["git"] = repo_state(p["repo_path"])
         entry["asana"] = asana_by_slug.get(p["slug"])
+        entry["gdd"] = gdd_for(p["slug"]) if p.get("gdd") else None
         projects.append(entry)
 
     projects.sort(key=lambda e: e.get("priority") or 999)
@@ -124,11 +144,15 @@ def build_snapshot():
         "projects": projects,
         "unclassified_repos": registry.get("unclassified_repos", []),
         "unclassified_asana": registry.get("unclassified_asana", []),
+        "decisions": decisions,
         "asana_cache": {
             "present": bool(asana),
             "generated_at": asana.get("generated_at"),
             "note": asana.get("note"),
         },
+        # local: ya es en vivo (git de verdad en cada carga) y tiene POST /api/decide.
+        # El Worker público no tiene ninguno de los dos -- ver _worker.js.
+        "capabilities": {"decide": True, "sync": False},
     }
 
 

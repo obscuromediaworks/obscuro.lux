@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LE2 — GDD</title>
+<style>
+  :root{
+    --ink-900:#070504; --ink-700:#0f0f0f; --cream:#f5e9d4; --gold:#c9a96e;
+    --line:rgba(201,169,110,.18); --font-mono:"JetBrains Mono",ui-monospace,monospace;
+    --font-sans:"Space Grotesk","Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink-900);color:var(--cream);font-family:var(--font-sans);
+       font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+  .badge{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+         color:var(--gold);border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:24px;display:block}
+  pre{white-space:pre-wrap;word-wrap:break-word;font-family:var(--font-mono);font-size:13px;
+      line-height:1.7;color:var(--cream);margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">LE2 · notas de diseño (fuente: docs/game-design.md)</span>
+  <pre># Labyrinth Encounters 2 — Game Design Document
+
+&gt; Documento vivo. Última consolidación: 2026-05-13.
+&gt; Fuente: notas de Discord (Roi + Lucas_Sapa, marzo 2026).
+
+---
+
+## 1. Pitch
+
+**Género:** Analog Horror / Maze Game / Psychological Horror / Exploration / Puzzle ambiental
+
+**High-Concept:**
+&gt; A psychological horror game where the labyrinth changes when you&#x27;re not looking.
+&gt; You are trapped in a labyrinth that is slowly learning how to trap you.
+
+**Elevator Pitch:**
+Labyrinth Encounters 2 is a psychological horror game where players explore a living labyrinth that constantly changes when they are not looking. Inspired by spatial horror experiences like **The Exit 8** and the found-footage atmosphere of **Grave Encounters**, the game focuses on environmental storytelling, impossible architecture, and subtle psychological tension. The first game already attracted organic players on itch.io, and LE2 expands the concept into a deeper experience designed to create memorable moments for players and streamers.
+
+**Antecesor:** [Labyrinth Encounters (itch.io)](https://foxfurystudio.itch.io/labyrinth-encounters)
+
+**Origen del nombre &quot;Encounters&quot;:** referencia a *Grave Encounters* (película found-footage en un hospital psiquiátrico que juega con la cabeza del protagonista).
+
+### Métricas LE1 (baseline orgánico, itch.io)
+
+| Métrica | Valor |
+|---|---|
+| Gross Revenue | $2.00 |
+| Payments | 2 |
+| Views | 1,409 |
+| Downloads | 324 |
+| Ratings | 4 |
+| Collections | 41 |
+| Comments | 3 |
+
+&gt; Bajo en monetización pero **alto en señales orgánicas** (collections &gt; ratings &gt; comments). El público existe; LE2 escala la propuesta.
+
+---
+
+## 2. Player Fantasy
+
+El jugador debe sentir:
+- Paranoia
+- Duda sobre lo que vio
+- Sensación de estar atrapado
+- Curiosidad por avanzar
+
+**Regla de oro:** NUNCA un jumpscare.
+
+---
+
+## 3. Pilares de Identidad
+
+1. **Laberinto que aprende del jugador**
+2. **Horror psicológico sin enemigos**
+3. **Ambientación de selva sudamericana** (Argentina)
+
+---
+
+## 4. Lore (Historia Unificada — Lukardo v3)
+
+&gt; **⚠️ Información para desarrolladores.** El jugador NO conoce la verdad hasta cerca del final del juego. La historia tiene **dos capas**: lo que el jugador cree (origen Inca / dios) y la verdad oculta (origen alienígena).
+
+### 4.1 Verdad oculta — Origen extraterrestre
+
+Hace cientos de años, un meteorito proveniente de afuera de nuestra galaxia impactó en la cordillera de los Andes. Quedó enterrada una **criatura monstruosa** que continúa creciendo bajo la tierra desde entonces.
+
+Esta **entidad alienígena inteligente** es gigantesca y crece cada vez más profundo en la tierra (no puede crecer en el exterior bajo luz solar). Utiliza **energía geotérmica del magma** y experimenta con los seres vivos que captura, usándolos para seguir expandiéndose.
+
+### 4.2 Capa visible — Origen Incaico (lo que el jugador descubre primero)
+
+Durante el auge del Imperio Inca, los nativos encontraron el cráter del impacto y se adentraron en la montaña. Fueron los **primeros humanos en ingresar al laberinto** y ser capturados.
+
+El laberinto tiene la capacidad de ver en la mente de los seres vivos que captura — la usa para **aprender, atrapar y evolucionar**.
+
+Al leer la mente de los primeros capturados, el laberinto evolucionó rápidamente y tomó la forma de lo que más temían: **el dios Viracocha**. *(Pendiente: investigar más creencias Incas para definir nombre y forma del antagonista principal.)*
+
+Los Incas creyeron que era el mismísimo dios y lo veneraron. Construyeron la **entrada del templo** y comenzaron a realizar sacrificios.
+
+**Sobre los sacrificios:** elegían a los guerreros más fuertes y perfectos. El laberinto era una prueba a muerte para &quot;reunirse con Dios&quot;. En realidad, el monstruo quería absorber a los seres vivos más fuertes y usar al mejor guerrero como su propio cuerpo. Tras años de sacrificios, el laberinto cambió de cuerpo varias veces hasta quedarse con uno bestial: **un Inca musculoso gigante con armadura de oro**.
+
+### 4.3 Por qué hay &quot;backrooms&quot; y alucinaciones
+
+La entidad conoce a los humanos por haber visto dentro de la mente de los capturados. Al principio las trampas son simples, pero a medida que el jugador desciende, el laberinto **recrea estructuras conocidas como carnada**:
+
+- Una puerta que no encaja con el entorno → al cruzarla, lugares tipo backrooms
+- Habitación con pila de billetes y monedas
+- Salidas falsas del laberinto
+- Mesas con banquetes
+- Otros experimentos, como si fueran ratas de laboratorio
+
+### 4.4 Mecánicas opcionales del lore
+
+**[Opcional — Coral]**
+El laberinto crece como una **estructura similar a un arrecife de coral**.
+- Exterior: muros antiguos, muertos. Los Incas usaron partes del coral para construir los muros del templo.
+- Interior profundo: cada vez más nuevo y vivo, colorido, con tejido vivo y sangre.
+- Distintos &quot;corales&quot; crecen diferente: suaves, filosos, pinchudos → forman las **diferentes trampas** del lugar.
+
+**[Opcional — Mutación]**
+Mientras más tiempo pasan en el laberinto, la mutación afecta a los seres vivos capturados.
+- Primero los exploradores se emocionan al descubrir especies nuevas (conejos mutados, etc.)
+- Al descubrir sus propias mutaciones, algunos se desesperan y mueren en trampas
+- Otros se suicidan, otros se adaptan, otros tienen destinos trágicos
+- **Caso narrativo clave:** un hombre dormido en un escondite mutó y no puede moverse. No puede morir (está conectado al laberinto, no necesita alimentarse). El jugador debe decidir si matarlo.
+- Los seres vivos solo son controlados por el laberinto si son capturados.
+
+---
+
+## 5. Estructura completa del juego (4 niveles)
+
+&gt; El **Vertical Slice** cubre **Level 3 (parte inicial)**. Los Levels 1, 2 y 4 son fuera de scope para el VS.
+
+### Level 1 — Pueblo fantasma *(tutorial)*
+Un pueblo argentino del norte, antes minero, ahora casi abandonado por las desapariciones en la montaña. Un poblador advierte al grupo que no exploren la zona — no hay rescate, los helicópteros no pueden sobrevolar.
+
+**Gameplay:**
+- Presentación de personajes e historia
+- Quests cortas como tutorial
+- Hablar con cada explorador haciendo distintas tareas
+- Cierra con un **asado** entre todos los exploradores al final del día
+
+**Función:** tutorial, presentación de cultura argentina/latina, vínculo con el grupo.
+
+### Level 2 — Camino en la montaña + Entrada al laberinto
+Los exploradores avanzan en vehículo hasta donde termina el camino, luego siguen a pie.
+
+- El valle emana vapor desde el laberinto → nube permanente que tapa imágenes satelitales
+- **Ambientación de referencia:** Misiones, Argentina / El Impenetrable, Chaco (selva sudamericana densa)
+- El jugador camina entre la naturaleza (¿machete para abrir caminos?)
+- Puede hablar con exploradores en puntos clave
+- Encuentra indicios: jarrones Incas semi enterrados, estructuras en ruinas, grietas con vapor, ruidos misteriosos
+- Eventualmente: **entrada al templo** con estructuras Incas conservadas y dibujos de los sacrificios
+- **Entrada al laberinto: subterránea, se ingresa nadando** (hook visual fuerte de apertura del Level 3)
+
+**Tensión:** baja. El laberinto quiere que se adentren.
+
+### Level 3 — Laberinto Inca *(← VERTICAL SLICE)*
+El nivel más largo, compuesto de sublevels y habitaciones. Es lo que ya está en greybox.
+
+#### Apertura
+- **Cinemática:** los exploradores ingresan emocionados, el jugador queda último.
+- **Gameplay inicial:** el jugador avanza por el primer pasillo, va encontrando a los exploradores haciendo tareas (interpretando dibujos, sacando fotos, viendo el paisaje).
+
+#### Hub central — Campamento
+Al llegar al centro:
+- **Cinemática:** llegan los rezagados, deciden establecer campamento. Despliegan carpas, equipamiento científico, fogata. Algunos se separan a investigar.
+- **Gameplay post-campamento:** el jugador puede recorrer libremente, hablar con cada explorador para info, descubrir mecanismos.
+
+#### Los 4 mecanismos
+Los dibujos Incas en los muros muestran que un mecanismo central abre la **tumba del Dios Inca** (con oro y tesoros). Para activarlo hay que activar **4 partes**, una en cada una de las **4 áreas inferiores**.
+
+&gt; **❓ Decisión abierta:** ¿el jugador puede ir a las 4 áreas en cualquier orden, o se habilitan de a 1 en orden?
+
+#### Cierre del Level 3
+Una vez activados los 4 mecanismos, se abre el pasadizo final hasta un **pozo enorme**. El jugador desciende.
+
+### Level 4 — Nivel profundo
+El laberinto vivo, mecánica de **Coral + Mutación** + **Backrooms / alucinaciones** intensifican. Reveal final del origen alienígena.
+
+---
+
+## 6. Personajes — El grupo de exploradores
+
+**Total: 4 — protagonista + 3 compañeros.**
+
+Llegan juntos al templo (Levels 1 y 2) y aparecen en la apertura del Level 3 haciendo distintas tareas en el primer pasillo y el hub central. Cuando el grupo se separa para investigar las 4 áreas inferiores, **algo pasa**.
+
+### Twist narrativo clave
+Cuando el jugador empieza a recorrer las 4 áreas del laberinto, encuentra a **3 de sus compañeros prisioneros** — uno en cada uno de **3 de las 4 secciones**. La 4ta sección no tiene rehén, solo el artefacto/mecanismo.
+
+**Esto cambia todo:**
+- Las 4 áreas dejan de ser puzzles abstractos — son **rescates con stakes emocionales**
+- Cada compañero conocido en Levels 1-2 reaparece en una situación de horror, modificado o atrapado por el laberinto
+- Refuerza la lectura de &quot;el laberinto aprende y usa a las personas&quot;
+- Conecta directo con la mecánica opcional de **Mutación**: tal vez los rehenes están mutando, y el jugador debe decidir cómo lidiar con eso
+
+### Personajes (placeholders — nombres definitivos a confirmar con Lucas)
+
+| # | Nombre placeholder | Rol | Personalidad | Función en hub | Atrapado en |
+|---|---|---|---|---|---|
+| 0 | **PROTA** | Explorador con memoria espacial excepcional | Observador, paciente, escéptico | Jugador | — |
+| 1 | **DRA. MORAL** | Arqueóloga académica | Rigurosa, intelectual, escéptica ante lo paranormal. Interpreta dibujos Incas y artefactos. Habla en términos académicos. | Decifrar muros del hub, anotar todo en su libreta | Sección a definir |
+| 2 | **TINCHO** | Buscador de tesoros / aventurero | Carismático, impulsivo, codicioso. No le importa la ciencia, quiere el oro. Aporta humor y tensión al grupo. | Inspeccionar rincones, buscar pasajes ocultos | Sección a definir |
+| 3 | **EL FLACO** | Documentalista / fotógrafo | Paranoico, intuitivo, atento a los detalles raros. El primero en notar que algo está mal. Habla poco, graba todo. | Filmar con cámara found-footage, sacar fotos | Sección a definir |
+
+**Notas de tono:**
+- La dinámica entre los 3 cubre los arquetipos: **mente racional** (Moral) / **corazón salvaje** (Tincho) / **ojos paranoicos** (Flaco)
+- Cada uno tiene una **razón distinta** para haber venido al laberinto → cada rescate tiene tono propio
+- **Found-footage** queda justificado por El Flaco grabando todo (refuerza el pitch de *Grave Encounters*)
+
+&gt; **❓ A definir con Lucas:** nombres definitivos, en qué sección aparece cada uno, qué destino tienen al final del juego completo (rescate posible / mutados sin retorno / decisión moral).
+
+---
+
+## 7. Gameplay Loop (Core)
+
+```
+Explorar sector
+    ↓
+Detectar anomalías
+    ↓
+Resolver puzzle ambiental
+    ↓
+Obtener artefacto
+    ↓
+Volver al hub
+    ↓
+El laberinto cambia
+```
+
+Cada vuelta al hub:
+- El mapa cambia
+- Aparecen nuevas anomalías
+- La tensión aumenta
+
+**Cadencia objetivo:** cada **3–5 minutos** debe ocurrir algo extraño.
+
+---
+
+## 8. Las 3 Mecánicas Centrales
+
+### 8.1 Exploración guiada (con memoria espacial)
+- El jugador necesita recordar rutas, pero el mapa cambia.
+- El diseño empuja sutilmente hacia eventos narrativos (iluminación, sonido, objetos llamativos, arquitectura).
+- **Inspiración:** The Exit 8.
+
+Ejemplo: pasillo oscuro → luz tenue al fondo → el jugador camina naturalmente hacia ahí.
+
+### 8.2 Percepción de anomalías
+El jugador debe prestar atención al entorno. Tipos:
+
+| Tipo | Ejemplos |
+|---|---|
+| **Visuales** | un cuadro cambia, una puerta aparece, una estatua se mueve, antorchas apagadas, símbolos nuevos, huellas en el suelo |
+| **Espaciales** | pasillo nuevo, escalera diferente, habitación duplicada, una pared aparece, un camino se bloquea |
+| **Sonoras** | voces, pasos, golpes, sonidos de agua |
+
+**Inspiración:** P.T.
+
+### 8.3 Distorsión del laberinto (reconfiguración)
+El laberinto cambia cuando el jugador no está mirando, o al cruzar triggers, o al volver al hub.
+
+Implementaciones simples en Unity:
+- Cerrar/abrir puertas
+- Activar/desactivar muros
+- Rotar una sección
+- Swap de prefabs cuando están fuera de frustum
+
+Ejemplo base:
+```
+Jugador camina por pasillo
+Escucha ruido detrás
+Se da vuelta
+Cuando vuelve a mirar adelante: el pasillo cambió
+```
+
+---
+
+## 9. Vertical Slice — Detalle
+
+**Cobertura:** apertura de **Level 3** hasta el descenso al Level 4.
+**Duración objetivo:** ~20 minutos.
+
+### 9.0 Layout del mapa (confirmado por Lucas)
+
+```
+                  PUERTA NORTE
+              (falsa salida, 4 obj)
+                       │
+        ┌──────┬───────┼───────┬──────┐
+        │      │       │       │      │
+     Sección Sección  HUB   Sección Sección
+        1      2     CENTRAL   3       4
+        │      │       │       │      │
+        └──────┴───────┼───────┴──────┘
+                       │
+                  ENTRADA SUR
+                (nadando, jungla)
+```
+
+- **Sur:** entrada al laberinto (nadando, desde la jungla)
+- **Norte:** puerta grande (falsa salida)
+- **4 secciones** ramificándose desde el hub central, cada una con un puzzle/artefacto
+- **Centro:** hub. Inicialmente bajo agua o intacto. **Después del evento sísmico**, emerge una **nueva entrada desde el agua** → descenso al Level 4
+
+### 9.1 Flujo completo del VS
+
+```
+Cinemática: ingreso al templo nadando
+    ↓
+Recorrido inicial (encuentros con compañeros haciendo tareas)
+    ↓
+Cinemática: campamento en el hub central → compañeros se separan
+    ↓
+Descubrimiento del mecanismo central (necesita 4 partes)
+    ↓
+Exploración de las 4 secciones (cada una con puzzle + artefacto)
+    ├── 3 secciones: además, rescate de compañero prisionero
+    └── 1 sección: solo artefacto
+    ↓
+Vuelta al hub con los 4 artefactos → se abre PUERTA NORTE
+    ↓
+Pasillo iluminado al Norte (parece libertad, se escucha viento)
+    ↓
+Jugador cruza → encuentra &quot;algo&quot; que activa un mecanismo
+    ↓
+EVENTO SÍSMICO (cinemático)
+    ↓
+La salida norte desaparece / se sella detrás del jugador
+    ↓
+Jugador es forzado a volver al hub central
+    ↓
+En el centro del hub emerge desde el agua una NUEVA ENTRADA
+    ↓
+Jugador desciende → FIN DEL VS
+```
+
+**Por qué este flujo funciona:**
+- La &quot;falsa salida&quot; y el &quot;descenso al pozo&quot; son **el mismo beat encadenado**: parece que escapás → no podés volver → la única salida es bajar más profundo.
+- El **evento sísmico** justifica narrativamente que el centro del laberinto se reconfigure (consistente con el pilar &quot;el laberinto cambia&quot;).
+- El descenso queda como cliffhanger perfecto para vender más allá del VS.
+
+### 9.1 Las 4 Secciones del laberinto (identidades)
+
+Cada sector tiene su propia **identidad emocional/visual/sonora** y escala la tensión:
+
+| # | Sector | Identidad |
+|---|---|---|
+| 1 | **Desorientación** | Luces que parpadean, sonidos sutiles, cambios chicos |
+| 2 | **Arquitectura rara** | El mapa empieza a romperse, escaleras que llevan al mismo lugar, pasillos que cambian |
+| 3 | **Paranormal** | Voces, sombras, objetos que se mueven. **Nunca jumpscare.** |
+| 4 | **Full hostil** | El laberinto se cierra: puertas que desaparecen, caminos bloqueados, tensión al máximo |
+
+### 9.2 Secuencia clave: la falsa salida *(propuesta de Lucas)*
+
+```
+Consigue los 4 objetos
+    ↓
+Puerta Norte se abre
+    ↓
+Pasillo largo iluminado, se escucha viento / libertad
+    ↓
+Jugador entra
+    ↓
+Ruido detrás
+    ↓
+Jugador mira atrás
+    ↓
+Cuando vuelve a mirar adelante: la salida ya no está
+```
+
+Variante propuesta: al abrirse la puerta, también se ve **una ilusión de camino iluminado/verde** (parece que ya sale), pero un **mecanismo se activa** que llama la atención al hub → el jugador tiene que volver. Refuerza el loop antes del cierre del VS.
+
+---
+
+## 10. Mecánicas para el Vertical Slice (técnico)
+
+Lista de lo mínimo necesario para que el VS sea jugable:
+
+- [ ] Movimiento WASD
+- [ ] Sprint con Shift (stamina con cooldown breve)
+- [ ] Evento **Muerte del jugador** → cinemática de muerte → reinicia
+- [ ] Evento **Cambio de escena** → cinemática de transición → carga nuevo level
+- [ ] Diálogo con NPC / inspección de objeto → abre puertas o destraba progresión
+- [ ] **Inventario:** agarrar y usar objetos
+- [ ] Sistema de **artefactos** (4 objetos requeridos para puerta norte)
+- [ ] Sistema de **reconfiguración del laberinto** (triggers + swap de geometría)
+- [ ] Sistema de **anomalías** (visuales / sonoras / espaciales)
+
+---
+
+## 11. Estado del proyecto (Mayo 2026)
+
+- **Fase actual:** Greyboxing
+- **Laberinto:** completo en greybox (estructura sin contenido)
+- **Puzzles:** 1 implementado (de 4 planeados — uno por sector)
+- **Sistemas Unity:** Player controller, interacciones, inventario, 3 puzzles, diálogos, Wwise — todos integrados (ver auditoría técnica)
+
+### Equipo
+- **Roi** — Programación, implementación en Unity, setup de assets
+- **Lucas_Sapa (Lukardo)** — 3D, level design, historia
+
+---
+
+## 12. Roadmap / Hitos
+
+1. **Vertical Slice** ← *estamos acá*
+2. **Demo en Steam**
+3. **Wishlists** (objetivo: 10.000)
+4. **Buscar publisher o lanzar Kickstarter**
+5. **Lanzar juego pago**
+
+&gt; El objetivo del VS **NO es vender**, es **demostrar**: gameplay loop, estética, potencial comercial.
+
+### Plan de validación
+- 2 etapas de playtesting
+- 1 beta abierta
+
+---
+
+## 13. Decisiones abiertas / Pendientes
+
+### ✅ Resueltas en esta versión
+- ~~Falsa salida vs descenso al pozo~~ → **son el mismo beat encadenado** (norte → mecanismo → sismo → centro emerge → descenso)
+- ~~Cantidad de compañeros~~ → **4 total (protagonista + 3)**
+- ~~Función de los compañeros en el VS~~ → **3 aparecen como rehenes en 3 de las 4 secciones**
+- ~~Cómo se entra al laberinto~~ → **nadando, desde jungla tipo Misiones/Chaco**
+- ~~Roles de los 3 compañeros~~ → **Arqueóloga (Dra. Moral) / Buscador de tesoros (Tincho) / Documentalista (El Flaco)**
+- ~~Primer puzzle del Sprint 01~~ → **Cascadas** (LiquidTubePuzzleController, ya funcionando — solo falta visual)
+- ~~Forma de los artefactos~~ → **4 piezas que ensambladas forman una llave de piedra antigua, dimensionada para una mano mucho más grande que la humana**
+
+### 🟡 Narrativa
+- [ ] **Nombre y forma del antagonista** (¿Viracocha u otra deidad Inca? — investigar mitología Inca)
+- [ ] **Nombres y roles** específicos de los 3 compañeros
+- [ ] **¿Quién aparece en qué sección?** (mapeo compañero ↔ sección)
+- [ ] **¿Cuál es la sección sin rehén?** (la que sólo tiene artefacto)
+- [ ] Pegar **historia completa** (Google Doc Lukardo v3) al repo cuando esté pública
+- [ ] Definir si entra mecánica **Coral** (estética viva del laberinto)
+- [ ] Definir si entra mecánica **Mutación** (afecta a compañeros — refuerza el rescate)
+
+### 🟡 Diseño del VS
+- [ ] **Orden de las 4 secciones:** ¿libre o secuencial?
+- [ ] **Mapeo identidad emocional ↔ sección física:**
+  - Desorientación / Arquitectura rara / Paranormal / Hostil ↔ Secciones 1-2-3-4
+  - ¿La de identidad &quot;Hostil&quot; debería ser la última independiente del orden? (escala de tensión)
+- [ ] **Puzzle por sección:** hoy tenemos 3 puzzles implementados (medallones, tubos líquido, cubetas) — falta uno. ¿Cuál es la 4ta mecánica?
+- [ ] **Anomalías concretas** por sección (mínimo 2-3 por sección para cumplir cadencia de 3-5 min)
+- [ ] **Diseño de las 4 habitaciones** (alternativas: hay un brainstorm pendiente entre Roi+Lucas+Claude para 4 propuestas concretas)
+
+### 🟡 Mecánicas globales
+- [ ] **Sistema de muerte:** ¿qué mata al jugador en el VS? (sin enemigos clásicos — ¿trampas? ¿caer al agua? ¿el laberinto te encierra?)
+- [ ] **Sistema de guardado:** ¿checkpoints, save manual, ninguno para el VS?
+- [ ] **¿Machete?** para Level 2 (fuera de scope del VS)
+
+---
+
+## 14. Referencias
+
+### Juegos
+- **The Exit 8** — distorsión espacial, anomalías ambientales
+- **P.T.** — horror perceptivo, repetición
+- **Grave Encounters** — atmósfera found-footage
+- **Labyrinth Encounters (LE1)** — antecesor directo
+
+### Streamers / YouTubers objetivo
+- ManlyBadassHero
+- Alpha Beta Gamer
+- John Wolfe
+- IGP
+</pre>
+</div>
+</body>
+</html>

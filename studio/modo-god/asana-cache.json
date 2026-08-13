@@ -1,8 +1,8 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-12T04:40:00Z",
-  "generated_by": "sesión de armado del sistema de estudio",
-  "note": "Conteos de get_projects. Vencidas y próximas calculadas a mano para moba-warmup y le2; el resto tiene solo conteos.",
+  "generated_at": "2026-08-12T17:45:00Z",
+  "generated_by": "primera corrida de la rutina de arranque (refrescó solo obscuro-lux)",
+  "note": "Conteos de get_projects. Vencidas y próximas calculadas a mano para moba-warmup, le2 y obscuro-lux; el resto tiene solo conteos del armado inicial (12/8, sin refrescar desde entonces).",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
@@ -64,6 +64,19 @@
       "overdue": null,
       "highlights": []
     },
-    "obscuro-lux": null
+    "obscuro-lux": {
+      "board": "OBSCUROMEDIAWORKS — Sitio & Estudio",
+      "total": 12,
+      "open": 10,
+      "done": 2,
+      "overdue": 0,
+      "highlights": [
+        "[Infra] Decidir integración de Git del Worker — vence 15/8",
+        "[Infra] Borrar el proyecto de Pages huérfano obscuro-mediaworks — vence 15/8",
+        "[Sitio] Regenerar deploy/index.html desde site.html + los .jsx",
+        "[Estudio] Archivar el board histórico MOBA Warmup — v0",
+        "[Estudio] Clasificar ECOPLASTIK y los repos sueltos de G:\\Github"
+      ]
+    }
   }
 }

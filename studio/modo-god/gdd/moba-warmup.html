@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOBA Warmup — Game Design Document</title>
+<style>
+  :root {
+    --bg:        #0b0d14;
+    --bg2:       #111420;
+    --bg3:       #181c2e;
+    --border:    #232840;
+    --text:      #d4d8f0;
+    --muted:     #5c6285;
+    --accent:    #4cc9f0;
+    --gold:      #ffd166;
+    --green:     #06d6a0;
+    --red:       #ef476f;
+    --purple:    #b48eff;
+    --font:      -apple-system, 'Segoe UI', sans-serif;
+    --mono:      'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    --sidebar-w: 240px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.65;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ─────────────────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    overflow-y: auto;
+    padding: 24px 0 40px;
+    z-index: 100;
+  }
+
+  #sidebar .logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  #sidebar .logo .title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  #sidebar .logo .sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  #sidebar nav a {
+    display: block;
+    padding: 6px 20px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    transition: color .15s, background .15s;
+    border-left: 2px solid transparent;
+  }
+
+  #sidebar nav a:hover,
+  #sidebar nav a.active {
+    color: var(--text);
+    background: var(--bg3);
+    border-left-color: var(--accent);
+  }
+
+  #sidebar nav .section-label {
+    padding: 14px 20px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Main ────────────────────────────────────────────────── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 48px 56px 80px;
+    max-width: 900px;
+  }
+
+  /* ── Hero ────────────────────────────────────────────────── */
+  .hero {
+    margin-bottom: 56px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .hero .tagline {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .hero .meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .meta-item strong {
+    color: var(--text);
+  }
+
+  /* ── Sections ────────────────────────────────────────────── */
+  .section {
+    margin-bottom: 56px;
+  }
+
+  .section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section h2 .num {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .section h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 24px 0 10px;
+  }
+
+  .section p {
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .section ul, .section ol {
+    margin: 8px 0 16px 20px;
+  }
+
+  .section li {
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  /* ── Badges ──────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .badge-done    { background: rgba(6,214,160,.15); color: var(--green); }
+  .badge-active  { background: rgba(76,201,240,.15); color: var(--accent); }
+  .badge-planned { background: rgba(255,209,102,.15); color: var(--gold); }
+  .badge-future  { background: rgba(180,142,255,.15); color: var(--purple); }
+  .badge-new     { background: rgba(239,71,111,.2); color: var(--red); }
+
+  /* ── Tables ──────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13px;
+  }
+
+  th {
+    background: var(--bg3);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:hover td { background: var(--bg3); }
+
+  /* ── Code blocks ─────────────────────────────────────────── */
+  pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #a8b0d0;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  /* ── Callout boxes ───────────────────────────────────────── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--bg3);
+    padding: 14px 16px;
+    border-radius: 0 6px 6px 0;
+    margin: 16px 0;
+  }
+
+  .callout.gold   { border-color: var(--gold); }
+  .callout.green  { border-color: var(--green); }
+  .callout.red    { border-color: var(--red); }
+  .callout.purple { border-color: var(--purple); }
+
+  .callout p { margin: 0; font-size: 13px; }
+  .callout strong { color: var(--accent); }
+  .callout.gold strong { color: var(--gold); }
+  .callout.green strong { color: var(--green); }
+  .callout.purple strong { color: var(--purple); }
+
+  /* ── Mode cards ──────────────────────────────────────────── */
+  .modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 16px 0 24px;
+  }
+
+  .mode-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    transition: border-color .2s;
+  }
+
+  .mode-card:hover { border-color: var(--accent); }
+
+  .mode-card .mode-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .mode-card .mode-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .mode-card .mode-role {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .mode-card .mode-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .mode-card.new-feature {
+    border-color: var(--purple);
+    background: rgba(180,142,255,.05);
+  }
+
+  /* ── Mindset card preview ────────────────────────────────── */
+  .mindset-preview {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 280px;
+    overflow: hidden;
+    font-size: 12px;
+    margin: 0 auto 24px;
+  }
+
+  .mindset-header {
+    padding: 7px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    background: rgba(76,201,240,.15);
+    color: var(--accent);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .mindset-header.winning {
+    background: rgba(6,214,160,.15);
+    color: var(--green);
+  }
+
+  .mindset-header.losing {
+    background: rgba(239,71,111,.15);
+    color: var(--red);
+  }
+
+  .mindset-header.reset {
+    background: rgba(255,209,102,.15);
+    color: var(--gold);
+  }
+
+  .mindset-body { padding: 12px; }
+
+  .mindset-focus {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .mindset-why {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .mindset-dont {
+    font-size: 11px;
+    color: var(--red);
+    opacity: .7;
+    font-style: italic;
+  }
+
+  .mindset-keep {
+    font-size: 11px;
+    color: var(--green);
+  }
+
+  .mindset-why strong, .mindset-dont strong, .mindset-keep strong {
+    font-weight: 600;
+    color: inherit;
+  }
+
+  /* ── Risk table colors ───────────────────────────────────── */
+  .risk-high { color: var(--red); }
+  .risk-med  { color: var(--gold); }
+  .risk-low  { color: var(--green); }
+
+  /* ── Roadmap timeline ────────────────────────────────────── */
+  .roadmap {
+    position: relative;
+    padding-left: 24px;
+    margin: 16px 0;
+  }
+
+  .roadmap::before {
+    content: '';
+    position: absolute;
+    left: 7px; top: 6px; bottom: 6px;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .roadmap-item {
+    position: relative;
+    margin-bottom: 24px;
+    padding-left: 16px;
+  }
+
+  .roadmap-item::before {
+    content: '';
+    position: absolute;
+    left: -18px;
+    top: 6px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    border: 2px solid var(--bg2);
+  }
+
+  .roadmap-item.done::before    { background: var(--green); }
+  .roadmap-item.active::before  { background: var(--accent); }
+  .roadmap-item.next::before    { background: var(--gold); }
+  .roadmap-item.future::before  { background: var(--muted); }
+
+  .roadmap-version {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .roadmap-item.done .roadmap-version   { color: var(--green); }
+  .roadmap-item.active .roadmap-version { color: var(--accent); }
+  .roadmap-item.next .roadmap-version   { color: var(--gold); }
+  .roadmap-item.future .roadmap-version { color: var(--muted); }
+
+  .roadmap-desc {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .roadmap-items {
+    font-size: 12px;
+    color: var(--muted);
+    list-style: none;
+    margin: 4px 0 0 0;
+  }
+
+  .roadmap-items li::before { content: '→ '; color: var(--border); }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══════════════════════════════════════════════════ -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="title">MOBA Warmup</div>
+    <div class="sub">Game Design Document · v2026.06</div>
+  </div>
+  <nav>
+    <div class="section-label">Product</div>
+    <a href="#vision">Vision</a>
+    <a href="#compliance">IP Compliance &amp; Builds</a>
+    <a href="#wedge">Wedge</a>
+    <a href="#user">Target User</a>
+    <a href="#loops">Game Loops</a>
+
+    <div class="section-label">Modes</div>
+    <a href="#mode-a">Mode A — Last Hit</a>
+    <a href="#mode-kite">ADC Kite Mode</a>
+    <a href="#mode-loading">Loading Frenzy</a>
+    <a href="#mode-jungle">Jungle Mode</a>
+    <a href="#mode-support">Support Mode</a>
+    <a href="#mode-mindset">★ Game Mindset</a>
+    <a href="#mode-advisor">★ Pick Advisor</a>
+    <a href="#mode-clipo">★ Clipo AI</a>
+
+    <div class="section-label">Systems</div>
+    <a href="#leaderboard">★ Leaderboard</a>
+
+    <div class="section-label">Technical</div>
+    <a href="#stack">Tech Stack</a>
+    <a href="#ow-api">OW API</a>
+    <a href="#arch">Architecture</a>
+
+    <div class="section-label">Strategy</div>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#monetization">Monetization</a>
+    <a href="#metrics">Metrics</a>
+    <a href="#risks">Risks</a>
+  </nav>
+</aside>
+
+<!-- ══ MAIN ═════════════════════════════════════════════════════ -->
+<main id="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>MOBA Warmup</h1>
+    <p class="tagline">"Aim Lab for MOBAs" — mechanical and decision training built for the gaps in your game day.</p>
+    <div class="meta">
+      <span class="meta-item"><strong>Owner</strong> Roi (solo dev)</span>
+      <span class="meta-item"><strong>Started</strong> 2026-06-01</span>
+      <span class="meta-item"><strong>Current build</strong> v1.5 WebGL</span>
+      <span class="meta-item"><strong>Platform</strong> Browser → Overwolf (v2)</span>
+      <span class="meta-item"><strong>Game</strong> League of Legends</span>
+    </div>
+  </div>
+
+  <!-- 1. VISION -->
+  <section class="section" id="vision">
+    <h2><span class="num">01</span> Vision</h2>
+    <div class="callout purple">
+      <p><strong>Long-term positioning:</strong> "Aim Lab for MOBAs" — a training suite for every mechanical and decision skill in the game.</p>
+    </div>
+    <div class="callout gold">
+      <p><strong>v1 positioning:</strong> "The last-hit drill that doesn't take you out of queue."</p>
+    </div>
+    <p>MOBA Warmup is a suite of short drills, playable in browser and via Overwolf overlay, for practicing the most important mechanical and decision-making skills of each MOBA role — without entering a full game. Every drill fits inside the dead time of the League of Legends game cycle: queue, champ select, loading screen.</p>
+  </section>
+
+  <!-- 1b. IP COMPLIANCE & BUILD SPLIT -->
+  <section class="section" id="compliance">
+    <h2><span class="num">01b</span> IP Compliance &amp; Build Split <span class="badge badge-new" style="font-size:11px">Foundational</span></h2>
+    <div class="callout gold">
+      <p><strong>Rule of thumb:</strong> anything that names Riot IP (Drake, Baron, Herald, Smite, champion names/archetypes) or reads the live client is legitimate <em>only</em> in the Overwolf build, where it operates as coaching over Riot's licensed API. The public standalone must be a fully generic skill trainer.</p>
+    </div>
+    <p>The product ships as <strong>two builds from one Unity project</strong>, split at compile time by the <code>MW_OVERWOLF</code> scripting define:</p>
+    <table>
+      <thead><tr><th>Build</th><th>Define</th><th>Contents</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Standalone</strong> (itch / WebGL)</td>
+          <td>— none —</td>
+          <td>Last Hit, ADC Kite, Loading Frenzy only. Zero Riot IP.</td>
+          <td>Public product with no Riot API relationship → must not use Riot trademarks or client data.</td>
+        </tr>
+        <tr>
+          <td><strong>Overwolf</strong></td>
+          <td><code>MW_OVERWOLF</code></td>
+          <td>+ Jungle, Support (and the live-client features: Mindset, Pick Advisor).</td>
+          <td>Coaching over the licensed OW/Riot API → naming real champions/objectives is legitimate here.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p><strong>Safety default:</strong> absence of the define yields the clean standalone, so an accidental or default build can never leak Riot IP. The Overwolf build must <em>explicitly</em> opt in. Build entry points (batchmode CLI): <code>MOBAWarmupBuild.BuildWebGLStandalone</code> and <code>BuildWebGLOverwolf</code>; the define is injected per-build via <code>BuildPlayerOptions.extraScriptingDefines</code>.</p>
+    <p><strong>Versioning</strong> (since 0.9.0) — single source of truth is Unity's <code>bundleVersion</code>; <code>0.9.x</code> covers everything up to the public launch, with <code>1.0.0</code> reserved for it. Every build stamps <code>Resources/build_info.json</code> (version, commit, timestamp, flavor) before the player is built, read back at runtime by <code>Core.BuildInfo</code> and shown dimly in the main menu's bottom-right corner as <code>v0.9.0 · &lt;sha&gt;</code>. That corner exists to catch a <em>stale</em> build — a cached itch upload or an un-repackaged Overwolf folder is otherwise indistinguishable from the new one, which is the easiest way to sign off on a change that never loaded. Zips are named <code>MOBAWarmup-v&lt;version&gt;-&lt;flavor&gt;-&lt;sha&gt;.zip</code>. Full detail in <code>docs/builds-y-versionado.md</code>.</p>
+    <p>The split is enforced in code at three surfaces, all gated with <code>#if MW_OVERWOLF</code>: the build scene list (<code>MOBAWarmupBuild</code>), and the two menus that list drills (<code>DrillMapSelector</code>, <code>ChampSelectLanding</code>).</p>
+    <div class="callout purple">
+      <p><strong>Open cleanup tracks (post-Tier 1):</strong> <em>Track B</em> — strip the Jungle/Support script string literals from the standalone binary (dead code today, unreachable but present). <em>Track C</em> — replace the bundled Riot art with original art. <strong>First pass done:</strong> the loadout item icons and the role glyphs are now generated from original 3D icon models (Synty POLYGON Icons) instead of Data Dragon / Community Dragon, and the Riot PNGs were deleted. One mapping drives both outputs, so the icon that spins in the drill selector and the flat one in the HUD are the same artwork — see <code>IconArtTool</code> (<code>MOBAWarmup/Icons ▸ Rebuild Catalog + Bake Sprites</code>, batchmode-safe). <strong>Second pass:</strong> the drill-selector background, the ward and objective markers, the engage/peel glyphs and the ward trinkets are original art, and the Jungle minimap background is now an original <strong>9x9 game board</strong> instead of the Summoner's Rift layout (<code>scripts/gen_minimap_jungle.py</code> → SVG → Inkscape, so it rebuilds from source with no AI credits). The board keeps the genre's <em>topology</em> — opposite-corner bases, three lanes, a diagonal river splitting ally from enemy, one buff per quadrant — because that is common to every MOBA and is what the drill trains you to read; what diverges is the <em>expression</em>: straight tile runs instead of curved lanes, a stepped river instead of a meander, a strict orthogonal grid. Decision-point coordinates snap to cell centres and are exactly 180°-symmetric about the board's centre. <em>Still pending:</em> 4 of the 8 dragon tokens, <code>baron</code>/<code>riftherald</code>, and <code>summoner-smite</code> — all awaiting painted art, all Overwolf-only surfaces.</p>
+    </div>
+    <p><strong>Public-facing copy</strong> (itch page, store listings) removes all Riot trademarks, tags, and any head-to-head comparison against Riot's own Practice Tool. See <code>docs/00_IMPORTANTE/itch-description.md</code>.</p>
+  </section>
+
+  <!-- 2. WEDGE -->
+  <section class="section" id="wedge">
+    <h2><span class="num">02</span> Competitive Wedge</h2>
+    <p>The central differentiator is <strong>zero friction + interruptibility</strong>. The drill fits <em>inside</em> the dead time of playing LoL — it does not compete with it.</p>
+    <table>
+      <thead><tr><th>Attribute</th><th>MOBA Warmup</th><th>LoL Practice Tool</th></tr></thead>
+      <tbody>
+        <tr><td>Time to first minion</td><td>&lt; 3 seconds</td><td>30–60 seconds</td></tr>
+        <tr><td>Interruptibility</td><td>Auto-pause on focus loss</td><td>Must abandon the game</td></tr>
+        <tr><td>Platform</td><td>Browser tab / overlay</td><td>Full LoL client</td></tr>
+        <tr><td>Context awareness</td><td>Champion-specific, seeded from last game</td><td>Generic</td></tr>
+        <tr><td>Setup cost</td><td>Zero</td><td>Heavy</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 3. USER -->
+  <section class="section" id="user">
+    <h2><span class="num">03</span> Target User</h2>
+    <p>A regular LoL player who wants to improve core skills but won't dedicate full sessions to the Practice Tool. They use micro-moments of dead time (3–5 min queue, 30–60s loading) to stay sharp.</p>
+    <h3>Atomic use cases</h3>
+    <table>
+      <thead><tr><th>Moment</th><th>Duration</th><th>Mode</th></tr></thead>
+      <tbody>
+        <tr><td>In queue</td><td>Variable, up to 5 min</td><td>Mode A / Jungle Mode / ADC Kite — full session</td></tr>
+        <tr><td>Champ select</td><td>30–45 s</td><td>Micro-session — 2–3 quick scenarios, attention split</td></tr>
+        <tr><td>Loading screen</td><td>30–60 s</td><td>Loading Frenzy — endless arena: Q skillshot + dodge the collapsing floor</td></tr>
+        <tr><td><strong>In game</strong></td><td>Full match</td><td><strong>Game Mindset</strong> — passive overlay coaching</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4. LOOPS -->
+  <section class="section" id="loops">
+    <h2><span class="num">04</span> Game Loops</h2>
+    <h3>Micro loop (within a session)</h3>
+    <pre>open tab → drill auto-starts → wave in ~3s → kill minions → stats overlay → replay</pre>
+    <h3>Macro loop (across queues)</h3>
+    <pre>open LoL queue → MOBA Warmup tab → drill while waiting
+   → queue pops → auto-pause on tab switch → play game
+   → game ends → more queue? → repeat</pre>
+    <h3>Progression loop (post-v1)</h3>
+    <pre>play game → OW captures performance data → seeds next drill session
+   → session targets your real weaknesses → repeat until improvement</pre>
+  </section>
+
+  <!-- 5. MODES -->
+  <section class="section" id="modes">
+    <h2><span class="num">05</span> Modes Overview</h2>
+    <div class="modes-grid">
+      <div class="mode-card">
+        <div class="mode-header">
+          <div class="mode-name">Mode A — Last Hit</div>
+          <span class="badge badge-done">Done</span>
+        </div>
+        <div class="mode-role">ADC / All roles</div>
+        <div class="mode-desc">Classic last-hit drill. 1 wave per side, auto-attack only. The core of the v1 wedge.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-header">
+          <div class="mode-name">ADC Kite Mode</div>
+          <span class="badge badge-done">Done</span>
+        </div>
+        <div class="mode-role">ADC</div>
+        <div class="mode-desc">Mode A + enemy bot that harasses. Train the auto → step → auto rhythm against live pressure.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-header">
+          <div class="mode-name">Loading Frenzy</div>
+          <span class="badge badge-active">Active · v1</span>
+        </div>
+        <div class="mode-role">Mid / All roles</div>
+        <div class="mode-desc">Endless arena: Q skillshot + autos while dodging a collapsing hex floor. Fills the loading screen window.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-header">
+          <div class="mode-name">Jungle Mode</div>
+          <span class="badge badge-active">Active · v1</span>
+        </div>
+        <div class="mode-role">Jungle</div>
+        <div class="mode-desc">Decision + execution hybrid. Map reading, smite timing, champion-specific scenarios seeded from your last game.</div>
+      </div>
+      <div class="mode-card">
+        <div class="mode-header">
+          <div class="mode-name">Support Mode</div>
+          <span class="badge badge-active">Active · v1</span>
+        </div>
+        <div class="mode-role">Support</div>
+        <div class="mode-desc">Second decision + execution hybrid. Vision control (ward/sweep placement) + roam/engage reads + a CC-timing mini-game, calibrated by champion archetype.</div>
+      </div>
+      <div class="mode-card new-feature">
+        <div class="mode-header">
+          <div class="mode-name">★ Game Mindset</div>
+          <span class="badge badge-new">New</span>
+        </div>
+        <div class="mode-role">All roles · In-game overlay</div>
+        <div class="mode-desc">Passive in-game coaching. Role-specific mindset cards triggered by real game events. The only mode that runs during the actual game.</div>
+      </div>
+      <div class="mode-card new-feature">
+        <div class="mode-header">
+          <div class="mode-name">★ Pick Advisor</div>
+          <span class="badge badge-new">New</span>
+        </div>
+        <div class="mode-role">All roles · Champ select overlay</div>
+        <div class="mode-desc">Reads enemy picks live during draft and suggests 3 counters with the mechanical reason ("Morgana E blocks the hook"), not just stats.</div>
+      </div>
+      <div class="mode-card new-feature">
+        <div class="mode-header">
+          <div class="mode-name">★ Clipo AI</div>
+          <span class="badge badge-new">New · Spec</span>
+        </div>
+        <div class="mode-role">All roles · Post-game + In-game overlay</div>
+        <div class="mode-desc">Coach IA con memoria persistente por rol. Analiza tendencias entre partidas, celebra mejoras concretas y construye un vínculo con el jugador. Layer 2 de Game Mindset — 3 triggers, Claude API directo desde OW.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. MODE A -->
+  <section class="section" id="mode-a">
+    <h2><span class="num">06</span> Mode A — Last Hit <span class="badge badge-done" style="font-size:11px">Done</span></h2>
+    <p>The wedge product. One wave of 6 minions per side, auto-attack only, lane balanced. Validates the core hypothesis: players will use dead time to practice CS if friction is near zero.</p>
+    <h3>Implemented mechanics</h3>
+    <ul>
+      <li>Click-to-move (right-click) + stop command (S key)</li>
+      <li>Auto-attack state machine: windup → damage → recovery; movement cancel</li>
+      <li>Attack-move (A key) — targets nearest enemy in range</li>
+      <li>Target priority rules (LoL rules 2 and 3)</li>
+      <li>HP bar color shift when one-shotable</li>
+      <li>Last-hit indicator: a ▼ marker appears over a minion the moment it enters one-shot range — a coaching cue toggleable in Options (<code>CoachingPrefs</code>, PlayerPrefs, default ON). Turning it off is the hardcore mode: no last-hit assistance at all.</li>
+      <li>Click indicator visual on right-click</li>
+      <li>Auto-pause on focus loss</li>
+      <li>LastHitTracker: CS hits, missed last-hits, wasted autos</li>
+    </ul>
+    <h3>Minion AI — LoL-accurate behavior</h3>
+    <ul>
+      <li><strong>Stand and fight:</strong> minions plant in place when in attack range — NavMeshAgent RVO avoidance is halted (<code>isStopped = true</code>) so the agent doesn't drift while attacking. No separation forces during combat.</li>
+      <li><strong>Attack cadence:</strong> melee 0.625 AS (~1.6s cycle), caster 0.667 AS (~1.5s cycle), matching LoL's visible windup + recovery. At 1.25 AS the cycle was 0.8s — attacks spammed with no perceptible gap.</li>
+      <li><strong>March de-sync:</strong> per-minion speed jitter (±5%) + gentle lateral sine drift breaks the locked-step look without making minions look drunk. Values tuned against real LoL footage.</li>
+      <li><strong>Reaction delay:</strong> on target death, each minion waits a random 0–0.25s before re-acquiring — staggers the "all robots turn simultaneously" look.</li>
+      <li><strong>Move speed:</strong> 2.2 u/s (was 3.3) — matches the visual weight of real LoL minions marching down the lane.</li>
+    </ul>
+    <h3>Validation status</h3>
+    <div class="callout gold">
+      <p><strong>Cold load:</strong> 6.02s on broadband was measured on the ~12 MB build. The current build is <strong>~48 MB</strong> (3D asset pass) — cold load must be <strong>re-measured</strong>; the &lt;8s wedge constraint is at risk and no longer verified.</p>
+    </div>
+    <p>Validating: does Roi open it voluntarily across 10 consecutive queues? (The single most important metric for v1.)</p>
+  </section>
+
+  <!-- 7. ADC KITE -->
+  <section class="section" id="mode-kite">
+    <h2><span class="num">07</span> ADC Kite Mode <span class="badge badge-done" style="font-size:11px">Done</span></h2>
+    <p>Mode A + one add-on: an invulnerable enemy bot ADC that harasses. The skill trained is the fundamental ADC loop: <strong>auto → step → auto → step</strong>. The windup-cancel mechanic already in Mode A is exactly this — no new player-side mechanics needed.</p>
+    <h3>The bot (EnemyBotADC)</h3>
+    <ul>
+      <li>Invulnerable. Minions ignore it. Player cannot target it.</li>
+      <li>Maintains band distance (~65–92% of its attack range) from player.</li>
+      <li>Telegraphed windup (body stretch + white tint, ~0.5s) before firing.</li>
+      <li>Projectile travels to the player's position at fire time — moving = dodge.</li>
+      <li>Respawns at the start of each new minion wave (<code>WaveSpawner.OnWaveSpawned</code> event) — the bot resets alongside the minions so pressure never stops between waves.</li>
+    </ul>
+    <h3>OW integration</h3>
+    <p>Auto-launches when <code>champ_select.position = 'adc'</code>. Bot attack speed calibrated to the actual champion's base AS.</p>
+  </section>
+
+  <!-- 8. LOADING MODE -->
+  <section class="section" id="mode-loading">
+    <h2><span class="num">08</span> Loading Frenzy <span class="badge badge-active" style="font-size:11px">Active · v1</span></h2>
+    <p>An <strong>endless</strong> arena drill — not the original multi-wave concept. The player stands at the center of a circular hex-tile floor while minions stream in from the four corners and home toward them. There are no wave boundaries and no end screen: the loop runs until the player clicks <em>Main menu</em>. It fills the loading-screen window (and any other dead time) with a tight, high-intensity execution loop.</p>
+    <p>The twist: <strong>the minions don't hurt you — the floor does.</strong> Enemy damage is 0; the real threat is the collapsing hex floor underneath you. So the drill layers two skills at once — last-hit / Q execution while constantly repositioning off the tiles that are about to drop. A 5s loadout picker (item stacks) opens the drill, freezing gameplay during its countdown.</p>
+
+    <h3>Arena &amp; spawns</h3>
+    <table>
+      <thead><tr><th>Component</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>HexFloorManager</code></td><td>Circular floor of hex tiles (<code>floorRadius</code> 10). Tiles cycle Idle → Warning → Falling; difficulty <em>Levels</em> shorten the warning + collapse interval over time</td></tr>
+        <tr><td><code>HexTile</code></td><td>One collapsing tile. <em>Warning</em> is the grace window; <em>Falling</em> means standing on it = death</td></tr>
+        <tr><td><code>LoadingWaveSpawner</code></td><td>Keeps <code>maxConcurrent</code> (6) minions alive. Round-robins spawns through the 4 corners (NE/NW/SE/SW) at <code>spawnRadius</code> 11.5 with ±1.2 scatter; replaces each death or escape instantly</td></tr>
+        <tr><td>Minion</td><td><code>enemyMaxHP</code> 50, damage 0, move speed 1.5. Homes on the player every frame (<code>MarchTargetOverride</code>); despawned + replaced if it gets within 2u of the player so the lane never collapses into a scrum</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Combat loop — Q skillshot + autos</h3>
+    <p>The player fires a <strong>Q line skillshot</strong> (~65 damage, range 11, projectile speed 30) alongside frenzy-tuned auto-attacks (attack speed 2.5, 0.05s windup). The Q runs on a short cooldown (~0.8s) that <strong>refunds 0.4s on a hit</strong> — accuracy literally buys you a faster cast rhythm, which is the core skill expression of the mode.</p>
+
+    <h3>Progression — boost stacks</h3>
+    <p>Every <strong>10 lasthits</strong> grants a <code>PlayerBoost</code> stack (<strong>move speed + Q cooldown reduction only</strong> — no damage/power, per the 2026-07 balance pass), applied live. Keeps an endless run escalating in tempo without a meta-progression layer or a flooded screen at frenzy speeds. <code>LastHitFeedbacks</code> is also retuned for the mode (streak capped at 4, halved shake/ring bonuses) so the 20+ streaks the frenzy produces don't blow out the camera.</p>
+
+    <h3>Camera &amp; feel</h3>
+    <table>
+      <thead><tr><th>Element</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td>Camera</td><td>Tilted ortho (30°, ARAM-style iso), centered on the arena. Re-pinned every frame so feedback shake offsets don't accumulate</td></tr>
+        <tr><td>Intro zoom-out</td><td>Starts tight on the player (<code>introZoomStartSize</code> 4) and eases out to the full arena view (ortho 11) over <code>introZoomDuration</code> ~4s. Driven by scaled time, so it stays parked during the frozen picker countdown and the reveal begins exactly as the first minions stream in</td></tr>
+        <tr><td>Minion HP bars</td><td>Optional via the <code>minionsStartWithHpBar</code> toggle on the spawner — off for a cleaner read where the player goes by the model + the one-shot color cue rather than the bar</td></tr>
+        <tr><td>Blood splat</td><td>On death a minion lays a ground decal flat on the floor (random yaw) — a separate socket (<code>minionBloodSplatVfx</code>) from the upright death burst, so kills leave a trail across the arena</td></tr>
+        <tr><td>Live HUD</td><td>Subtle muted-gold corner panel: CS · Q hits/casts (accuracy %) · wasted autos · escaped · time (+ deaths, + active boosts when present). Restart (R) + Main menu buttons top-right</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 9. JUNGLE MODE -->
+  <section class="section" id="mode-jungle">
+    <h2><span class="num">09</span> Jungle Mode <span class="badge badge-active" style="font-size:11px">Active · v1</span> <span class="badge badge-new" style="font-size:11px">Overwolf build only</span></h2>
+    <p>The first hybrid decision + execution mode. Junglers don't fail because of bad aim — they fail because they misread the map or execute the right decision at the wrong time. This mode trains exactly those two layers.</p>
+
+    <h3>Reading phase — animated script on the minimap</h3>
+    <p>The scenario is <em>shown, not read</em>. Instead of a static wall of text, each scenario plays an ordered list of <code>ScenarioBeat</code>s on the minimap: every beat reveals one caption line synced to a staged move — the enemy jungler walks in or backs (<code>MapActor</code>), the objective node pulses, a lane flashes its win/loss colour. A scenario with no authored <code>script</code> falls back to the legacy text panel, so beats roll out scenario-by-scenario. Decision points are sized by priority (Baron/Dragon large → buffs medium → scuttle small) so the map reads at a glance.</p>
+
+    <h3>Decision phase — drag &amp; drop on minimap</h3>
+    <p>The player drags a chess-piece token (their champion) to the zone they want to prioritize on a 2D Canvas minimap. Deciding IS moving — the same spatial gesture as in real LoL. An enemy jungler ghost moves autonomously across the map; the player reads its position to reason about timing.</p>
+    <table>
+      <thead><tr><th>Component</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>MinimapPanel</code></td><td>680×680 Canvas panel; painterly jungle art background (river, lanes, bases baked in); <code>NormToCanvas()</code> / <code>CanvasToNorm()</code> helpers. <strong>Drifting fog-of-war</strong>: two slow counter-rotating teal cloud patches (<code>HextechUI.AddDriftingFog</code>) clipped over the art beneath all markers, unscaled so they drift even while paused. Shared by Support Mode, which reuses the same panel.</td></tr>
+        <tr><td><code>DecisionPoint</code></td><td>One per decision node (11 total). States: Idle / Near / Committed. Label 14px bold + dark pill bg; hover → 16px. <code>MMF_ScaleSpring</code> (Bump) juice on hover + commit</td></tr>
+        <tr><td><code>PlayerPiece</code></td><td>Diamond gold piece (32px rotated). <code>IBeginDragHandler/IDragHandler/IEndDragHandler</code>. Snap radius 30px canvas; snaps to nearest DP on release, returns to ally base on miss</td></tr>
+        <tr><td><code>EnemyJunglerGhost</code></td><td>22px red circle + risk zone (90px outer / 50px inner). Speed 0.085 norm/s along scenario waypoints. Freezes + fades on player commit. <code>TravelTimeLabel</code> turns orange when pointer inside risk zone</td></tr>
+        <tr><td><code>ObjectiveTimer</code></td><td>Countdown; red at &lt;15s; <code>TriggerObjectiveLost()</code> on expire (step 5)</td></tr>
+        <tr><td><code>UIPathLine</code></td><td>60-dot pool (4px each, 12px spacing, white 0.5α). Trail from ally base to pointer during drag</td></tr>
+        <tr><td><code>TravelTimeLabel</code></td><td>Floating "~Xs" label (+20px above pointer). <code>distNorm × 6140 / 330</code>. Red if <code>travelTime &gt; objectiveTimer</code> (step 5)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Decision point positions (normalized, top-left origin)</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Label</th><th>x</th><th>y</th><th>Type</th></tr></thead>
+      <tbody>
+        <tr><td>Dragon</td><td>Drake</td><td>0.625</td><td>0.700</td><td>Objective <span style="color:#C8A634">●</span></td></tr>
+        <tr><td>Baron</td><td>Baron</td><td>0.375</td><td>0.295</td><td>Objective <span style="color:#C8A634">●</span></td></tr>
+        <tr><td>GankTop</td><td>Gank top</td><td>0.085</td><td>0.100</td><td>Gank <span style="color:#2980B9">●</span></td></tr>
+        <tr><td>GankMid</td><td>Gank mid</td><td>0.500</td><td>0.500</td><td>Gank <span style="color:#2980B9">●</span></td></tr>
+        <tr><td>GankBot</td><td>Gank bot</td><td>0.880</td><td>0.830</td><td>Gank <span style="color:#2980B9">●</span></td></tr>
+        <tr><td>BlueAlly / RedAlly</td><td>Blue / Red</td><td>0.220 / 0.380</td><td>0.620 / 0.770</td><td>Camp <span style="color:#3DBA7A">●</span></td></tr>
+        <tr><td>BlueEnemy / RedEnemy</td><td>E.Blue / E.Red</td><td>0.780 / 0.620</td><td>0.380 / 0.220</td><td>Invade <span style="color:#E67E22">●</span></td></tr>
+        <tr><td>ScuttleBot / ScuttleTop</td><td>Scuttle</td><td>0.550 / 0.450</td><td>0.650 / 0.350</td><td>Camp <span style="color:#3DBA7A">●</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Execution phase — smite the monster</h3>
+    <p>When the correct decision has an execution layer, the player smites a jungle objective whose HP descends through red → yellow → green zones (green = smite now). The objective is a <code>MonsterType</code> (Drake, Baron, Herald, buffs, scuttle…) driving its max HP and scale, so the smite window opens later for bigger targets — variety + difficulty instead of one fixed sphere. Models are placeholder capsules mounted under an <code>ObjectiveAnchor</code> (swappable for real models via a prefab slot). Steal scenarios spawn <code>enemyContestCount</code> enemy capsules around the pit so the player reads how many are contesting.</p>
+    <p>Feedback distinguishes <em>why</em> a round failed — <strong>OBJECTIVE LOST</strong> (the objective timer expired) vs <strong>TIMEOUT</strong> (no decision in time) vs <strong>INCORRECT</strong> — with a colour-flash + punch on the result card.</p>
+
+    <h3>Three entry points</h3>
+    <table>
+      <thead><tr><th>OW State</th><th>Time</th><th>Session type</th></tr></thead>
+      <tbody>
+        <tr><td><code>in_queue</code></td><td>3–5 min</td><td>Full: 5–8 scenarios</td></tr>
+        <tr><td><code>champ_select</code></td><td>30–45s</td><td>Micro: 2–3 decision-only, no enemy ghost</td></tr>
+        <tr><td><code>loading</code></td><td>30–60s</td><td>Smite timing drill only</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Six scenario types</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Skill trained</th><th>Has execution?</th></tr></thead>
+      <tbody>
+        <tr><td>A — Objective incoming</td><td>Contest vs. farm decision + smite timing</td><td>Yes</td></tr>
+        <tr><td>B — Gank read</td><td>Which lane to prioritize</td><td>No</td></tr>
+        <tr><td>C — Counter-jungle</td><td>When and where to invade</td><td>No</td></tr>
+        <tr><td>D — Steal attempt</td><td>Read enemy position + execute steal</td><td>Yes</td></tr>
+        <tr><td>E — Post-gank routing</td><td>Optimal path after a gank (route chaining v1)</td><td>No</td></tr>
+        <tr><td>F — Pre-objective vision</td><td>When and where to ward</td><td>No</td></tr>
+      </tbody>
+    </table>
+    <p>Scenarios are seeded from last game data (OW post-game snapshot). If you lost 3 Drakes last game, the next session weights Type A scenarios +40%.</p>
+
+    <h3>Implementation status (2026-06-12)</h3>
+    <table>
+      <thead><tr><th>Step</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>1 — <code>MinimapPanel</code> + <code>DecisionPoint</code> static + click bridge + labels legibles + MMFeedbacks juice</td><td><span class="badge badge-done" style="font-size:10px">Done</span></td></tr>
+        <tr><td>2 — <code>PlayerPiece</code> drag básico + snap</td><td><span class="badge badge-done" style="font-size:10px">Done</span></td></tr>
+        <tr><td>3 — Snap animation: ease-out cubic 0.25s snap, linear 0.18s return</td><td><span class="badge badge-done" style="font-size:10px">Done</span></td></tr>
+        <tr><td>4 — <code>UIPathLine</code> (60 dots, 12px spacing) + <code>TravelTimeLabel</code> (~Xs flotante)</td><td><span class="badge badge-done" style="font-size:10px">Done</span></td></tr>
+        <tr><td>5 — <code>ObjectiveTimer</code> countdown (gold→red &lt;15s, pulse); <code>TravelTimeLabel</code> rojo si tarde</td><td><span class="badge badge-done" style="font-size:10px">Done</span></td></tr>
+        <tr><td>6 — <code>EnemyJunglerGhost</code>: waypoints + risk zone + TravelTimeLabel naranja</td><td><span class="badge badge-done" style="font-size:10px">Done</span></td></tr>
+        <tr><td>7–13 — Scenarios, session loop, OW bridge, route chaining</td><td><span class="badge badge-planned" style="font-size:10px">Planned</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Optional visual enhancement — 3D player walks the committed route <span class="badge badge-future" style="font-size:10px">Future · optional</span></h3>
+    <p>After the player commits a decision on the minimap, the 3D character in the background (already present in the scene for the smite execution phase) could walk to the zone they picked — Gank Top means the character runs toward the top lane edge of the arena, Take Objective means they run toward the pit. This is <strong>pure flavor</strong>: it reinforces spatial mapping between the 2D minimap token and the actual map geography, and keeps the 3D environment from feeling dead during the post-decision window.</p>
+    <p><strong>Scope:</strong> a NavMesh path per <code>DecisionPointId</code> (world-space waypoints, same nine positions as the minimap norm coords), triggered on <code>OnDecisionPointCommitted</code>, cancelled and reset when the next scenario starts. No animation blending required beyond the existing locomotion state. Not a v1 priority — implement only if the 3D background feels out of place after content is authored.</p>
+  </section>
+
+  <!-- 10. GAME MINDSET -->
+  <section class="section" id="mode-mindset">
+    <h2><span class="num">10</span> ★ Game Mindset <span class="badge badge-new" style="font-size:11px">New · v2</span></h2>
+    <div class="callout purple">
+      <p><strong>Core insight:</strong> Players already know what to do mechanically. What's hardest — and least coached — is the mental frame: what to focus on, when to shift, and how to recalibrate when things go wrong.</p>
+    </div>
+
+    <h3>Philosophy</h3>
+    <p>Every card answers one question: <strong>what does YOUR champion do, in YOUR situation, to maximize YOUR individual impact?</strong> This is solo queue coaching — the team doesn't exist as a controllable variable.</p>
+
+    <h3>How it works</h3>
+    <p>GAME MINDSET runs silently in the background during <code>game_flow = InProgress</code>. It monitors OW events and surfaces a single contextual mindset card when a meaningful game state change is detected. Maximum 5–6 cards per game. Scarcity is the feature.</p>
+
+    <h3>Trigger events</h3>
+    <table>
+      <thead><tr><th>Trigger</th><th>OW Event</th><th>Example card</th></tr></thead>
+      <tbody>
+        <tr><td>Game start</td><td><code>game_flow → InProgress</code></td><td>Role brief by archetype</td></tr>
+        <tr><td>Mid game transition</td><td>First tower down or ~14 min</td><td>"Stop farming alone. Start being where fights happen."</td></tr>
+        <tr><td>Late game transition</td><td>~25 min or first Baron</td><td>"Stay behind your team. Always. That's your only job."</td></tr>
+        <tr><td>Tower lost</td><td><code>turret_destroyed {team: ally}</code></td><td>Win condition recalibration by lane + state</td></tr>
+        <tr><td>Reset</td><td>2+ deaths in 3 min window</td><td>"Stop. That's over. One thing at a time."</td></tr>
+        <tr><td>Objective window</td><td>Drake / Baron spawn &lt;30s</td><td>"Vision now. All 4 pit entrances before it spawns."</td></tr>
+        <tr><td>Winning state</td><td>Gold diff &gt; +1,500</td><td>Confirmation + motivation + next action</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Card format</h3>
+    <p>Every card reads in under 5 seconds. Auto-fades in 7 seconds. Click anywhere to dismiss.</p>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin: 20px 0;">
+      <div>
+        <p style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:8px">Neutral / Losing</p>
+        <div class="mindset-preview">
+          <div class="mindset-header">→ Mid Game · Behind</div>
+          <div class="mindset-body">
+            <div class="mindset-focus">Stop farming alone. Start being where fights happen.</div>
+            <div class="mindset-why"><strong>Why:</strong> You have items now. Your damage can actually kill people.</div>
+            <div class="mindset-dont"><strong>Don't:</strong> Keep clearing side waves by yourself like it's still early.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:8px">Winning</p>
+        <div class="mindset-preview">
+          <div class="mindset-header winning">Mid Game · Winning · ADC</div>
+          <div class="mindset-body">
+            <div class="mindset-focus">Your items are making the difference. Keep going.</div>
+            <div class="mindset-keep"><strong>Keep:</strong> Find the teamfight in mid or bot. You can close this now.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:8px">Reset</p>
+        <div class="mindset-preview">
+          <div class="mindset-header reset">Reset · ADC</div>
+          <div class="mindset-body">
+            <div class="mindset-focus" style="text-align:center; padding: 8px 0;">Stop. That's over.</div>
+            <div class="mindset-why"><strong>Focus:</strong> Tower, farm, stay alive. One at a time.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Card priority</h3>
+    <table>
+      <thead><tr><th>Priority</th><th>Trigger</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>1 — Highest</td><td>Reset</td><td>Bypasses cooldown. Interrupts any active card.</td></tr>
+        <tr><td>2</td><td>Objective window (Baron)</td><td>Time-sensitive — fires and clears fast.</td></tr>
+        <tr><td>3</td><td>Objective window (Drake)</td><td>Same as above.</td></tr>
+        <tr><td>4</td><td>Phase transitions</td><td>Fire once each. Cannot repeat.</td></tr>
+        <tr><td>5</td><td>Tower lost</td><td>Fires once per new tower lost.</td></tr>
+        <tr><td>6</td><td>Winning state</td><td>Max once per 5 minutes.</td></tr>
+        <tr><td>—</td><td>Min interval</td><td>1.5 min between non-reset cards.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Content system</h3>
+    <p>Cards are stored in <code>cards-db.json</code>, indexed by <code>[trigger][role][archetype][phase][state]</code>. Lookup uses a 5-level fallback chain to gracefully handle missing combinations. Content generated by LLM from editorial rules, validated by Roi.</p>
+    <p>56 cards in Batch 01. Full coverage target: ~300 unique cards across all combinations.</p>
+    <div class="callout gold">
+      <p><strong>⚠️ Compliance guardrail — the line that decides Riot/Overwolf approval:</strong> cards convey <em>mentality</em>, never <em>live tactical intel</em>. Live game state (gold diff, objective timers, tower events) only <em>routes</em> to a pre-authored static string — it is never rendered to the player. The <code>MindsetCard</code> type has no dynamic/interpolated fields, and that is the compliance lock: never add one. The riskiest triggers to author for are the objective windows (Baron/Drake) — a card must say "a big objective's coming, don't force it" (mental), never "set up vision / group mid" (tactical instruction). Full rules + prohibited/allowed examples: <code>mindset/CARDS_AUTHORING_GUIDELINES.md</code>.</p>
+    </div>
+
+    <h3>Documents</h3>
+    <ul>
+      <li><code>mindset/CARDS_AUTHORING_GUIDELINES.md</code> — <strong>compliance-critical</strong> card authoring line (read before writing any card)</li>
+      <li><code>game-mindset-editorial-rules.md</code> — philosophy, tone, per-role rules</li>
+      <li><code>game-mindset-cards-batch-01.md</code> — first 56 validated cards</li>
+      <li><code>game-mindset-spec.md</code> — full technical spec</li>
+    </ul>
+  </section>
+
+  <!-- 10b. PICK ADVISOR -->
+  <section class="section" id="mode-advisor">
+    <h2><span class="num">10b</span> ★ ChampSelect Pick Advisor <span class="badge badge-new" style="font-size:11px">New · v2</span></h2>
+    <div class="callout purple">
+      <p><strong>Core insight:</strong> Counter-pick sites give you a champion and a win-rate. They don't tell you <em>why</em> — and the "why" is the part that actually transfers to the game. Pick Advisor leads with the mechanic.</p>
+    </div>
+
+    <h3>How it works</h3>
+    <p>During champ select the app reads the live draft (LCU <code>/lol-champ-select/v1/session</code>). Each time an enemy locks a champion, it surfaces up to <strong>3 suggested picks</strong> for your role, each with a one-line mechanical reason — "Morgana E (Black Shield) blocks the hook, your carry stays safe." Banned champions and ally picks are excluded automatically.</p>
+
+    <h3>Threat prioritisation</h3>
+    <p>When multiple enemies have locked, the panel shows counters to the highest-priority threat: your direct <strong>lane opponent</strong> first, then the <strong>jungler</strong> (affects everyone), then anyone else. Bot lane is treated as one matchup — an ADC is offered support-role counters and vice versa.</p>
+
+    <h3>Mode 2 — filter by mechanic</h3>
+    <p>The player can also filter by the tool they want: <em>Spell Shield · Disengage · Poke · Guaranteed CC · True Damage…</em> The advisor returns the counters in the matchup that provide that specific mechanic.</p>
+
+    <h3>CounterDB</h3>
+    <p>Hand-curated JSON (<code>docs/counter_db.json</code>, ~68 top champions), keyed by enemy champion. Each counter entry carries <code>roles</code>, a <code>reason</code>, a <code>mechanic_tag</code>, and a <code>strength</code> (hard / soft / situational). The enemy id→name map comes from the LCU champion-summary — no API key, no latency. <strong>Per-role coverage is complete</strong> — every champion played across two lanes now has counters authored for each lane (no fallback gaps), and no primary lane is left with fewer than two options.</p>
+
+    <h3>Item Advisor <span class="badge badge-new" style="font-size:10px">Spec</span></h3>
+    <p>Sibling module (spec'd, not yet built): after you lock, answer "what situational items beat this enemy comp, and <em>when</em> does each threat spike?" It reuses the Pick Advisor's poller, snapshot and overlay, and joins on the <code>threat_tags</code> already curated in <code>counter_db.json</code> — keyed by <strong>itemizable threat category</strong> (antiheal, CC, burst, auto-attacker…) rather than per-champion builds, so data upkeep stays small. Output: ranked situational items (filtered to your class) + an early / mid / late threat timeline. See <code>champselect-item-advisor-spec.md</code>.</p>
+
+    <h3>Implementation status</h3>
+    <div class="callout green">
+      <p><strong>End-to-end working ✅</strong> — standalone TypeScript engine in <code>pickadvisor/</code> (enemy-pick detection + CounterDB query + threat ranking + Mode-2 filter + live re-evaluation), 33 tests green and the full curated DB validated structurally. The OW background service polls <code>/lol-champ-select/v1/session</code> through the draft and forwards the raw session + champ map; a transparent topmost <strong>overlay window</strong> (<code>overwolf-app/overlay/</code>) runs the engine (bundled to browser JS via esbuild) and renders the 3 suggestion cards (with Data Dragon champion portraits) + Mode-2 filter chips. Suggestions are role-pure — a support is only offered support picks. Verified against the curated DB in a browser preview. Pending: Item Advisor implementation; overlay positioning tuning. <em>Mastery-crown indicator is deferred — the LCU does not expose enemy mastery during champ select.</em></p>
+    </div>
+
+    <h3>Documents</h3>
+    <ul>
+      <li><code>champselect-pick-advisor-spec.md</code> — full feature spec + algorithm</li>
+      <li><code>champselect-item-advisor-spec.md</code> — Item Advisor spec (sibling module)</li>
+      <li><code>counter_db.json</code> — curated CounterDB (~68 champs)</li>
+      <li><code>pickadvisor/</code> — the engine package + tests</li>
+    </ul>
+  </section>
+
+  <!-- 10c. CLIPO AI -->
+  <section class="section" id="mode-clipo">
+  <h2><span class="num">10c</span> ★ Clipo AI — Coach con Memoria <span class="badge badge-new" style="font-size:11px">New · Spec</span></h2>
+  <div class="callout purple">
+    <p><strong>Core insight:</strong> Un coach que no recuerda tus partidas anteriores no puede decirte si estás mejorando. Clipo tiene memoria persistente por rol y celebra el progreso con números reales — "Muriste 1 vez antes del minuto 10. Antes eran 4."</p>
+  </div>
+
+  <h3>Qué es</h3>
+  <p>Clipo es el Layer 2 de Game Mindset. Donde Layer 1 (cards estáticas) da coaching instantáneo en el momento, Clipo provee análisis contextual profundo impulsado por Claude API — con memoria acumulada de las últimas 20 partidas por rol. Los dos layers son complementarios: Layer 1 sigue siendo la respuesta rápida, Clipo añade el análisis profundo y el vínculo.</p>
+  <p>El nombre es un guiño a Clippy (el asistente de Office): aparece en el momento correcto, ofrece ayuda específica, puede cerrarse. A diferencia de Clippy, Clipo es directo, no molesta, y encarna la filosofía editorial del Game Mindset.</p>
+
+  <h3>Arquitectura: Layer 1 vs Layer 2</h3>
+  <table>
+    <thead><tr><th>Dimensión</th><th>Layer 1 — Cards</th><th>Layer 2 — Clipo</th></tr></thead>
+    <tbody>
+      <tr><td>Contenido</td><td>JSON pre-autorado</td><td>Claude API en tiempo real</td></tr>
+      <tr><td>Latencia</td><td>~0 ms</td><td>1–3 s (streaming)</td></tr>
+      <tr><td>Triggers por partida</td><td>5–6 eventos</td><td>3 momentos fijos</td></tr>
+      <tr><td>Memoria</td><td>Ninguna</td><td>Últimas 20 partidas por rol</td></tr>
+      <tr><td>Propósito</td><td>Coaching inmediato</td><td>Análisis profundo + vínculo</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Los 3 Triggers</h3>
+  <table>
+    <thead><tr><th>Trigger</th><th>Cuándo</th><th>Propósito</th></tr></thead>
+    <tbody>
+      <tr><td><strong>A — Phase Mid</strong></td><td>Primera torre caída o minuto 14</td><td>Recap del early game. Orientar para el mid.</td></tr>
+      <tr><td><strong>B — Death Streak</strong></td><td>3ª muerte en ventana de 5 min</td><td>Análisis del patrón de muertes. Aparece <em>después</em> del RESET card de Layer 1 — no lo interrumpe.</td></tr>
+      <tr><td><strong>C — End of Game</strong></td><td><code>game_flow → WaitingForStats</code></td><td>Recap completo. 3 puntos de mejora + 1 positivo. Panel expandido.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Sistema de Memoria (por rol)</h3>
+  <p>Persistido en <code>overwolf.settings</code> (local, sin servidor). Separado por rol — los benchmarks y errores de Jungle no son comparables con ADC. Cada rol tiene su propio rolling window de 20 partidas.</p>
+  <pre>ClipoMemory {
+  player_name:   string
+  games_by_role: Record&lt;Role, GameRecord[]&gt;  // max 20 por rol
+  total_games:   number                        // global, todos los roles
+}</pre>
+  <p>Cada <code>GameRecord</code> almacena: KDA, muertes antes del min 10, CS/min, vision score, objetivos, y lo que Clipo identificó como punto ① y ✓ en esa partida.</p>
+
+  <h3>Detección de Tendencias</h3>
+  <p>El <code>TrendAnalyzer</code> compara la partida actual contra el promedio de las últimas 5 del mismo rol. Señal significativa: cambio &gt;20% en cualquier métrica clave.</p>
+  <table>
+    <thead><tr><th>Señal detectada</th><th>Comportamiento de Clipo</th></tr></thead>
+    <tbody>
+      <tr><td>Mejora significativa (&gt;20%)</td><td>Celebra PRIMERO, antes de cualquier punto de mejora. Con el número exacto.</td></tr>
+      <tr><td>Error repetido (3 de las últimas 5 partidas)</td><td>Lo nombra directamente: "Tercera partida con drakes perdidos. Ya sabemos qué trabajar."</td></tr>
+      <tr><td>Primera victoria después de racha de 3+ derrotas</td><td>Solo celebra. Sin análisis correctivo esa partida.</td></tr>
+      <tr><td>Benchmark superado por primera vez</td><td>Celebración específica: "Llegaste al CS benchmark de jungle. Esto importa."</td></tr>
+      <tr><td>Hito de partidas (5, 10, 25 por rol)</td><td>Mini-summary de progreso con métricas reales del período.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Tono Relacional</h3>
+  <p>La celebración de mejoras siempre incluye el número exacto — nunca es genérica. "Muriste 1 vez antes del minuto 10. Antes eran 4. Eso es enorme." es correcto. "¡Mejoraste mucho!" está prohibido.</p>
+  <p>Clipo no menciona rachas de derrotas como contexto negativo. No compara con otros jugadores — solo con el historial propio. El análisis siempre va hacia adelante. Se dirige al jugador por su username de OW cuando hay contexto de vínculo.</p>
+
+  <h3>Tech</h3>
+  <p>Claude API llamado directamente desde el background service de OW (TypeScript). Sin servidor propio de MOBA Warmup. Streaming SSE → efecto typewriter en el overlay. API key del usuario almacenada en <code>overwolf.settings</code>.</p>
+  <table>
+    <thead><tr><th>Trigger</th><th>Modelo</th><th>Motivo</th></tr></thead>
+    <tbody>
+      <tr><td>A — Phase Mid</td><td><code>claude-haiku-4-5</code></td><td>Velocidad — el jugador sigue en partida</td></tr>
+      <tr><td>B — Death Streak</td><td><code>claude-haiku-4-5</code></td><td>Idem</td></tr>
+      <tr><td>C — End of Game</td><td><code>claude-sonnet-4-6</code></td><td>Calidad — el jugador tiene tiempo ilimitado</td></tr>
+    </tbody>
+  </table>
+  <p>Máximo 3 calls por partida · <code>temperature: 0.3</code> · <code>max_tokens: 350</code> · fallback silencioso si la API no responde (Layer 1 ya cubrió el momento).</p>
+
+  <h3>Estado</h3>
+  <div class="callout green">
+    <p><strong>Spec completo ✅</strong> — <code>game-mindset-clipo-spec.md</code>. Incluye data contracts TypeScript, system prompt, TrendAnalyzer, ClipoMemory, milestones, orden de implementación en 12 pasos y tabla de riesgos. Pendiente: implementación.</p>
+  </div>
+
+  <h3>Documentos</h3>
+  <ul>
+    <li><code>game-mindset-clipo-spec.md</code> — spec técnico completo (Layer 2, memoria, TrendAnalyzer, system prompt)</li>
+    <li><code>game-mindset-editorial-rules.md</code> — filosofía y tono (fuente de verdad del system prompt)</li>
+  </ul>
+  </section>
+
+  <!-- 9b. SUPPORT MODE -->
+  <section class="section" id="mode-support">
+    <h2><span class="num">09b</span> Support Mode <span class="badge badge-active" style="font-size:11px">Active · v1</span> <span class="badge badge-new" style="font-size:11px">Overwolf build only</span></h2>
+    <p>The fifth drill of the multi-role suite, and the <strong>second decision + execution hybrid</strong> after Jungle Mode. The support doesn't fail because of bad hook aim — they fail because they don't know <em>when or where</em> to control vision, and don't recognize engage windows before they close. This mode trains exactly those two layers.</p>
+
+    <div class="callout gold">
+      <p><strong>Wedge:</strong> "Practice the support's key vision and engage decisions, calibrated by your champion and the state of the map — without entering a game."</p>
+    </div>
+
+    <h3>Reading phase — full-map minimap</h3>
+    <p>Unlike Jungle (one quadrant), Support shows the <strong>full map</strong> — the support needs global context for roam and vision decisions. The reading phase (5s, clock visible but not pressuring) surfaces: next-objective timer (Drake/Baron), ally wards (green) and visible enemy wards (red), the three lane states (↑/=/↓), last-seen position of enemy jungler <em>and</em> enemy support, and a <strong>resources panel</strong> (trinket pips 0/1/2 + control-ward icon). Everything legible in 5s — no scroll, no hover.</p>
+
+    <h3>Decision phase — two token types on the minimap</h3>
+    <p>The key difference from Jungle: instead of a single draggable piece, the player can have up to two token types — the <strong>player piece</strong> (roam/engage/peel) and the <strong>ward tokens</strong> (trinket and/or control ward). Each scenario activates only one type to keep the read clean. Decision timer: 8s; letting it expire counts as a wrong decision (time is part of the support's judgement too).</p>
+    <table>
+      <thead><tr><th>Component</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><code>WardToken</code></td><td>Drag from <code>ResourcePanel</code> to the map. Consumes a charge on commit. Trinket (solid border) / control ward (gold border) variants via <code>WardType</code> enum. Shake if <code>charges == 0</code></td></tr>
+        <tr><td><code>SweeperToken</code></td><td>WardToken variant. Target is an <code>EnemyWardIcon</code> instead of a <code>VisionZone</code>; sweeps it on commit</td></tr>
+        <tr><td><code>VisionZone</code></td><td>Analog of <code>DecisionPoint</code> for ward placement. Rounded-square (bush) shape, colour by zone type. States Idle / Near / Committed</td></tr>
+        <tr><td><code>EnemyWardIcon</code></td><td>Red enemy-ward icon on the map. Draggable target for <code>SweeperToken</code>; <code>SetActive(false)</code> when swept</td></tr>
+        <tr><td><code>ResourcePanel</code></td><td>UI panel outside the minimap. Holds ward/sweeper tokens, manages trinket pips + control-ward state</td></tr>
+        <tr><td><code>EnemySupportGhost</code></td><td>Analog of <code>EnemyJunglerGhost</code>. Diamond shape (vs jungler's circle) to distinguish them. Speed 0.085 norm/s along scenario waypoints</td></tr>
+        <tr><td><code>PlayerPiece</code> / <code>DecisionPoint</code> / <code>MinimapPanel</code> / <code>UIPathLine</code> / <code>ObjectiveTimer</code></td><td>Reused from Jungle Mode unchanged (piece relabeled "J" → "S")</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Vision zones (normalized, top-left origin)</h3>
+    <p>12 ward spots; each scenario activates a 2–4 zone subset. Colour by type: objective vision (Drake/Baron) <span style="color:#C8A634">●</span> gold · river/roam control <span style="color:#2980B9">●</span> blue · deep ward (high risk) <span style="color:#E67E22">●</span> orange · lane ward <span style="color:#3DBA7A">●</span> green.</p>
+    <table>
+      <thead><tr><th>ID</th><th>Label</th><th>x</th><th>y</th></tr></thead>
+      <tbody>
+        <tr><td>drake_pit / drake_tri</td><td>Drake ward / tri</td><td>0.575 / 0.680</td><td>0.730 / 0.690</td></tr>
+        <tr><td>baron_pit / baron_tri</td><td>Baron ward / tri</td><td>0.420 / 0.320</td><td>0.265 / 0.305</td></tr>
+        <tr><td>river_bot / river_top</td><td>River entrances</td><td>0.735 / 0.265</td><td>0.600 / 0.400</td></tr>
+        <tr><td>deep_enemy_bot / top</td><td>Deep vision</td><td>0.820 / 0.180</td><td>0.500 / 0.500</td></tr>
+        <tr><td>mid_river_bot / top</td><td>Pixel bush</td><td>0.640 / 0.360</td><td>0.600 / 0.400</td></tr>
+        <tr><td>blue_brush / lane_bot_bush</td><td>Blue / lane bush</td><td>0.260 / 0.820</td><td>0.660 / 0.760</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Execution phase — CC timing mini-game</h3>
+    <p>Triggered only for <strong>Type C (engage window)</strong> scenarios where the decision was to engage — the support equivalent of Jungle's smite timing. A simplified 2D side strip (not 3D): your support on the left, the target ADC walking left toward a brush. An <em>engage window</em> (gold highlight) lights up when the target enters <code>engageWindowEnd</code> and closes past <code>engageWindowStart</code>; press the CC key (Q in v0) inside it. Feedback: <strong>HOOKED</strong> (in window) / <strong>MISSED WINDOW</strong> (too late) / <strong>OUT OF RANGE</strong> (too early), with a timing bar showing where you pressed. The window/range varies by archetype (long-reach engage vs short enchanter CC).</p>
+
+    <h3>Three entry points</h3>
+    <table>
+      <thead><tr><th>OW State</th><th>Time</th><th>Session type</th></tr></thead>
+      <tbody>
+        <tr><td><code>in_queue</code></td><td>3–5 min</td><td>Full: 5–8 scenarios</td></tr>
+        <tr><td><code>champ_select</code></td><td>30–45s</td><td>Micro: 2–3 decision-only, no execution</td></tr>
+        <tr><td><code>loading</code></td><td>30–60s</td><td>Vision setup: drag 3 ward tokens in priority order for the first 2 min (no ghosts)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Six scenario types</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Skill trained</th><th>Active token</th><th>Execution?</th></tr></thead>
+      <tbody>
+        <tr><td>A — Pre-objective vision</td><td>Where to ward before Drake/Baron</td><td>Ward token</td><td>No</td></tr>
+        <tr><td>B — Vision deny</td><td>When/where to sweep enemy wards</td><td>Sweeper token</td><td>No</td></tr>
+        <tr><td>C — Engage window</td><td>Recognize the engage window</td><td>Player piece</td><td>Yes — CC timing</td></tr>
+        <tr><td>D — Roam timing</td><td>When to leave bot lane</td><td>Player piece</td><td>No</td></tr>
+        <tr><td>E — Peel vs engage</td><td>Protect the ADC vs engage</td><td>Player piece</td><td>No</td></tr>
+        <tr><td>F — Vision setup</td><td>Ward order leaving base (loading entry)</td><td>3 ward tokens</td><td>No</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Champion archetypes</h3>
+    <p>Scenario distribution and CC-timing parameters are calibrated by archetype: <strong>Engage</strong> (Thresh, Leona…) → Type C×3, E×2 · <strong>Enchanter</strong> (Lulu, Soraka…) → E×3, A×2 · <strong>Poke</strong> (Xerath, Lux…) → A×2, D×2 · <strong>Roam</strong> (Pyke, Bard…) → D×3, C×1 · <strong>Flex</strong> (Milio, Rakan…) → even. Fallback if OW gives no champion: Flex. Adaptive weights persist in <code>PlayerPrefs</code> (3 fails → +20%, 3 wins → −15%), seeded from last-game OW metrics (low vision score → +A/B, deaths "outplayed by enemy support" → +C/E, few roams → +D).</p>
+
+    <h3>Architecture</h3>
+    <p>Namespace <code>MOBAWarmup.Drills.Support.*</code>. Heavily reuses Jungle Mode (<code>MinimapPanel</code>, <code>DecisionPoint</code>, <code>PlayerPiece</code>, <code>UIPathLine</code>, <code>EnemyJunglerGhost</code>, <code>ObjectiveTimer</code>, auto-pause). New: ward/sweeper/vision tokens + resources, <code>EnemySupportGhost</code>, <code>SupportScenario</code> ScriptableObjects (30 templates), <code>SupportScenarioGenerator</code>, <code>CCTimingController</code>, <code>SupportSessionTracker</code>, <code>OWSupportBridge</code>. Scene <code>SupportDrillMode.unity</code> via <code>Tools &gt; MOBA Warmup &gt; Generate SupportDrillMode Scene</code>. Minimap and CC-timing panels are mutually exclusive (fade swap). Per the Jungle precedent: <strong>do NOT abstract <code>IDrill</code>/<code>DrillRegistry</code> yet</strong> — <code>SupportDrillContext</code> as a marker singleton until both hybrids are validated.</p>
+
+    <h3>Implementation status (2026-06-22)</h3>
+    <table>
+      <thead><tr><th>Step</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>1–12 — Scene gen, minimap, ward/sweeper tokens, resource panel, enemy support ghost, CC timing controller, session tracker, scenario templates (×30 SO authored), wiring to main menu</td><td><span class="badge badge-done" style="font-size:10px">Done</span></td></tr>
+        <tr><td>13 — Validate ×5 in real queue; author remaining ~24 SO templates</td><td><span class="badge badge-planned" style="font-size:10px">Planned</span></td></tr>
+      </tbody>
+    </table>
+    <div class="callout green">
+      <p><strong>End-to-end working ✅</strong> — all 12 implementation steps done and validated in Play mode (2026-06-22). Scene accessible from main menu. Pending: queue validation run + SO content authoring.</p>
+    </div>
+
+    <h3>Documents</h3>
+    <ul>
+      <li><code>support-mode-spec.md</code> — full technical spec (v0), with the suggested 13-step implementation order + open decisions</li>
+      <li><code>jungle-mode-spec.md</code> — direct reference for the reused architecture</li>
+    </ul>
+  </section>
+
+  <!-- 10d. LEADERBOARD -->
+  <section class="section" id="leaderboard">
+    <h2><span class="num">10d</span> ★ Leaderboard Online <span class="badge badge-active" style="font-size:11px">Active · v1</span></h2>
+    <div class="callout gold">
+      <p><strong>v1 hook:</strong> el primer sistema social del juego. Cada drill ya produce métricas de precisión, pero eran locales e invisibles. El leaderboard les da visibilidad pública sin agregar mecánicas — presión competitiva + retención. Apuesta deliberada como gancho de v1 (única feature sumada al núcleo después del freeze del scope).</p>
+    </div>
+
+    <h3>Identidad — fricción casi cero</h3>
+    <p>v1 es WebGL en itch.io: no hay Overwolf, no hay auth. El jugador escribe su <strong>summoner name</strong> una sola vez (la primera vez que termina una sesión) y se guarda en <code>PlayerPrefs</code> (IndexedDB en WebGL). Internamente cada jugador tiene un <strong>UUID v4</strong> persistido — esa es la clave; el nombre es solo display. Sin login, sin cookies. Si cierra el modal sin nombre, el score se sube igual como <code>Anonymous</code>.</p>
+
+    <h3>Score por modo</h3>
+    <table>
+      <thead><tr><th>Modo</th><th>Score primario</th><th>Desempate</th><th>Mínimo para aparecer</th></tr></thead>
+      <tbody>
+        <tr><td>Last Hit</td><td>CS% de la <strong>sesión completa</strong> (last hits / muertes totales, todas las waves)</td><td>Waves jugadas</td><td>≥ 3 waves</td></tr>
+        <tr><td>Loading Frenzy</td><td>Total de kills</td><td>Segundos de supervivencia</td><td>≥ 30 s sobrevividos</td></tr>
+        <tr><td>Jungle / Support <span class="badge badge-future" style="font-size:10px">Future</span></td><td>Decision / CC accuracy %</td><td>Smite / decision %</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="callout gold">
+      <p><strong>Fairness — modo Ranked:</strong> el loadout (items) y los minions per row cambian la dificultad, así que el score del modo libre no es comparable entre jugadores. Por eso <strong>los dos boards se juegan solo vía el botón RANKED</strong>, que fuerza la config estándar (sin items, wave fija de 3/row) ignorando el loadout guardado. Lo que se lanza desde DRILLS es práctica y no rankea.</p>
+      <p>RANKED abre un <strong>selector de board</strong> — LAST HIT o LOADING FRENZY — con la regla de puntaje de cada uno a la vista. Antes entraba derecho a Last Hit, así que el board de Loading existía en RANKINGS pero no había forma de llegar a él desde el menú.</p>
+      <p><em>Cambio 2026-08-05:</em> Loading Frenzy subía desde el juego normal, con el argumento de que ya estaba estandarizado (HP fijo, el slider no aplica). Era incompleto: las constantes de frenzy pisan windup y attack speed, pero <strong>NO la velocidad de movimiento</strong>, así que 3 Boots del menú daban +30% de velocidad en un drill donde moverse es todo el juego. Ahora rige el mismo criterio que Last Hit. El picker de 5 s del propio drill (CDR + move speed) sigue activo en ranked: el presupuesto de stacks es igual para todos, así que es decisión del jugador y no ventaja de config.</p>
+    </div>
+
+    <h3>Ciclos de 30 días</h3>
+    <p>Ventana <strong>rolling de 30 días</strong>, global por modo. Se crea sola cuando llega el primer score y no hay ciclo activo; al vencer (<code>start + 30d</code>) se archiva automáticamente y el siguiente score abre uno nuevo. El leaderboard muestra el <strong>mejor score del jugador dentro del ciclo activo</strong> (no promedio, no último — un score peor se ignora).</p>
+
+    <h3>Arquitectura</h3>
+    <p>El cliente <strong>no conoce el <code>cycle_id</code></strong> (la ventana se archiva/recrea sola). Toda la lógica vive en 2 funciones RPC <code>SECURITY DEFINER</code> en Supabase:</p>
+    <ul>
+      <li><code>submit_score(mode, uuid, name, primary, secondary)</code> — resuelve/crea el ciclo activo + upsert "mejor score", atómico. Devuelve <code>{ cycle_id, is_record, rank }</code>.</li>
+      <li><code>get_leaderboard(mode, limit)</code> — top N del ciclo activo, ya rankeado (read-only).</li>
+    </ul>
+    <table>
+      <thead><tr><th>Capa</th><th>Tecnología</th></tr></thead>
+      <tbody>
+        <tr><td>Backend</td><td>Supabase free tier — PostgreSQL + PostgREST. RLS: lectura pública, escritura solo vía las RPC. <code>anon key</code> pública por diseño.</td></tr>
+        <tr><td>Web pública</td><td>HTML/JS estático en Vercel (<code>leaderboard/web</code>), fetch directo a las RPC. Tabs Last Hit / Frenzy, <code>?mode=</code>, <code>?cycle=</code>.</td></tr>
+        <tr><td>Cliente Unity</td><td><code>Assets/Scripts/Core/Online/</code> — <code>ScoreSubmitter</code> (singleton, POST + identidad), <code>LeaderboardPanel</code> (overlay Hextech top 50), <code>LeaderboardConfig</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Flujo in-game</h3>
+    <ul>
+      <li>Botón <strong>RANKINGS</strong> en el menú principal → overlay con tabs, top 50, fila propia resaltada, campo para fijar el nombre.</li>
+      <li>El score se sube solo al terminar la sesión (volver al menú en Last Hit; muerte o salida en Frenzy). El <code>ScoreSubmitter</code> es <code>DontDestroyOnLoad</code> para que el POST sobreviva el cambio de escena.</li>
+      <li>Primera sesión sin nombre → al volver al menú se abre el panel para ingresarlo; si no, sube como <code>Anonymous</code>.</li>
+      <li>Toast <em>"Estás #N en &lt;modo&gt;"</em> (o <em>"¡Nuevo récord!"</em>) al volver al menú.</li>
+    </ul>
+
+    <div class="callout green">
+      <p><strong>Backend validado end-to-end ✅</strong> (keep-best, ranking, anonymous, ciclo auto 30 días). Web deployada en Vercel ✅. Integración Unity completa y type-checkeada (commit <code>c19b4c0</code>). <strong>Pendiente:</strong> validar el networking en Play / WebGL build; correr <code>reset_test_data.sql</code> antes del launch.</p>
+    </div>
+
+    <h3>Documents</h3>
+    <ul>
+      <li><code>docs/leaderboard-spec.md</code> — spec completo (v1.1): identidad, scoring, ciclos, schema, panel in-game, web pública, roadmap.</li>
+      <li><code>leaderboard/</code> — <code>supabase/schema.sql</code> (tablas + RPCs + RLS), <code>web/</code> (sitio Vercel), <code>README.md</code>.</li>
+    </ul>
+  </section>
+
+  <!-- 11. TECH STACK -->
+  <section class="section" id="stack">
+    <h2><span class="num">11</span> Tech Stack</h2>
+    <h3>v1 — WebGL (current)</h3>
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+      <tbody>
+        <tr><td>Engine</td><td>Unity 6000.3.10f1 + URP</td></tr>
+        <tr><td>Input</td><td>Unity Input System</td></tr>
+        <tr><td>Character controller</td><td>Top Down Engine (More Mountains)</td></tr>
+        <tr><td>Build target</td><td>WebGL, Brotli compression, stripping High</td></tr>
+        <tr><td>Bundle size</td><td>~48 MB total (3D asset pass — was ~12 MB). Cold load: needs re-measurement on the current build</td></tr>
+        <tr><td>Deploy</td><td>itch.io (private, secret URL)</td></tr>
+      </tbody>
+    </table>
+    <h3>v2 — Overwolf (planned)</h3>
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th></tr></thead>
+      <tbody>
+        <tr><td>Shell</td><td>ow-electron</td></tr>
+        <tr><td>Drill engine</td><td>Phaser 3</td></tr>
+        <tr><td>Language</td><td>TypeScript</td></tr>
+        <tr><td>Game data</td><td>Overwolf LoL Events API (Riot approval pending)</td></tr>
+        <tr><td>Strategy</td><td>Full rewrite — NO port from Unity</td></tr>
+      </tbody>
+    </table>
+    <div class="callout gold">
+      <p><strong>v1.5 decision point:</strong> continue WebGL or start Overwolf rewrite. Based on real usage metrics.</p>
+    </div>
+  </section>
+
+  <!-- 12. OW API -->
+  <section class="section" id="ow-api">
+    <h2><span class="num">12</span> Overwolf API Integration</h2>
+    <p>Five OW event namespaces, five different product moments.</p>
+    <table>
+      <thead><tr><th>Namespace</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td><code>game_flow</code></td><td>Launch correct drill by game state (already integrated)</td></tr>
+        <tr><td><code>champ_select</code></td><td>Champion → archetype → correct drill + correct mindset brief</td></tr>
+        <tr><td><code>game_info</code></td><td>Live gold/kills for Game Mindset state; post-game snapshot</td></tr>
+        <tr><td><code>game_events</code></td><td>Tower destructions, deaths, objectives → triggers for Game Mindset + drill seeding</td></tr>
+        <tr><td><code>match_info</code></td><td>Post-game LastGameSnapshot → seeds next session's drill weights</td></tr>
+      </tbody>
+    </table>
+    <h3>Priority implementation order</h3>
+    <table>
+      <thead><tr><th>Priority</th><th>Feature</th><th>Complexity</th><th>Impact</th></tr></thead>
+      <tbody>
+        <tr><td>1 ✅</td><td><code>game_flow</code> → auto-launch drill</td><td>—</td><td>High</td></tr>
+        <tr><td>2</td><td><code>champ_select.champion</code> → Jungle archetype</td><td>Low</td><td>High</td></tr>
+        <tr><td>3</td><td><code>champ_select.summonerSpells</code> → Smite key binding</td><td>Very low</td><td>Medium</td></tr>
+        <tr><td>4</td><td><code>match_info</code> post-game → LastGameSnapshot</td><td>Medium</td><td>High</td></tr>
+        <tr><td>5</td><td>Snapshot → seed drill weights next session</td><td>Medium</td><td>High</td></tr>
+        <tr><td>6</td><td><code>game_events</code> (dragon/baron/death) → Game Mindset triggers</td><td>Medium</td><td>High</td></tr>
+        <tr><td>7</td><td><code>game_info</code> live → Game Mindset game state</td><td>Medium</td><td>High</td></tr>
+        <tr><td>8</td><td><code>game_info.position</code> sampling → path reconstruction</td><td>High</td><td>Very High</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 13. ARCHITECTURE -->
+  <section class="section" id="arch">
+    <h2><span class="num">13</span> Architecture Principles</h2>
+    <ul>
+      <li>Namespacing from day 1: <code>MOBAWarmup.Core.*</code> / <code>MOBAWarmup.Drills.LastHit.*</code> / <code>MOBAWarmup.Drills.Jungle.*</code> / <code>MOBAWarmup.Mindset.*</code></li>
+      <li>Do NOT abstract <code>IDrill</code> or <code>DrillRegistry</code> yet. Refactor when the 2nd or 3rd drill justifies it.</li>
+      <li>Auto-pause (<code>OnApplicationFocus</code>) is a shared behavior, not a per-drill feature.</li>
+      <li>Each drill owns its own <code>DrillContext</code> singleton — marker pattern, not inheritance.</li>
+      <li>OW bridges are thin adapters — no business logic inside them.</li>
+    </ul>
+  </section>
+
+  <!-- 14. ROADMAP -->
+  <section class="section" id="roadmap">
+    <h2><span class="num">14</span> Roadmap</h2>
+    <div class="roadmap">
+      <div class="roadmap-item done">
+        <div class="roadmap-version">v0 — Scaffold</div>
+        <div class="roadmap-desc">Unity + WebGL pipeline + itch.io deploy (private)</div>
+      </div>
+      <div class="roadmap-item done">
+        <div class="roadmap-version">v1.0 — Mode A</div>
+        <div class="roadmap-desc">Last-hit drill end-to-end. First validation pass.</div>
+      </div>
+      <div class="roadmap-item done">
+        <div class="roadmap-version">v1.1 — Feel fixes</div>
+        <div class="roadmap-desc">Post-feedback improvements after 5-game validation round.</div>
+        <ul class="roadmap-items">
+          <li>1.2× click radius</li>
+          <li>S to stop</li>
+          <li>Click indicator</li>
+        </ul>
+      </div>
+      <div class="roadmap-item next">
+        <div class="roadmap-version">v1.2 — Wedge validation</div>
+        <div class="roadmap-desc">10-game validation: does Roi open it voluntarily every queue?</div>
+      </div>
+      <div class="roadmap-item done">
+        <div class="roadmap-version">v1.3 — Loading Frenzy</div>
+        <div class="roadmap-desc">Shipped as an endless arena (not multi-wave): Q skillshot + autos while dodging a collapsing hex floor.</div>
+      </div>
+      <div class="roadmap-item done">
+        <div class="roadmap-version">v1.4 — Lane AI + ADC Kite</div>
+        <div class="roadmap-desc">LoL-accurate minion behavior + ADC Kite Mode end-to-end.</div>
+        <ul class="roadmap-items">
+          <li>NavMesh movement — minions stand and fight in place</li>
+          <li>Attack cadence (0.625/0.667 AS), march de-sync, react delay</li>
+          <li>EnemyBotADC — harass + pierce shot + respawn on new wave</li>
+        </ul>
+      </div>
+      <div class="roadmap-item active">
+        <div class="roadmap-version">v1.5 — Jungle + Support Mode ← current</div>
+        <div class="roadmap-desc">Both hybrid decision + execution modes end-to-end. Content authoring and queue validation pending.</div>
+        <ul class="roadmap-items">
+          <li>Jungle Mode: minimap decision, smite execution, animated scenario scripts</li>
+          <li>Support Mode: ward/sweeper tokens, CC timing, 30 scenario templates</li>
+          <li>Hextech UI pass across every screen + HUD; minimap enlarged (680²) with drifting fog-of-war</li>
+          <li>Lucas QA pass: last-hit indicator (toggleable), Loading death/fall anim, loadout removed from Loading</li>
+          <li>Pending: ×5 queue validation runs + remaining SO content</li>
+        </ul>
+      </div>
+      <div class="roadmap-item next">
+        <div class="roadmap-version">v1.6 — Stack decision</div>
+        <div class="roadmap-desc">Continue WebGL or start Overwolf rewrite. Based on usage metrics.</div>
+      </div>
+      <div class="roadmap-item future">
+        <div class="roadmap-version">v2.0 — Overwolf rewrite</div>
+        <div class="roadmap-desc">ow-electron + Phaser 3 + TypeScript. Multi-role suite. Auto-launch by champion.</div>
+        <ul class="roadmap-items">
+          <li>Jungle Mode (port from WebGL)</li>
+          <li>OW API integration (awaiting Riot approval)</li>
+        </ul>
+      </div>
+      <div class="roadmap-item future">
+        <div class="roadmap-version">v2.1 — Game Mindset</div>
+        <div class="roadmap-desc">In-game passive coaching overlay. All roles. Triggered by live OW events.</div>
+        <ul class="roadmap-items">
+          <li>MindsetStateMonitor + TriggerEngine</li>
+          <li>CardDatabase (Batch 01 + future batches)</li>
+          <li>MindsetOverlay component</li>
+          <li>Winning state positive reinforcement system</li>
+          <li><strong>Clipo AI</strong> — Layer 2 con memoria por rol + Claude API directo</li>
+        </ul>
+      </div>
+      <div class="roadmap-item future">
+        <div class="roadmap-version">v2.5 — "Replay your game"</div>
+        <div class="roadmap-desc">Reconstruct real game paths via position sampling. Generate scenarios from your actual mistakes.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. MONETIZATION -->
+  <section class="section" id="monetization">
+    <h2><span class="num">15</span> Monetization</h2>
+    <table>
+      <thead><tr><th>Version</th><th>Model</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>v1 (WebGL)</td><td>Free, no monetization</td><td>Validation product. Need real usage before charging.</td></tr>
+        <tr><td>v2 (Overwolf)</td><td>Monthly subscription</td><td>Tiers TBD — likely free tier (Mode A) + paid (full suite + Game Mindset)</td></tr>
+      </tbody>
+    </table>
+    <p>No ads. No invasive tracking. No in-game purchases.</p>
+  </section>
+
+  <!-- 16. METRICS -->
+  <section class="section" id="metrics">
+    <h2><span class="num">16</span> Success Metrics</h2>
+    <h3>v1 — Wedge validation</h3>
+    <table>
+      <thead><tr><th>Metric</th><th>Type</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Roi opens it voluntarily in queue × 10 games straight</td><td>Hard</td><td>⏳ Validating</td></tr>
+        <tr><td>Cold load &lt; 8s on broadband</td><td>Hard</td><td>⚠️ re-measure — build now ~48 MB (was 6.02s @ ~12 MB)</td></tr>
+        <tr><td>Replays &gt; 1 per queue session</td><td>Soft</td><td>⏳ Validating</td></tr>
+        <tr><td>Feels like LoL lane, not arcade</td><td>Soft</td><td>⏳ Validating</td></tr>
+      </tbody>
+    </table>
+    <h3>v2 — Growth metrics</h3>
+    <table>
+      <thead><tr><th>Metric</th><th>Target (TBD)</th></tr></thead>
+      <tbody>
+        <tr><td>Day-7 retention</td><td>TBD</td></tr>
+        <tr><td>Drills per user per day</td><td>TBD</td></tr>
+        <tr><td>Free → paid conversion</td><td>TBD</td></tr>
+        <tr><td>Monthly churn</td><td>TBD</td></tr>
+        <tr><td>Game Mindset: cards dismissed vs. read (proxy for usefulness)</td><td>TBD</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 17. RISKS -->
+  <section class="section" id="risks">
+    <h2><span class="num">17</span> Risks</h2>
+    <table>
+      <thead><tr><th>#</th><th>Risk</th><th>Severity</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>WebGL cold load too slow → wedge collapses</td>
+          <td class="risk-low">Low</td>
+          <td>✅ Mitigated — 6s on broadband</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Simulated lane doesn't feel like real LoL → skill doesn't transfer</td>
+          <td class="risk-high">High</td>
+          <td>⏳ In validation</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Misclick / arcade feel breaks LoL immersion</td>
+          <td class="risk-med">Med</td>
+          <td>🔧 Active fix (v1.1)</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Roi gets attached to Unity / delays Overwolf decision</td>
+          <td class="risk-med">Med</td>
+          <td>📋 Explicit v1.5 decision gate</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Riot API approval delayed or denied → no live data</td>
+          <td class="risk-high">High</td>
+          <td>⏳ Approval pending. Fallback: timer-based phase detection</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>Game Mindset cards fire too often → players ignore them</td>
+          <td class="risk-med">Med</td>
+          <td>📋 Max 5–6 cards/game enforced. Tune in validation.</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>OW doesn't expose enemy gold → can't detect winning state accurately</td>
+          <td class="risk-med">Med</td>
+          <td>📋 Fallback: kill_diff + tower_diff proxy. Validate on first live session.</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>Card content too generic → feels like advice for someone else</td>
+          <td class="risk-high">High</td>
+          <td>📋 Archetype system + champion lookup. Editorial rules enforce specificity.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 18. TEAM -->
+  <section class="section" id="team">
+    <h2><span class="num">18</span> Team</h2>
+    <p><strong>Roi</strong> — solo dev, game design, content, audio, build, deploy.</p>
+    <p style="color:var(--muted); font-size:12px">Lucas / Javi are on a separate project (LE2, different repo). No involvement here.</p>
+  </section>
+
+  <!-- 19. DOCS -->
+  <section class="section" id="docs">
+    <h2><span class="num">19</span> Document Index</h2>
+    <table>
+      <thead><tr><th>File</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td><code>gdd.md</code></td><td>Original GDD (superseded by this document)</td></tr>
+        <tr><td><code>lane-spec.md</code></td><td>Mode A — Last Hit spec</td></tr>
+        <tr><td><code>adc-kite-mode-spec.md</code></td><td>ADC Kite Mode spec</td></tr>
+        <tr><td><code>loading-mode-spec.md</code></td><td>Loading Mode spec</td></tr>
+        <tr><td><code>jungle-mode-spec.md</code></td><td>Jungle Mode spec</td></tr>
+        <tr><td><code>champselect-pick-advisor-spec.md</code></td><td>ChampSelect Pick Advisor spec</td></tr>
+        <tr><td><code>champselect-item-advisor-spec.md</code></td><td>ChampSelect Item Advisor spec (sibling module)</td></tr>
+        <tr><td><code>ow-api-cheatsheet.md</code></td><td>Full Overwolf API leverage reference</td></tr>
+        <tr><td><code>validation-mode-a-v1.md</code></td><td>Mode A validation log</td></tr>
+        <tr><td><code>game-mindset-editorial-rules.md</code></td><td>Game Mindset — content philosophy + tone</td></tr>
+        <tr><td><code>game-mindset-cards-batch-01.md</code></td><td>Game Mindset — first 56 cards (pending validation)</td></tr>
+        <tr><td><code>game-mindset-spec.md</code></td><td>Game Mindset — technical spec</td></tr>
+        <tr><td><code>game-mindset-clipo-spec.md</code></td><td>Clipo AI — spec completo (Layer 2, memoria, TrendAnalyzer, system prompt)</td></tr>
+        <tr><td><code>gdd-complete.html</code></td><td>This document</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<script>
+  // Active nav highlighting on scroll
+  const sections = document.querySelectorAll('.section[id], .hero');
+  const navLinks = document.querySelectorAll('#sidebar nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`#sidebar nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-80px 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Smooth scroll
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>

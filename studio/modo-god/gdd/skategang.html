@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkateGang: Normie City — Game Design Document</title>
+<style>
+  :root {
+    --bg:        #0a0a0b;
+    --bg2:       #121214;
+    --bg3:       #1b1b20;
+    --border:    #2c2c33;
+    --text:      #d9d9de;
+    --muted:     #7d7d88;
+    --accent:    #e5384d;   /* rojo principal */
+    --red:       #ff4d5e;   /* rojo brillante (énfasis) */
+    --red-dim:   rgba(229,56,77,.15);
+    --gray:      #9a9aa4;
+    --gray-dim:  rgba(154,154,164,.14);
+    --font:      -apple-system, 'Segoe UI', sans-serif;
+    --mono:      'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    --sidebar-w: 250px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.65;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ─────────────────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    overflow-y: auto;
+    padding: 24px 0 40px;
+    z-index: 100;
+  }
+
+  #sidebar .logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  #sidebar .logo .title {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  #sidebar .logo .sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  #sidebar nav a {
+    display: block;
+    padding: 6px 20px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    transition: color .15s, background .15s;
+    border-left: 2px solid transparent;
+  }
+
+  #sidebar nav a:hover,
+  #sidebar nav a.active {
+    color: var(--text);
+    background: var(--bg3);
+    border-left-color: var(--accent);
+  }
+
+  #sidebar nav .section-label {
+    padding: 14px 20px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Main ────────────────────────────────────────────────── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 48px 56px 80px;
+    max-width: 920px;
+  }
+
+  /* ── Hero ────────────────────────────────────────────────── */
+  .hero {
+    margin-bottom: 56px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    background: linear-gradient(135deg, var(--red), var(--gray));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .hero .tagline {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .hero .meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item { font-size: 12px; color: var(--muted); }
+  .meta-item strong { color: var(--text); }
+
+  /* ── Sections ────────────────────────────────────────────── */
+  .section { margin-bottom: 56px; }
+
+  .section h2 {
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section h2 .num { font-size: 12px; color: var(--accent); font-weight: 700; }
+
+  .section h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 24px 0 10px;
+  }
+
+  .section p { color: var(--text); margin-bottom: 12px; }
+  .section ul, .section ol { margin: 8px 0 16px 20px; }
+  .section li { margin-bottom: 4px; color: var(--text); }
+
+  /* ── Badges ──────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .badge-done    { background: var(--gray-dim); color: #c6c6cf; }
+  .badge-active  { background: var(--red-dim); color: var(--accent); }
+  .badge-planned { background: rgba(125,125,136,.12); color: var(--muted); }
+  .badge-new     { background: rgba(255,77,94,.22); color: var(--red); }
+
+  /* ── Tables ──────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+
+  th {
+    background: var(--bg3);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: var(--bg3); }
+
+  .tier-p  { color: var(--gray); }
+  .tier-i  { color: #c6c6cf; }
+  .tier-a  { color: var(--accent); }
+  .tier-pro{ color: var(--red); font-weight: 600; }
+
+  kbd {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--text);
+  }
+
+  /* ── Code ────────────────────────────────────────────────── */
+  pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #b8b8c2;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--red);
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  /* ── Callouts ────────────────────────────────────────────── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--bg3);
+    padding: 14px 16px;
+    border-radius: 0 6px 6px 0;
+    margin: 16px 0;
+  }
+  .callout.gray { border-color: var(--gray); }
+  .callout p { margin: 0; font-size: 13px; }
+  .callout strong { color: var(--accent); }
+  .callout.gray strong { color: var(--gray); }
+
+  /* ── Cards ───────────────────────────────────────────────── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 16px 0 24px;
+  }
+
+  .card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: var(--accent); }
+
+  .card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .card .card-name { font-weight: 700; font-size: 14px; color: var(--text); }
+  .card .card-tag { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .card .card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Roadmap ─────────────────────────────────────────────── */
+  .roadmap { position: relative; padding-left: 24px; margin: 16px 0; }
+  .roadmap::before {
+    content: ''; position: absolute; left: 7px; top: 6px; bottom: 6px;
+    width: 2px; background: var(--border);
+  }
+  .roadmap-item { position: relative; margin-bottom: 24px; padding-left: 16px; }
+  .roadmap-item::before {
+    content: ''; position: absolute; left: -18px; top: 6px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--border); border: 2px solid var(--bg2);
+  }
+  .roadmap-item.done::before   { background: var(--gray); }
+  .roadmap-item.active::before { background: var(--accent); }
+  .roadmap-item.next::before   { background: #55555f; }
+  .roadmap-item.future::before { background: var(--border); }
+
+  .roadmap-version {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .roadmap-item.done .roadmap-version   { color: var(--gray); }
+  .roadmap-item.active .roadmap-version { color: var(--accent); }
+  .roadmap-item.next .roadmap-version   { color: #b0b0ba; }
+  .roadmap-item.future .roadmap-version { color: var(--muted); }
+  .roadmap-desc { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .roadmap-items { font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 780px) {
+    #sidebar { display: none; }
+    #main { margin-left: 0; padding: 32px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="logo">
+    <div class="title">Skate<span style="color:var(--text)">Gang</span></div>
+    <div class="sub">Normie City · GDD</div>
+  </div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="#overview">Resumen</a>
+    <a href="#pilares">Pilares de diseño</a>
+    <a href="#controles">Controles</a>
+    <div class="section-label">Mecánicas core</div>
+    <a href="#movimiento">Movimiento y cámara</a>
+    <a href="#salto-combo">Salto + combo aéreo</a>
+    <a href="#encadenado">Encadenado de trucos</a>
+    <a href="#balance">Balance (manual/nose)</a>
+    <a href="#grinds">Grinds</a>
+    <a href="#boost">Boost / stamina</a>
+    <a href="#puntaje">Puntaje y loop</a>
+    <div class="section-label">Online + Social</div>
+    <a href="#multiplayer">Multiplayer (Nakama)</a>
+    <a href="#social">Spots + minijuegos</a>
+    <a href="#progresion">Login y progresión</a>
+    <a href="#heat">Heat / Policía / Prisión</a>
+    <div class="section-label">Producción</div>
+    <a href="#arquitectura">Arquitectura code-driven</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#aceptacion">Criterios de aceptación</a>
+    <a href="#estado">Estado y decisiones</a>
+    <a href="#archivos">Archivos</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+  <div class="hero" id="top">
+    <h1>SkateGang: Normie City</h1>
+    <div class="tagline">Sandbox online de skate en WebGL — trucos por timing, no por física.</div>
+    <div class="meta">
+      <div class="meta-item"><strong>Motor:</strong> Unity 6 (6000.3.10f1) · URP 3D</div>
+      <div class="meta-item"><strong>Target:</strong> WebGL</div>
+      <div class="meta-item"><strong>Backend:</strong> Nakama self-hosted</div>
+      <div class="meta-item"><strong>Estado:</strong> Prototipo (v0)</div>
+    </div>
+  </div>
+
+  <!-- ── OVERVIEW ─────────────────────────────────────────── -->
+  <section class="section" id="overview">
+    <h2><span class="num">01</span> Resumen</h2>
+    <p>Sandbox online en WebGL, tercera persona: varios skaters comparten una misma ciudad en simultáneo, esquivan/usan obstáculos y encadenan trucos (saltos, flips, manuals, grinds) para sumar puntos. El mapa tiene <strong style="color:var(--text)">spots sociales</strong> donde la gente se junta y <strong style="color:var(--text)">zonas de minijuego</strong> (cartas y party game).</p>
+    <p>El modelo es <strong style="color:var(--text)">híbrido</strong>: la <strong style="color:var(--text)">locomoción</strong> corre sobre física arcade (Rigidbody) — así las rampas, la aceleración, el airtime y el momentum salen realistas sin falsearlos a mano; encima <em>simplifica</em> el código en vez de complicarlo. Los <strong style="color:var(--text)">trucos</strong>, en cambio, no usan física: son rotaciones code-driven de la tabla resueltas por timing/input dentro de la ventana de combo. Rhythm/timing game en los trucos, con un skate que se mueve como corresponde.</p>
+    <div class="callout">
+      <p><strong>NO hay personajes — sos el skate.</strong> No existe un skater humano arriba de la tabla: el jugador <em>es</em> la tabla. No hay modelo humanoide, ni rig, ni animaciones de personaje. Los "trucos" (kickflip, heelflip, shove-it…) son <strong style="color:var(--text)">rotaciones y transforms de la propia tabla</strong> — 100% code-driven, sin Mixamo ni Synty character.</p>
+    </div>
+    <div class="callout">
+      <p><strong>Alcance v1:</strong> sandbox online multijugador (una ciudad compartida, ~40 jugadores por instancia) + progresión con login. La locomoción <strong style="color:var(--text)">sí</strong> usa física arcade. Fuera de alcance: física de <em>simulación</em> realista (peso/fricción/momentum a nivel sim), editor de niveles, economía, chat de voz, arte/sonido final (placeholders alcanzan para el prototipo).</p>
+    </div>
+  </section>
+
+  <!-- ── PILARES ──────────────────────────────────────────── -->
+  <section class="section" id="pilares">
+    <h2><span class="num">02</span> Pilares de diseño</h2>
+    <ol>
+      <li><strong>Locomoción con física, trucos por timing.</strong> La tabla se mueve sobre física arcade (rampas, inercia, airtime reales); los trucos son secuencias de teclas dentro de la ventana de combo, sin física.</li>
+      <li><strong>Encadenar es el juego.</strong> Un multiplicador crece cruzando aéreo ↔ manual ↔ grind sin caer; un bail lo corta entero.</li>
+      <li><strong>Sandbox social.</strong> La misma ciudad compartida invita a juntarse y picar minijuegos sin bajarse del clima general.</li>
+      <li><strong>Progresión larga.</strong> Los 217 trucos de la base de datos son la escalera de XP; se desbloquean jugando.</li>
+    </ol>
+  </section>
+
+  <!-- ── CONTROLES ────────────────────────────────────────── -->
+  <section class="section" id="controles">
+    <h2><span class="num">03</span> Controles</h2>
+    <table>
+      <thead><tr><th>Tecla</th><th>Acción</th></tr></thead>
+      <tbody>
+        <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Movimiento: <kbd>W</kbd> acelera, <kbd>S</kbd> frena/reversa, <kbd>A</kbd>/<kbd>D</kbd> <strong style="color:var(--text)">carvean</strong> (giro por peso sobre los trucks delanteros, más cerrado a más velocidad).</td></tr>
+        <tr><td><kbd>C</kbd> mantener/soltar</td><td>Cargar y ejecutar salto (Ollie). También engancha un grind si se aterriza sobre un riel.</td></tr>
+        <tr><td>Secuencia de teclas</td><td>Combo aéreo / trick-in / trick-out, dentro de la ventana de tiempo (10 combos).</td></tr>
+        <tr><td><kbd>M</kbd> mantener</td><td>Manual (ruedas traseras) / peso trasero al enganchar grind (tailslide).</td></tr>
+        <tr><td><kbd>N</kbd> mantener</td><td>Nose Manual (ruedas delanteras) / peso delantero (noseslide).</td></tr>
+        <tr><td><kbd>A</kbd> / <kbd>D</kbd> en balance/grind</td><td>Corregir la inclinación del balance, o definir variante del grind (crooked).</td></tr>
+        <tr><td><kbd>K</kbd></td><td>Boost (patada de impulso), máx. 2 cargas de stamina.</td></tr>
+        <tr><td>Powerslide <span class="badge badge-planned">TBD</span></td><td>Traba la tabla de costado para frenar/derrapar scrubbeando velocidad. Tecla a definir (candidato: freno + carve fuerte a velocidad, o tecla dedicada).</td></tr>
+      </tbody>
+    </table>
+    <div class="callout gray">
+      <p><strong>Teclas de combo:</strong> se asignan cercanas a las reservadas (WASD/C/M/N/K), evitando conflicto — p. ej. <kbd>Q</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> <kbd>F</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>J</kbd> <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd>. El prototipo arranca con <code>Input</code> legacy.</p>
+    </div>
+  </section>
+
+  <!-- ── MOVIMIENTO ───────────────────────────────────────── -->
+  <section class="section" id="movimiento">
+    <h2><span class="num">04</span> Movimiento y cámara <span class="badge badge-active">En progreso</span></h2>
+    <p><strong style="color:var(--text)">Locomoción con física arcade (híbrida).</strong> La tabla es un Rigidbody con la rotación congelada: la <em>posición</em> la maneja la física (gravedad, rampas, colisiones, airtime, inercia) y la <em>orientación</em> la controla el código (alineación a la normal del suelo + heading). Esto simplifica el código y da un movimiento realista sin falsear rampas ni momentum a mano. Un <strong style="color:var(--text)">grip lateral</strong> mata la velocidad de costado para que agarre como skate y no patine como hielo, conservando la inercia hacia adelante.</p>
+    <p><strong style="color:var(--text)">Carving (giro por peso).</strong> <kbd>A</kbd>/<kbd>D</kbd> no giran como un auto: modelan el skate real, que dobla poniendo el peso sobre los laterales (pie cerca de los trucks delanteros, presión a un lado u otro). El giro es más cerrado a mayor velocidad y casi nulo parado. Visualmente la tabla se inclina hacia el lado del carve.</p>
+    <p><strong style="color:var(--text)">Powerslide</strong> <span class="badge badge-done">Hecho</span>: mantener <kbd>LeftShift</kbd> + <kbd>A</kbd>/<kbd>D</kbd> a velocidad traba la tabla de costado, rompe el grip y frena derrapando (scrub de velocidad). Deja <strong style="color:var(--text)">trails</strong> en las ruedas mientras dura el slide.</p>
+    <p><strong style="color:var(--text)">Cámara:</strong> third-person chase cam en perspectiva, detrás/arriba de la tabla, siguiendo el heading (aplana el pitch de las rampas para no marear).</p>
+    <p>La ciudad es el "nivel": calles con obstáculos fijos (rampas, cordones, escaleras, bancos, rieles/bordes) que disparan saltos, manuals y grinds. El prototipo actual usa una <strong style="color:var(--text)">sandbox placeholder</strong> (suelo + rampas/bancos/riel generados por editor tool); el nivel final usará el <strong style="color:var(--text)">Synty POLYGON City Pack</strong>.</p>
+  </section>
+
+  <!-- ── SALTO + COMBO ────────────────────────────────────── -->
+  <section class="section" id="salto-combo">
+    <h2><span class="num">05</span> Salto cargable + combo <span class="badge badge-planned">Combo — en prueba</span></h2>
+    <p><strong style="color:var(--text)">Carga con sweet spot</strong> <span class="badge badge-done">Hecho</span>: mantener <kbd>C</kbd> acumula la barra (0 → 100%); la altura del salto depende de <strong>en qué zona soltás</strong>, no de cargar al mango:</p>
+    <table>
+      <thead><tr><th>Zona</th><th>Carga</th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr><td><span style="color:#f0d626">Amarillo</span> → <span style="color:#ff801a">naranja</span></td><td>0 – 70%</td><td>Altura sube de <code>minJumpSpeed</code> (hop) a <code>maxJumpSpeed</code> (cargando).</td></tr>
+        <tr><td><span style="color:#52db43">Verde (IDEAL)</span></td><td>70 – 90%</td><td><strong>Sweet spot</strong>: altura óptima (<code>max + perfectBonus</code>) y salto marcado <strong>PERFECT</strong> (bonus de puntaje/ventana cuando exista §06).</td></tr>
+        <tr><td><span style="color:#eb332a">Rojo (overcharge)</span></td><td>90 – 98%</td><td>Te pasaste: la altura <strong>decae</strong> hacia <code>overchargeJumpSpeed</code>.</td></tr>
+        <tr><td><span style="color:#eb332a">MAX clavado</span></td><td>≥ 98%</td><td><strong>Tropieza</strong>: hop torpe + scrub de velocidad horizontal.</td></tr>
+      </tbody>
+    </table>
+    <p>Solo se carga con las ruedas en el piso (con un pelín de coyote time al dejar una rampa); despegarse sin soltar cancela la carga. <code>JumpController</code> vive fuera de la locomoción y se apoya en el <code>IsGrounded</code> del <code>SkateboardController</code>; los límites de zona son la fuente de verdad y expone un evento <code>Jumped(JumpResult)</code> para HUD/puntaje.</p>
+    <p><strong style="color:var(--text)">Charge meter (UI)</strong> <span class="badge badge-done">Hecho</span>: barra vertical (abajo-derecha) que se llena de abajo hacia arriba en las 4 zonas separadas por 3 divisores. La columna cambia de color al subir; el verde tiene un realce que <strong>pulsa</strong> al entrar (soltá acá). Al saltar reacciona: <strong>PERFECT</strong> = pop + flash verde; <strong>overcharge/tropiezo</strong> = shake + flash rojo. <code>ChargeMeterUI</code> lee los límites del <code>JumpController</code> y se auto-construye por código (build-safe, sin sprites de asset).</p>
+    <p><strong style="color:var(--text)">Combo en el gesto de la C</strong> <span class="badge badge-planned">En prueba</span>: el truco se <strong>compone mientras cargás</strong> y se <strong>resuelve al soltar, según dónde soltás</strong> — un solo gesto, sin ventana aparte en el aire (se sentía mecánico). Manteniendo <kbd>C</kbd> tipeás la secuencia (<kbd>Q</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>F</kbd>); el HUD muestra en vivo el truco compuesto (verde = ya tenés carga para él, gris = falta). Al soltar C, la zona del charge meter da la <strong>calidad</strong>: <span style="color:#52db43">verde</span> → <strong>PERFECT</strong> (×1.5), amarillo/naranja → Normal, <span style="color:#eb332a">rojo</span> → <strong>Sloppy</strong> (×0.6), MAX → <strong>bail</strong>. La dificultad gatea la carga: soltar = confirmar, así un Pro obliga a soltar arriba en el verde. <code>ComboController</code> + <code>FlipAnimator</code> (flip = giros de turnos enteros de la tabla, rápido y fijo ~0.3&nbsp;s como un flip real) + <code>ComboHUD</code>, todo code-driven; installer <code>SkateGang/Add Trick Combos to Prototype</code>.</p>
+    <h3>Los 10 combos de v1</h3>
+    <table>
+      <thead><tr><th>Truco</th><th>Tier</th><th>Secuencia</th><th>Carga mín.</th><th>Puntos</th><th>Flip (giros)</th></tr></thead>
+      <tbody>
+        <tr><td>Kickflip</td><td class="tier-p">Principiante</td><td><kbd>Q</kbd></td><td>cualquiera</td><td>100</td><td>roll −1</td></tr>
+        <tr><td>Heelflip</td><td class="tier-p">Principiante</td><td><kbd>E</kbd></td><td>cualquiera</td><td>100</td><td>roll +1</td></tr>
+        <tr><td>Pop Shove-it</td><td class="tier-p">Principiante</td><td><kbd>R</kbd></td><td>cualquiera</td><td>100</td><td>yaw 180</td></tr>
+        <tr><td>Varial</td><td class="tier-i">Intermedio</td><td><kbd>R</kbd> <kbd>Q</kbd></td><td>~35%</td><td>220</td><td>roll −1 + yaw 180</td></tr>
+        <tr><td>Hardflip</td><td class="tier-a">Avanzado</td><td><kbd>Q</kbd> <kbd>F</kbd></td><td>~60%</td><td>380</td><td>roll −1 + pitch 180</td></tr>
+        <tr><td>Impossible</td><td class="tier-a">Avanzado</td><td><kbd>F</kbd> <kbd>R</kbd></td><td>~60%</td><td>380</td><td>pitch +1</td></tr>
+        <tr><td>360 Flip</td><td class="tier-a">Avanzado</td><td><kbd>R</kbd> <kbd>Q</kbd> <kbd>E</kbd></td><td>~60%</td><td>420</td><td>roll −1 + yaw +1</td></tr>
+        <tr><td>Varial Kickflip</td><td class="tier-a">Avanzado</td><td><kbd>R</kbd> <kbd>E</kbd></td><td>~60%</td><td>360</td><td>roll −1 + yaw −180</td></tr>
+        <tr><td>Double Kickflip</td><td class="tier-pro">Pro</td><td><kbd>Q</kbd> <kbd>Q</kbd></td><td>~82%</td><td>600</td><td>roll −2</td></tr>
+        <tr><td>Laser Flip</td><td class="tier-pro">Pro</td><td><kbd>E</kbd> <kbd>R</kbd> <kbd>Q</kbd></td><td>~82%</td><td>700</td><td>roll +1 + yaw −1</td></tr>
+      </tbody>
+    </table>
+    <h3>Resolución (al soltar C, se anuncia al aterrizar)</h3>
+    <ul>
+      <li><strong style="color:var(--text)">Secuencia válida + carga ≥ gate</strong> → <strong>Clean</strong>: suma <code>puntos × multiplicador × calidad</code> (Perfect ×1.5 / Normal ×1 / Sloppy ×0.6) y sube el multiplicador.</li>
+      <li><strong style="color:var(--accent)">Secuencia inválida / poca carga / tropiezo (MAX)</strong> → <strong>Fail</strong>: bail, corta el multiplicador.</li>
+      <li><strong style="color:var(--muted)">Sin input</strong> → aterrizaje neutro (ollie simple), sin bonus ni penalización (no toca el combo).</li>
+    </ul>
+  </section>
+
+  <!-- ── ENCADENADO ───────────────────────────────────────── -->
+  <section class="section" id="encadenado">
+    <h2><span class="num">06</span> Encadenado de trucos <span class="badge badge-planned">Planned</span></h2>
+    <p>Los trucos se encadenan entre mecánicas dentro de una misma línea de combo: <code>manual → flip</code>, <code>flip → manual</code>, o entrar/salir de un grind con un truco (<strong style="color:var(--text)">trick-in / trick-out</strong>), reutilizando el mismo sistema de secuencia de teclas del combo aéreo.</p>
+    <div class="callout">
+      <p>En trick-in/out están disponibles los 10 combos completos, pero la <strong>ventana de tiempo es más corta</strong> que en un salto normal. Cada eslabón exitoso suma al multiplicador; un bail en cualquier eslabón corta la cadena entera.</p>
+    </div>
+  </section>
+
+  <!-- ── BALANCE ──────────────────────────────────────────── -->
+  <section class="section" id="balance">
+    <h2><span class="num">07</span> Balance — Manual / Nose Manual <span class="badge badge-planned">Planned</span></h2>
+    <p><kbd>M</kbd> = Manual (la tabla se balancea sobre las ruedas traseras), <kbd>N</kbd> = Nose Manual (sobre las delanteras) — la tabla se inclina hacia atrás o adelante, sin nadie encima. Mientras se mantiene, aparece un <strong style="color:var(--text)">medidor de equilibrio</strong> (estilo grind meter de THPS2): el indicador se inclina y hay que recentrarlo con <kbd>A</kbd>/<kbd>D</kbd>.</p>
+    <p>La <strong>velocidad</strong> define el patrón: a mayor velocidad, inclinación más rápida/errática y corrección más frecuente; a baja velocidad, estable. Salir del rango = bail (corta combo). Soltar dentro de rango = manual limpio, puntos por tiempo sostenido.</p>
+  </section>
+
+  <!-- ── GRINDS ───────────────────────────────────────────── -->
+  <section class="section" id="grinds">
+    <h2><span class="num">08</span> Grinds <span class="badge badge-planned">Planned</span></h2>
+    <p>Se enganchan reutilizando <kbd>C</kbd>: si el skater aterriza un salto cargado sobre un riel/borde, en vez de un aterrizaje normal se engancha al grind. El tipo se define combinando la tecla de peso con la dirección al enganchar:</p>
+    <table>
+      <thead><tr><th>Grind</th><th>Input al enganchar</th><th>Tier</th></tr></thead>
+      <tbody>
+        <tr><td>Noseslide</td><td><kbd>N</kbd> (sin dirección)</td><td class="tier-p">Principiante</td></tr>
+        <tr><td>Boardslide</td><td>Aproximación perpendicular (sin M/N)</td><td class="tier-p">Principiante</td></tr>
+        <tr><td>Tailslide</td><td><kbd>M</kbd> (sin dirección)</td><td class="tier-i">Intermedio</td></tr>
+        <tr><td>Crooked grind</td><td><kbd>M</kbd>/<kbd>N</kbd> + <kbd>A</kbd>/<kbd>D</kbd></td><td class="tier-i">Intermedio</td></tr>
+      </tbody>
+    </table>
+    <p>Durante el grind aplica el mismo medidor de equilibrio (§07), corregido con <kbd>A</kbd>/<kbd>D</kbd> y afectado por la velocidad. Salida: neutra o con <strong style="color:var(--text)">trick-out</strong> (combo, §06) para bonus. Salir del rango = bail.</p>
+  </section>
+
+  <!-- ── BOOST ────────────────────────────────────────────── -->
+  <section class="section" id="boost">
+    <h2><span class="num">09</span> Boost / stamina <span class="badge badge-planned">Planned</span></h2>
+    <p><kbd>K</kbd> ejecuta una patada de impulso. Uso libre pero limitado por una barra de stamina de <strong style="color:var(--text)">2 cargas máximo</strong>. Recarga combinada:</p>
+    <ul>
+      <li>Regeneración pasiva: punto de partida <strong>5 segundos</strong> por carga (ajustable en playtesting).</li>
+      <li>Regeneración más rápida al completar trucos exitosos (aéreo, manual, grind).</li>
+    </ul>
+  </section>
+
+  <!-- ── PUNTAJE ──────────────────────────────────────────── -->
+  <section class="section" id="puntaje">
+    <h2><span class="num">10</span> Puntaje y loop de juego <span class="badge badge-planned">Planned</span></h2>
+    <p>Puntaje por truco completado (aéreo, manual, nose, grind), con multiplicador que crece al encadenar entre mecánicas sin caer. La ciudad distribuye obstáculos variados para generar oportunidades constantes de trucos y grinds. Al caer (bail) se corta el multiplicador actual, en cualquier eslabón.</p>
+    <p>El mismo score alimenta la <strong style="color:var(--text)">progresión</strong> (§13): no hay moneda nueva, el XP sale de los puntos.</p>
+  </section>
+
+  <!-- ── MULTIPLAYER ──────────────────────────────────────── -->
+  <section class="section" id="multiplayer">
+    <h2><span class="num">11</span> Multiplayer / Sandbox online <span class="badge badge-new">Nakama</span></h2>
+    <div class="callout">
+      <p><strong>Decisión (2026-07-23): Nakama self-hosted.</strong> Reemplaza a Colyseus. Trae auth + storage persistente + realtime matches + leaderboards todo en uno (Go server + Postgres, en Docker). Contra: más trabajo de infra propia — se asume porque unifica tiempo real y persistencia en un solo servicio.</p>
+    </div>
+    <ul>
+      <li>El cliente WebGL habla con Nakama por WebSocket vía el SDK <code>nakama-unity</code>.</li>
+      <li>Sincronización de skate (posición, trucos, combos) es informativa/visual para los demás — <strong>no autoritativa ni anti-cheat en v1</strong>.</li>
+      <li><strong style="color:var(--text)">Tope de diseño ~40 jugadores</strong> por match/instancia (ajustable a "lo que entre gratis" en el hosting). Al llenarse se abre otra instancia del mismo mapa.</li>
+      <li>Hosting del prototipo: Nakama en Docker Compose sobre host gratuito/barato (a definir).</li>
+    </ul>
+  </section>
+
+  <!-- ── SOCIAL ───────────────────────────────────────────── -->
+  <section class="section" id="social">
+    <h2><span class="num">12</span> Spots sociales + minijuegos <span class="badge badge-planned">Planned</span></h2>
+    <p><strong style="color:var(--text)">Spots sociales:</strong> puntos del mapa (plazas, azoteas, un local) sin objetivo de gameplay — spawn points, vistas, zonas de descanso donde el nivel invita a que los jugadores se crucen. Son la entrada natural a las zonas de minijuego.</p>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-name">Truco Rápido</span>
+          <span class="badge badge-planned">Cartas</span>
+        </div>
+        <div class="card-tag">1v1 (2v2 si da) · mejor de 3</div>
+        <div class="card-desc">Truco simplificado: comparar cartas por ranking (sin envido, flor ni cantos). Se activa cuando 2+ jugadores entran a la zona y aceptan jugar.</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-name">Carrera de skaters</span>
+          <span class="badge badge-planned">Party</span>
+        </div>
+        <div class="card-tag">2 a 8 jugadores</div>
+        <div class="card-desc">Reutiliza movimiento/salto/boost: carrera con checkpoints + timer por un tramo de la ciudad. El minijuego más barato de construir — solo un modo sobre las mecánicas existentes.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROGRESION ───────────────────────────────────────── -->
+  <section class="section" id="progresion">
+    <h2><span class="num">13</span> Login y progresión persistente <span class="badge badge-new">v1</span></h2>
+    <p>El jugador necesita <strong style="color:var(--text)">login</strong> (no alcanza nickname suelto): el perfil guarda progreso entre sesiones. Vive en Nakama (auth + storage).</p>
+    <p><strong style="color:var(--text)">Desbloqueo de trucos:</strong> los 217 trucos de la DB son la escalera de progresión completa.</p>
+    <ul>
+      <li><strong>Arranca desbloqueado:</strong> combos Principiante de los 10 (Kickflip, Heelflip, Pop Shove-it) + Manual/Nose Manual + los 4 grinds base.</li>
+      <li>El resto (Intermedio → Avanzado → Pro) se desbloquea con <strong>XP/nivel</strong>, ganado con los mismos puntos del sistema de puntaje.</li>
+      <li>Combo bloqueado = esa secuencia simplemente no dispara animación todavía — solo un filtro de "trucos desbloqueados" por jugador sobre la tabla de combos.</li>
+    </ul>
+    <div class="callout gray">
+      <p><strong>Abierto:</strong> los umbrales exactos de XP por tier (cuánto sumar para pasar de Principiante a Intermedio, etc.) — a calibrar en playtesting con números reales del puntaje.</p>
+    </div>
+  </section>
+
+  <!-- ── HEAT / POLICÍA & KARENS / PRISIÓN ─────────────────── -->
+  <section class="section" id="heat">
+    <h2><span class="num">14</span> Heat, Policía &amp; Karens, y la Prisión <span class="badge badge-planned">Spec</span></h2>
+    <p>La ciudad está <strong style="color:var(--text)">habitada por normies</strong>. Andar tranquilo no molesta a nadie, pero <strong style="color:var(--text)">hacer trucos a la vista</strong> de un policía o una Karen sube el "heat". Si te ven, te persiguen; si te agarran, terminás en la <strong style="color:var(--text)">prisión</strong>, y para salir tenés que <strong style="color:var(--text)">ganarles al Truco</strong> (u otros minijuegos) a los presos o a la jefatura. Es la capa de riesgo/comedia que conecta el mundo abierto con los minijuegos sociales (§12). Spec completo en <code>docs/spec-poli-y-prision.md</code>.</p>
+
+    <p><strong style="color:var(--text)">Detección (heat).</strong> No es arresto instantáneo: hay un medidor de sospecha por NPC (rango + cono de visión con line-of-sight). Te delatan los <strong>trucos aéreos, grinds, manuals y powerslide</strong>; <strong>andar/rodar NUNCA</strong> (para no matar la experiencia de simplemente andar). La sospecha decae fuera de vista; llena = "te vieron".</p>
+
+    <p><strong style="color:var(--text)">Los NPCs.</strong> Simples: patrullan por waypoints (NavMesh) y "miran". La Karen tiene 3 comportamientos:</p>
+    <table>
+      <thead><tr><th>Karen</th><th>Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Alertadora</strong></td><td>Detecta y da la alarma → convoca al policía más cercano. No persigue ella.</td></tr>
+        <tr><td><strong>Estorbo</strong></td><td>Obstáculo móvil: si la chocás/trickeás encima, te corta el combo. No arresta.</td></tr>
+        <tr><td><strong>Perseguidora</strong></td><td>Escala a mini-poli: te persigue y hace "citizen's arrest".</td></tr>
+      </tbody>
+    </table>
+    <p>El <strong style="color:var(--text)">policía</strong> es el arrestador canónico (Patrulla→Sospecha→Persecución→Arresto→Regreso); su velocidad de chase es menor que la tope del skate, así se puede escapar (sacarlo de vista). La <strong style="color:var(--text)">jefatura</strong> es el rival "final" dentro de la prisión.</p>
+
+    <p><strong style="color:var(--text)">Arresto y stakes.</strong> El arresto es un <strong>evento</strong> (fade + teleport), no un choque físico — no rompe el feel del skate. Te <strong>corta el combo/run</strong> y te cuesta el <strong>tiempo</strong> de encierro, pero <strong>no perdés XP</strong>.</p>
+
+    <p><strong style="color:var(--text)">La prisión (híbrida).</strong> Por default, una instancia con presos NPC + la jefatura; si hay presos reales, podés retarlos. Salís <strong>ganando</strong> un Truco Rápido (§12) u otro minijuego; ganarle a la jefatura libera más rápido / da bonus. Hay un <strong>timer máximo</strong> de encierro (anti-frustración).</p>
+
+    <div class="callout gray">
+      <p><strong>Multiplayer (v1):</strong> NPCs <strong>client-local</strong> — cada jugador simula su propio heat/persecución (cero IA de NPC en el server). La <strong>prisión sí es una sala compartida</strong> (Nakama), donde los arrestados se ven y se retan. Escalar a NPCs autoritativos compartidos queda <strong>diferido</strong>.</p>
+    </div>
+    <div class="callout gray">
+      <p><strong>Prioridad:</strong> feature planificado, se implementa <strong>cuando sea necesario</strong> según prioridad (no bloquea el core). Tareas cargadas en Asana con prefijo <code>[P1/P2/P3] Heat/Prisión</code>.</p>
+    </div>
+  </section>
+
+  <!-- ── ARQUITECTURA ─────────────────────────────────────── -->
+  <section class="section" id="arquitectura">
+    <h2><span class="num">15</span> Arquitectura code-driven <span class="badge badge-active">En marcha</span></h2>
+    <p>Todo el juego se construye <strong style="color:var(--text)">code-driven</strong>: las cosas se definen en código y para cada pieza hay una <strong>editor tool</strong> (menú <code>SkateGang/</code>) que la recrea o modifica desde cero, corrible por CLI en batchmode (<code>-executeMethod</code>). Nada de setup manual en el inspector como fuente de verdad.</p>
+    <pre><code>SkateGang/
+├─ 00 Bootstrap/
+│   ├─ Setup URP (3D)        → ProjectBootstrap.Setup     [hecho]
+│   ├─ Build Sandbox Scene   → genera la ciudad de prueba desde código
+│   └─ Rebuild All           → corre todo = recrea el juego de cero
+├─ Data/
+│   └─ Import Trick DB       → skate-trick-database.xlsx → ScriptableObject
+├─ Scenes/   (una tool por escena: sandbox, carrera…)
+└─ Systems/  (tools que cablean cada sistema)</code></pre>
+    <p>Convenciones heredadas del pipeline de MOBA Warmup: componentes de gameplay agregados por código (serializan por-escena, no por override de prefab); materiales runtime build-safe (clonar <code>.mat</code> de Resources, nunca <code>Shader.Find</code> → rosa en WebGL); type-check y builds WebGL desde CLI con el editor cerrado.</p>
+  </section>
+
+  <!-- ── ROADMAP ──────────────────────────────────────────── -->
+  <section class="section" id="roadmap">
+    <h2><span class="num">16</span> Roadmap</h2>
+    <div class="roadmap">
+      <div class="roadmap-item active">
+        <div class="roadmap-version">v0 · Prototipo (actual)</div>
+        <div class="roadmap-desc">Mecánicas core single-player en la ciudad sandbox.</div>
+        <div class="roadmap-items">Movimiento + chase cam · salto cargable + 3-4 combos · balance manual/nose · 4 grinds · encadenado · boost · HUD de puntaje.</div>
+      </div>
+      <div class="roadmap-item next">
+        <div class="roadmap-version">v1 · Online + progresión</div>
+        <div class="roadmap-desc">El sandbox se vuelve multijugador y persistente.</div>
+        <div class="roadmap-items">Nakama (matches + auth + storage) · skaters remotos · spots sociales · 2 minijuegos · login + desbloqueo de trucos por XP.</div>
+      </div>
+      <div class="roadmap-item future">
+        <div class="roadmap-version">Futuro</div>
+        <div class="roadmap-desc">Contenido de progresión a largo plazo.</div>
+        <div class="roadmap-items">Más grinds (50-50, smith, 5-0…) · grabs · niveles adicionales · editor · resto de los 217 trucos.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ACEPTACION ───────────────────────────────────────── -->
+  <section class="section" id="aceptacion">
+    <h2><span class="num">17</span> Criterios de aceptación (prototipo)</h2>
+    <ul>
+      <li>Movimiento WASD con la cámara siguiendo correctamente.</li>
+      <li>Mantener/soltar <kbd>C</kbd> produce saltos de altura variable proporcional a la carga.</li>
+      <li>Al saltar se abre una ventana de combo que escala con la altura, con al menos <strong>3-4 de los 10 combos</strong> con animación propia.</li>
+      <li>Mantener <kbd>M</kbd>/<kbd>N</kbd> activa el medidor de equilibrio (afectado por velocidad) y <kbd>A</kbd>/<kbd>D</kbd> lo corrige; salir de rango = bail.</li>
+      <li>Aterrizar un salto cargado sobre un riel engancha un grind; M/N + dirección determinan el tipo.</li>
+      <li>Encadenar al menos un ejemplo cruzado (manual → flip, o trick-in a grind) sin cortar el multiplicador.</li>
+      <li><kbd>K</kbd> aplica boost perceptible respetando el límite de 2 cargas, con recarga pasiva + por trucos.</li>
+      <li>Contador de puntaje visible que refleja trucos completados y multiplicador.</li>
+    </ul>
+  </section>
+
+  <!-- ── ESTADO ───────────────────────────────────────────── -->
+  <section class="section" id="estado">
+    <h2><span class="num">18</span> Estado y decisiones</h2>
+    <table>
+      <thead><tr><th>Fecha</th><th>Decisión</th><th>Detalle</th></tr></thead>
+      <tbody>
+        <tr><td>2026-07-23</td><td>Nombre</td><td>Renombrado de "SkateOrDie" a <strong style="color:var(--text)">SkateGang: Normie City</strong> por copyright. Franquicia <strong style="color:var(--text)">SkateGang</strong>: cada juego es una ciudad distinta (<code>SkateGang: &lt;ciudad&gt;</code>).</td></tr>
+        <tr><td>2026-07-23</td><td>Sin personajes</td><td>El jugador ES el skate. Sin humanoide/rig; trucos = transforms de la tabla, code-driven.</td></tr>
+        <tr><td>2026-07-23</td><td>Motor</td><td>Unity 6 (6000.3.10f1), URP 3D, target WebGL.</td></tr>
+        <tr><td>2026-07-23</td><td>Backend = Nakama</td><td>Self-hosted (Docker + Postgres). Reemplaza a Colyseus.</td></tr>
+        <tr><td>2026-07-23</td><td>Arte de prototipo</td><td>Synty POLYGON City Pack para la ciudad sandbox.</td></tr>
+        <tr><td>2026-07-23</td><td>Flujo de trabajo</td><td>Todo code-driven + editor tools reproducibles desde la CLI.</td></tr>
+        <tr><td>2026-07-23</td><td>10 combos v1</td><td>Confirmados (ver §05).</td></tr>
+      </tbody>
+    </table>
+    <h3>Progreso</h3>
+    <ul>
+      <li><span class="badge badge-done">Done</span> Proyecto Unity URP 3D + WebGL scaffolded (ProjectBootstrap).</li>
+      <li><span class="badge badge-active">Doing</span> Editor tools + Build Sandbox Scene.</li>
+      <li><span class="badge badge-planned">Next</span> Movimiento, salto + combos, balance, grinds.</li>
+    </ul>
+  </section>
+
+  <!-- ── ARCHIVOS ─────────────────────────────────────────── -->
+  <section class="section" id="archivos">
+    <h2><span class="num">19</span> Archivos del repo</h2>
+    <table>
+      <thead><tr><th>Archivo</th><th>Qué es</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/gdd-complete.html</code></td><td>Este documento (GDD canónico, vivo).</td></tr>
+        <tr><td><code>docs/skate-game-spec.md</code></td><td>Spec de mecánicas core (fuente de las mecánicas).</td></tr>
+        <tr><td><code>docs/skate-trick-database.xlsx</code></td><td>217 trucos con dificultad; base de los 10 combos v1 y la escalera de XP.</td></tr>
+        <tr><td><code>Assets/Editor/ProjectBootstrap.cs</code></td><td>Editor tool: genera y cablea el pipeline URP 3D.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<script>
+  // Active nav highlighting on scroll
+  const sections = document.querySelectorAll('.section[id], .hero');
+  const navLinks = document.querySelectorAll('#sidebar nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`#sidebar nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-80px 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Smooth scroll
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>

@@ -31,17 +31,35 @@ La página muestra siempre cuándo se generó, y se marca en rojo si pasó más 
 ## ⚠️ Antes de publicarlo
 
 El bundle expone rutas locales, nombres de tareas, fechas de lanzamiento y qué está sin verificar.
-**No sale a internet sin Cloudflare Access adelante.** Pasos, una sola vez:
+**No sale a internet sin auth adelante.** Estado (2026-08-12): publicado y protegido.
 
-1. `npx wrangler login` (el OAuth caduca ~24 h).
-2. Crear el proyecto Pages `modo-god` y deployar `dist/` con el comando que imprime `publish.py`.
-3. En el dashboard de Cloudflare → **Zero Trust → Access → Applications**: proteger el hostname con
-   una policy de un solo email. Sin esto, la URL es pública para cualquiera que la adivine.
-4. Ruta. Lo más barato es el subdominio `modogod.obscuromediaworks.com.ar` (CNAME a
-   `modo-god.pages.dev`, igual que se hizo con `mobawarmup`). Para que sea
-   `obscuromediaworks.com.ar/modo-god` hace falta además un Worker con route
-   `obscuromediaworks.com.ar/modo-god*` que proxee al proyecto Pages, porque la raíz del dominio la
-   sirve otro hosting.
+1. ✅ Proyecto Pages `modo-god`, deployado con `npx wrangler pages deploy studio/modo-god/dist
+   --project-name modo-god`.
+2. ✅ Custom domain **`god.obscuromediaworks.com.ar`** atado al proyecto.
+3. ✅ **Auth propia, no Cloudflare Access** — Access pide tarjeta desde que Cloudflare movió
+   Zero Trust a un plan que la requiere incluso en el tier gratis. En cambio: `_worker.js` pone el
+   proyecto en Pages "Advanced Mode" (intercepta toda request antes de servir el bundle) y hace
+   **HTTP Basic Auth** contra un mapa `{"usuario": "password"}` guardado en el secret
+   `MODOGOD_USERS` del proyecto — comparación timing-safe (hash SHA-256 + comparación constante),
+   sin passwords en el código ni en el repo. Sin credenciales válidas: 401. Con ellas: sirve el
+   bundle normal.
+
+### Agregar o sacar gente
+
+El secret es el único lugar donde vive quién tiene acceso. Para agregar a alguien (o cambiar una
+contraseña), armá el JSON completo de nuevo — **pisa** el secret anterior, no lo mergea:
+
+```bash
+printf '{"roi":"<password-de-roi>","lucas":"<password-nueva>"}' | \
+  npx wrangler pages secret put MODOGOD_USERS --project-name modo-god
+```
+
+**No hace falta redeploy** — el Worker lee `env.MODOGOD_USERS` en cada request, el secret se
+actualiza al toque. Para sacar a alguien, volvé a correr el comando con esa persona afuera del
+JSON.
+
+Generar una password random rápida: `python -c "import secrets,string;
+print(''.join(secrets.choice(string.ascii_letters+string.digits) for _ in range(20)))"`.
 
 El `robots.txt` y el `noindex` que genera `publish.py` son higiene de crawlers, **no** son seguridad.
 

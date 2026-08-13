@@ -34,6 +34,14 @@ tocar nada del deploy. Dos cosas que no se negocian:
 - **`/design-sync` lo corre Roi**, no un agente.
 - El design system es **solo para la marca paraguas**. Los juegos tienen identidad propia.
 - Móvil de LUX está pendiente: hoy es responsive por CSS de emergencia, no tuneado a mano.
+  Bloqueado por la decisión `lux-subdomain-scope` (ver abajo) — no tiene sentido tunear a mano
+  algo cuyo alcance todavía no está definido.
+
+## Rutina de arranque (activa acá, ver STUDIO.md §9)
+
+Este es el primer y hoy único proyecto donde corre la rutina automática: al trigger, se refresca
+`asana-cache.json`, lo ejecutable se reparte a los roles, y lo que depende de una decisión de Roi
+queda en `studio/modo-god/decisions.json` para resolver desde `/modo-god` (o acá, si preguntás).
 
 ## Zips para hosting estático desde Windows
 
