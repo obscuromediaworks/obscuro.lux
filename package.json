@@ -4,6 +4,7 @@
   "description": "Sitio de Obscuro Mediaworks. Sin dependencias: los scripts son atajos a wrangler.",
   "scripts": {
     "dev": "wrangler dev",
+    "build-site": "node scripts/build-site.mjs",
     "deploy": "wrangler deploy",
     "deploy:dry": "wrangler deploy --dry-run",
     "versions": "wrangler versions list --name obscuro-lux-site",

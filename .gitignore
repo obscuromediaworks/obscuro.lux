@@ -31,7 +31,7 @@ build/
 
 __pycache__/
 
-# Bundle que se sube a Cloudflare Pages. Lo arma scripts/build-site.py.
+# Bundle que se sube a Cloudflare Pages. Lo arma `npm run build-site` (scripts/build-site.mjs).
 site-dist/
 .wrangler/
 

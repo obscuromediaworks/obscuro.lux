@@ -78,6 +78,15 @@
         font-size:10px;letter-spacing:0;color:var(--gold);text-transform:uppercase}
   .ship{color:var(--rec)}
 
+  .session-row{display:flex;gap:8px;align-items:center}
+  .session-open,.session-copy{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);
+    padding:6px 10px;cursor:pointer;white-space:nowrap}
+  .session-open:hover,.session-copy:hover{background:var(--gold);color:var(--ink-900);text-decoration:none}
+  .session-copy{border-style:dashed;border-color:var(--line);color:#8a8175}
+  .session-copy:hover{background:transparent;color:var(--cream);border-color:var(--line)}
+  .session-copy.done{color:var(--ok);border-color:var(--ok)}
+
   .hl{margin:0;padding:0 0 0 16px;font-size:12px;color:#a9a094;line-height:1.5}
   .hl li{margin-bottom:2px}
   .hl li::marker{color:var(--rec)}
@@ -210,11 +219,25 @@ function pulse(g){
   return `<span title="${w} commits en 7d · ${m} en 30d">${w}/${m} <span class="pulse">${bars}</span></span>`;
 }
 
+function sessionHref(p){
+  let href = "claude-cli://open?q=" + encodeURIComponent(p.trigger);
+  if (p.repo_path) href += "&cwd=" + encodeURIComponent(p.repo_path);
+  return href;
+}
+
 function card(p){
   const g = p.git, lc = g && g.last_commit;
   const d = daysTo(p.ships_on);
   const ship = d === null ? "" :
     `<span class="ship">lanza en ${d} d</span>`;
+  const session = p.trigger
+    ? `<div class="rowline session-row" style="border-top:none;padding-top:0;margin-top:-4px">
+        <a class="session-open" href="${esc(sessionHref(p))}"
+          title="Abre Claude Code local con el trigger precargado. Necesita el handler claude-cli:// registrado en esta máquina (se registra solo al mandar el primer prompt de una sesión interactiva).">▶ Sesión</a>
+        <button class="session-copy" type="button" data-trigger="${esc(p.trigger)}"
+          title="Por si el enlace no abre nada: copia el trigger para pegarlo a mano en una sesión de Claude Code.">⧉ Copiar trigger</button>
+      </div>`
+    : "";
   const a = p.asana;
   const asana = a
     ? `<a href="https://app.asana.com/0/${esc(p.asana_project_gid)}" target="_blank" rel="noopener"
@@ -244,6 +267,7 @@ function card(p){
         `<span class="role" title="${esc(r)}">${esc(r[0])}</span>`).join("")}</span>
       <span>${ship || esc(p.engine || "")}</span>
     </div>
+    ${session}
   </article>`;
 }
 
@@ -391,10 +415,25 @@ async function runSync(){
 }
 $("#sync-btn").addEventListener("click", runSync);
 
+async function copyTrigger(btn){
+  const text = btn.getAttribute("data-trigger");
+  const original = btn.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
+    window.prompt("No pude copiar solo — copiá a mano:", text);
+    return;
+  }
+  btn.textContent = "✓ Copiado";
+  btn.classList.add("done");
+  setTimeout(() => { btn.textContent = original; btn.classList.remove("done"); }, 1500);
+}
+
 $("#app").addEventListener("click", (e) => {
   const pick = e.target.closest("[data-decide]");
   const other = e.target.closest("[data-decide-other]");
   const gdd = e.target.closest("[data-gdd]");
+  const copy = e.target.closest(".session-copy");
   if (pick) {
     sendDecision(pick.getAttribute("data-decide"), Number(pick.getAttribute("data-idx")), null, pick);
   } else if (other) {
@@ -403,6 +442,8 @@ $("#app").addEventListener("click", (e) => {
     sendDecision(other.getAttribute("data-decide-other"), null, note.trim(), other);
   } else if (gdd) {
     openGdd(gdd.getAttribute("data-gdd"));
+  } else if (copy) {
+    copyTrigger(copy);
   }
 });
 
