@@ -19,11 +19,16 @@ Eso es todo. Sube `deploy/` al Worker **`obscuro-lux-site`**, que tiene atados:
 Requiere `npx wrangler login` (el OAuth caduca ~24 h). Cuenta `obscuromediaworks@gmail.com`,
 account id `630e82a95b7e0195814dd7891e25fc8c`.
 
-**`lux.` redirige al apex (decidido 12/8, decisions.json id `lux-subdomain-scope`).** El Worker ya
-no es solo assets: `src/index.js` intercepta el host `lux.obscuromediaworks.com.ar` y devuelve un
-301 a `obscuromediaworks.com.ar/#/lux`; todo lo demás lo sigue sirviendo `deploy/` sin cambios vía
-el binding `ASSETS`. Este cambio está commiteado pero **no deployado** hasta el próximo
-`npm run deploy`.
+**`lux.` redirige al apex (decidido 12/8, decisions.json id `lux-subdomain-scope`; deployado 13/8).**
+El Worker ya no es solo assets: `src/index.js` intercepta el host `lux.obscuromediaworks.com.ar` y
+devuelve un 301 a `obscuromediaworks.com.ar/#/lux`; todo lo demás lo sigue sirviendo `deploy/` sin
+cambios vía el binding `ASSETS`.
+
+**⚠️ Trampa pagada (13/8): Cloudflare sirve paths que matchean un asset SIN pasar por el Worker.**
+`lux.obscuromediaworks.com.ar/` matchea `deploy/index.html` como asset, así que el 301 nunca corría
+ahí — solo en paths sin asset correspondiente. No era cache (un "Purge Everything" no lo arregló).
+La solución es `run_worker_first = true` en `[assets]` de `wrangler.toml`: fuerza que TODO pase por
+`src/index.js` primero. Aplica a cualquier Worker con `[assets]` + código propio, no solo a este.
 
 ## ⚠️ Lo único que no hay que confundir
 
@@ -135,3 +140,10 @@ sesión que lo había hecho.
 Si el Worker tiene además una **integración de Git** (builds automáticos al pushear), ahora es
 segura: el build lee este `wrangler.toml` y sirve `deploy/`. Antes no existía el archivo, y por eso
 el build automático servía la raíz.
+
+**2026-08-13 — la integración de Git se desconectó (decidido 12/8, ejecutado 13/8).** Deploy pasa a
+ser 100% explícito: solo `npm run deploy`, cuando Roi dice "deployá". Confirmado sin deploys nuevos
+en el historial de versiones entre el 26/6 y el 13/8 pese a varios pushes a `main` en el medio.
+
+**2026-08-13 — redirect de `lux.` no corría en la raíz.** Ver la trampa de `run_worker_first` más
+arriba. Se pensó que era cache (Roi purgó todo, no cambió nada) hasta encontrar la causa real.
