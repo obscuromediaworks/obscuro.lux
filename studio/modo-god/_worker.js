@@ -71,9 +71,13 @@ async function ghJSON(env, path) {
   return r.json();
 }
 
-async function rawJSON(repo, branch, path) {
+// raw.githubusercontent.com da 404 (no 403) sin auth para repos privados -- casi todos los del
+// estudio lo son. Mandar el token siempre; en obscuro.lux (público) no molesta.
+async function rawJSON(env, repo, branch, path) {
   try {
-    const r = await fetch(`${RAW}/${repo}/${branch}/${path}`);
+    const r = await fetch(`${RAW}/${repo}/${branch}/${path}`, {
+      headers: { Authorization: "token " + env.GITHUB_TOKEN, "User-Agent": "modo-god-worker" },
+    });
     if (!r.ok) return null;
     return await r.json();
   } catch (e) {
@@ -81,9 +85,11 @@ async function rawJSON(repo, branch, path) {
   }
 }
 
-async function rawText(repo, branch, path) {
+async function rawText(env, repo, branch, path) {
   try {
-    const r = await fetch(`${RAW}/${repo}/${branch}/${path}`);
+    const r = await fetch(`${RAW}/${repo}/${branch}/${path}`, {
+      headers: { Authorization: "token " + env.GITHUB_TOKEN, "User-Agent": "modo-god-worker" },
+    });
     if (!r.ok) return null;
     return await r.text();
   } catch (e) {
@@ -142,17 +148,17 @@ async function asanaCounts(env, gid) {
 }
 
 async function buildSnapshot(env) {
-  const registry = await rawJSON(OBSCURO_REPO, "main", "studio/registry.json");
+  const registry = await rawJSON(env, OBSCURO_REPO, "main", "studio/registry.json");
   if (!registry) throw new Error("no pude leer studio/registry.json desde GitHub (main)");
-  const decisionsDoc = (await rawJSON(OBSCURO_REPO, "main", "studio/modo-god/decisions.json")) || {};
-  const asanaCacheDoc = (await rawJSON(OBSCURO_REPO, "main", "studio/modo-god/asana-cache.json")) || {};
+  const decisionsDoc = (await rawJSON(env, OBSCURO_REPO, "main", "studio/modo-god/decisions.json")) || {};
+  const asanaCacheDoc = (await rawJSON(env, OBSCURO_REPO, "main", "studio/modo-god/asana-cache.json")) || {};
   const asanaBySlug = asanaCacheDoc.projects || {};
 
   const projects = await Promise.all(
     (registry.projects || []).map(async (p) => {
       const [git, gddContent, liveAsana] = await Promise.all([
         repoGitState(env, p.repo, p.main_branch),
-        p.gdd ? rawText(p.repo, p.main_branch, p.gdd) : Promise.resolve(null),
+        p.gdd ? rawText(env, p.repo, p.main_branch, p.gdd) : Promise.resolve(null),
         asanaCounts(env, p.asana_project_gid),
       ]);
       const cachedAsana = asanaBySlug[p.slug] || null;
