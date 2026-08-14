@@ -16,8 +16,8 @@ real (`POST /api/publish/fire`) es **exclusivo de la consola local** -- el Worke
 (`_worker.js`) no tiene esta ruta ni la de `/publish`, igual que `/api/decide` y `/api/qa/mark`
 (ver STUDIO.md §8 y la regla de que el espejo público nunca escribe).
 
-    GET  /publish[?project=<slug>][&network=<discord|youtube|x|tiktok>]  -> el tablero,
-                                              filtros combinables
+    GET  /publish[?project=<slug>][&network=<discord|youtube|x|tiktok>][&status=<draft|queued|posted|failed|dropped>]
+                                           -> el tablero, filtros combinables
     POST /api/publish/fire                -> {"id": "<item-id>"} dispara un item auto
                                               (discord/youtube/x/tiktok)
 """
@@ -263,6 +263,7 @@ PAGE = """<!doctype html>
     padding:1rem 1.1rem; margin-bottom:.8rem; }
   .item.posted { border-color:rgba(106,176,76,.5); }
   .item.failed { border-color:var(--rec); }
+  .item.dropped { border-color:var(--line); opacity:.6; }
   .head { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-bottom:.5rem; }
   .tag { font:500 .66rem/1.5 ui-monospace,Consolas,monospace; letter-spacing:.1em; text-transform:uppercase;
     border:1px solid currentColor; padding:.1rem .5rem; white-space:nowrap; }
@@ -276,6 +277,7 @@ PAGE = """<!doctype html>
   .tag.status-queued { color:var(--warn); }
   .tag.status-posted { color:var(--ok); }
   .tag.status-failed { color:var(--rec); }
+  .tag.status-dropped { color:#8a8175; text-decoration:line-through; }
   .proj { font:500 .78rem/1 ui-monospace,Consolas,monospace; color:var(--gold); margin-left:auto; }
 
   .text { font-size:.94rem; line-height:1.55; white-space:pre-wrap; margin:0 0 .5rem; color:var(--cream); }
@@ -308,6 +310,7 @@ PAGE = """<!doctype html>
     API), pero sale privado (solo vos lo ves) hasta que TikTok apruebe la revisión de la app --
     ver <code>tiktok_oauth_setup.py</code>. Sin credenciales cargadas, "Disparar" devuelve el
     detalle de qué falta en vez de intentarlo.</p>
+  <div class="filters">__STATUS_FILTERS__</div>
   <div class="filters">__FILTERS__</div>
   <div class="filters">__NETWORK_FILTERS__</div>
   <div id="items">__ITEMS__</div>
@@ -357,6 +360,14 @@ document.getElementById("items").addEventListener("click", (e) => {
 """
 
 NETWORK_LABEL = {"discord": "Discord", "youtube": "YouTube", "x": "X", "tiktok": "TikTok"}
+
+# Etiquetas lindas para los status conocidos -- igual que NETWORK_LABEL, la lista de status que
+# efectivamente aparece como filtro sale de la cola en sí (ver render_page), esto solo pone
+# texto legible en vez del valor crudo cuando lo reconoce.
+STATUS_LABEL = {
+    "draft": "Pendientes", "queued": "En cola", "posted": "Posteado",
+    "failed": "Fallido", "dropped": "Descartado",
+}
 
 COMPOSE_URL = {
     "x": lambda text: "https://twitter.com/intent/tweet?text=" + _urlenc(text),
@@ -439,19 +450,22 @@ def _item_html(item):
     )
 
 
-def _filter_href(project=None, network=None):
+def _filter_href(project=None, network=None, status=None):
     """Arma /publish con los query params que estén presentes, para que cambiar un filtro
-    (proyecto o red) preserve el otro -- ej. /publish?project=moba-warmup&network=x."""
+    (proyecto, red o status) preserve los otros dos -- ej.
+    /publish?project=moba-warmup&network=x&status=draft."""
     from urllib.parse import quote
     params = []
     if project:
         params.append("project=" + quote(project))
     if network:
         params.append("network=" + quote(network))
+    if status:
+        params.append("status=" + quote(status))
     return "/publish" + ("?" + "&".join(params) if params else "")
 
 
-def render_page(project_filter=None, network_filter=None):
+def render_page(project_filter=None, network_filter=None, status_filter=None):
     doc = load_queue()
     all_items = doc.get("items", [])
     items = all_items
@@ -459,25 +473,45 @@ def render_page(project_filter=None, network_filter=None):
         items = [it for it in items if it.get("project") == project_filter]
     if network_filter:
         items = [it for it in items if it.get("network") == network_filter]
+    if status_filter:
+        items = [it for it in items if it.get("status") == status_filter]
 
     projects = sorted({it.get("project") for it in all_items if it.get("project")})
     filters = ['<a href="{href}"{on}>todos</a>'.format(
-        href=_esc(_filter_href(network=network_filter)), on=" class=\"on\"" if not project_filter else "")]
+        href=_esc(_filter_href(network=network_filter, status=status_filter)),
+        on=" class=\"on\"" if not project_filter else "")]
     for p in projects:
         on = " class=\"on\"" if p == project_filter else ""
         filters.append('<a href="{href}"{on}>{p}</a>'.format(
-            href=_esc(_filter_href(project=p, network=network_filter)), on=on, p=_esc(p)))
+            href=_esc(_filter_href(project=p, network=network_filter, status=status_filter)), on=on, p=_esc(p)))
 
     # Networks sacadas de la cola en sí, no hardcodeadas -- así se banca que mañana se sume una
     # red nueva sin tocar este archivo.
     networks = sorted({it.get("network") for it in all_items if it.get("network")})
     network_filters = ['<a href="{href}"{on}>todas</a>'.format(
-        href=_esc(_filter_href(project=project_filter)), on=" class=\"on\"" if not network_filter else "")]
+        href=_esc(_filter_href(project=project_filter, status=status_filter)),
+        on=" class=\"on\"" if not network_filter else "")]
     for n in networks:
         on = " class=\"on\"" if n == network_filter else ""
         network_filters.append('<a href="{href}"{on}>{label}</a>'.format(
-            href=_esc(_filter_href(project=project_filter, network=n)), on=on,
+            href=_esc(_filter_href(project=project_filter, network=n, status=status_filter)), on=on,
             label=_esc(NETWORK_LABEL.get(n, n))))
+
+    # Statuses sacados de la cola en sí, mismo criterio que projects/networks -- no hardcodear
+    # qué valores existen. "draft" (pendientes) va primero si está presente: es el filtro que
+    # más se usa (STUDIO.md / pedido de Roi 14/8), el resto en orden alfabético detrás.
+    statuses = sorted({it.get("status") for it in all_items if it.get("status")})
+    if "draft" in statuses:
+        statuses.remove("draft")
+        statuses.insert(0, "draft")
+    status_filters = ['<a href="{href}"{on}>todos</a>'.format(
+        href=_esc(_filter_href(project=project_filter, network=network_filter)),
+        on=" class=\"on\"" if not status_filter else "")]
+    for s in statuses:
+        on = " class=\"on\"" if s == status_filter else ""
+        status_filters.append('<a href="{href}"{on}>{label}</a>'.format(
+            href=_esc(_filter_href(project=project_filter, network=network_filter, status=s)), on=on,
+            label=_esc(STATUS_LABEL.get(s, s))))
 
     if not items:
         empty_bits = []
@@ -485,14 +519,17 @@ def render_page(project_filter=None, network_filter=None):
             empty_bits.append("proyecto " + _esc(project_filter))
         if network_filter:
             empty_bits.append("red " + _esc(NETWORK_LABEL.get(network_filter, network_filter)))
+        if status_filter:
+            empty_bits.append("status " + _esc(STATUS_LABEL.get(status_filter, status_filter)))
         suffix = (" para " + " · ".join(empty_bits)) if empty_bits else ""
         items_html = '<div class="empty">Nada en la cola' + suffix + '. Agregar entradas a mano en publish-queue.json.</div>'
     else:
-        # draft/queued/failed primero -- lo que necesita atención; posted al final.
-        order = {"queued": 0, "draft": 1, "failed": 2, "posted": 3}
+        # draft/queued/failed primero -- lo que necesita atención; posted y dropped al final.
+        order = {"queued": 0, "draft": 1, "failed": 2, "posted": 3, "dropped": 4}
         items = sorted(items, key=lambda it: order.get(it.get("status"), 1))
         items_html = "".join(_item_html(it) for it in items)
 
-    return (PAGE.replace("__FILTERS__", "".join(filters))
+    return (PAGE.replace("__STATUS_FILTERS__", "".join(status_filters))
+                .replace("__FILTERS__", "".join(filters))
                 .replace("__NETWORK_FILTERS__", "".join(network_filters))
                 .replace("__ITEMS__", items_html))

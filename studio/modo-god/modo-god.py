@@ -197,7 +197,8 @@ class Handler(SimpleHTTPRequestHandler):
         q = self.qa_query()
         project = (q.get("project") or [None])[0]
         network = (q.get("network") or [None])[0]
-        html = publish_board.render_page(project_filter=project, network_filter=network)
+        status = (q.get("status") or [None])[0]
+        html = publish_board.render_page(project_filter=project, network_filter=network, status_filter=status)
         return self.send_html(html)
 
     def handle_publish_fire(self):
