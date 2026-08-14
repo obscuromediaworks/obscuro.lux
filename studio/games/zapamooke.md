@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Repo** | `G:\Github\Zapamooke` (privado) — `obscuromediaworks/zapamooke` (rama `main`) |
-| **Asana** | *sin board todavía* — pendiente, ver §"Asana" abajo |
+| **Asana** | [ZAPAMOoKE!](https://app.asana.com/1/1214757798996025/project/1217507207653240) — gid `1217507207653240` |
 | **Trigger** | "Sigamos con Zapamooke" *(propuesto, a confirmar con Roi)* |
 | **Motor** | Navegador: React + Vite + TS · AudioWorklet + WASM (Ogg Vorbis) + `SharedArrayBuffer` (headers COOP/COEP) · protocolo NINJAM · gateway propio (Go/Rust) |
 | **Specs** | `docs/spec-zapamooke.md` (v0.4), `docs/spec-obscurostudio.md` (v0.2) e `docs/INDEX.md` dentro del repo — son la fuente de verdad, copiadas de `G:\Claude\_specs\`. Editarlas ahí adentro, no en `_specs` suelto. |
@@ -78,32 +78,14 @@ board de Asana).
 
 ## Asana
 
-**Pendiente de crear** — no se pudo armar el board desde esta sesión: la creación de
-proyectos/tareas requiere el conector MCP de Asana (`mcp__cdc311db-…__*`, cuenta FREE,
-`create_tasks`/`create_project` sin `privacy_setting` ni `start_on`), que no estaba disponible
-en las tools de esta sesión. Workspace y team a usar son los mismos que el resto del estudio
-(`gid 1214757798996025` / `gid 1214757798996027`, confirmar en `registry.json`).
-
-**Estructura propuesta de secciones** (por riesgo, siguiendo spec §12 y el orden de
-`docs/INDEX.md` — no por fase/feature):
-
-1. **R1 — Vorbis WASM en tiempo real** (crítico, bloqueante de todo lo demás)
-2. **R2–R5 — Riesgos técnicos de Fase 1** (deriva de reloj, onboarding del intervalo,
-   COOP/COEP, Safari/iOS diferido)
-3. **R9/R10 — Sala vacía y fricción del gate** (mitigación: calendario, no bloquean R1)
-4. **Fase 2 — Producto** (cuentas, gate completo, roles, lobby, calendario — no arranca hasta
-   que R1 esté resuelto con evidencia)
-5. **R13–R18 — Riesgos de negocio y comunidad** (moneda local, reputación, dispersión — Fase 3
-   en adelante, spec §8.5)
-6. **Backlog / Parked**
-
-Primera tarea a cargar en la sección 1 en cuanto el board exista: *"Correr R1 20 minutos
-continuos, exportar reporte, decidir Vorbis-WASM vs. plan B Opus"* — es la que decide si el
-resto del roadmap tiene sentido.
+Board creado 14/8/2026: [ZAPAMOoKE!](https://app.asana.com/1/1214757798996025/project/1217507207653240)
+(gid `1217507207653240`), workspace `1214757798996025` / team `1214757798996027`, mismo espacio
+que el resto del estudio. Secciones por riesgo (spec §12 / `docs/INDEX.md`, no por fase/feature):
+R1 (crítico, bloqueante) → R2–R5 → R9/R10 → Fase 2 (Producto, no arranca hasta que R1 esté
+resuelto con evidencia) → R13–R18 → Backlog/Parked (incluye OBSCUROSTUDIO).
 
 ## Pendiente inmediato
 
 1. Confirmar con Roi: nombre final del repo/slug (`zapamooke`, propuesto), texto exacto del
    trigger, y si conviene bootstrapear OBSCUROSTUDIO ya o esperar.
-2. Crear el board de Asana (requiere el conector MCP en una sesión que lo tenga disponible).
-3. Correr el experimento R1 20 minutos y decidir con evidencia.
+2. Correr el experimento R1 20 minutos y decidir con evidencia.
