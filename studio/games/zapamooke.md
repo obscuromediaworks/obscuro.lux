@@ -4,7 +4,7 @@
 |---|---|
 | **Repo** | `G:\Github\Zapamooke` (privado) — `obscuromediaworks/zapamooke` (rama `main`) |
 | **Asana** | [ZAPAMOoKE!](https://app.asana.com/1/1214757798996025/project/1217507207653240) — gid `1217507207653240` |
-| **Trigger** | "Sigamos con Zapamooke" *(propuesto, a confirmar con Roi)* |
+| **Trigger** | "Sigamos con Zapamooke" |
 | **Motor** | Navegador: React + Vite + TS · AudioWorklet + WASM (Ogg Vorbis) + `SharedArrayBuffer` (headers COOP/COEP) · protocolo NINJAM · gateway propio (Go/Rust) |
 | **Specs** | `docs/spec-zapamooke.md` (v0.4), `docs/spec-obscurostudio.md` (v0.2) e `docs/INDEX.md` dentro del repo — son la fuente de verdad, copiadas de `G:\Claude\_specs\`. Editarlas ahí adentro, no en `_specs` suelto. |
 
@@ -86,6 +86,7 @@ resuelto con evidencia) → R13–R18 → Backlog/Parked (incluye OBSCUROSTUDIO)
 
 ## Pendiente inmediato
 
-1. Confirmar con Roi: nombre final del repo/slug (`zapamooke`, propuesto), texto exacto del
-   trigger, y si conviene bootstrapear OBSCUROSTUDIO ya o esperar.
-2. Correr el experimento R1 20 minutos y decidir con evidencia.
+Confirmado por Roi (14/8): repo/slug `zapamooke`, trigger "Sigamos con Zapamooke", y
+OBSCUROSTUDIO **espera** a que R1 esté validado antes de bootstrapear su propio repo/setup.
+
+1. Correr el experimento R1 20 minutos y decidir con evidencia.
