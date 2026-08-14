@@ -144,7 +144,7 @@
       "id": "moba-launch-tiktok-announce",
       "project": "moba-warmup",
       "network": "tiktok",
-      "status": "draft",
+      "status": "posted",
       "text": "Dead time before your LoL queue pops? Fill it. MOBA Warmup Gym is live now -- free, browser, no install. #leagueoflegends #moba #lasthit #gamedev #indiegame",
       "media_path": "docs/gifs/adckite-silenced-punish.gif",
       "target": {
@@ -155,14 +155,18 @@
       "source": "Lanzamiento coordinado del día D -- distinto de moba-launch-tiktok-floorcollapse/cstracker (esos fueron pruebas del setup de OAuth, ya posted). GIF de docs/gifs/adckite-silenced-punish.gif (commit 45a19f6). privacy_level sigue SELF_ONLY hasta que TikTok apruebe la revisión de la app (ver comment del archivo)",
       "created_by": "om-marketing",
       "created_at": "2026-08-14",
-      "posted_at": null,
-      "result": null
+      "posted_at": "2026-08-14T17:38:11.642869+00:00",
+      "result": {
+        "ok": true,
+        "publish_id": "v_pub_file~v2-1.7673942863381776391",
+        "note": "Subido con privacy_level=SELF_ONLY -- revisar el estado con /v2/post/publish/status/fetch/ (publish_id) o en la app de TikTok, bandeja de borradores/privados."
+      }
     },
     {
       "id": "moba-launch-youtube-announce",
       "project": "moba-warmup",
       "network": "youtube",
-      "status": "draft",
+      "status": "failed",
       "text": "MOBA Warmup Gym is live. Free, browser-based skill trainer built for the dead time between League of Legends queues -- last hit drills, Kite Mode against a bot with real windup telegraphs, and Loading Frenzy for the loading screen itself. No install, no account, starts in under 3 seconds. Play now: mobawarmup.obscuromediaworks.com.ar",
       "media_path": "docs/gifs/lasthit-wave-clash.gif",
       "target": {
@@ -182,7 +186,10 @@
       "created_by": "om-marketing",
       "created_at": "2026-08-14",
       "posted_at": null,
-      "result": null
+      "result": {
+        "ok": false,
+        "error": "falta(n) client_id, client_secret, refresh_token en publish-credentials.json -- correr youtube_oauth_setup.py primero."
+      }
     },
     {
       "id": "slot-moba-warmup-devlog-2026-08-24",
