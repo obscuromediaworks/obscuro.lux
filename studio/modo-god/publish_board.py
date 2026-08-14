@@ -178,11 +178,22 @@ def _fire_x(item, creds):
         sp.save_credentials(creds)
 
     text = item.get("text") or ""
-    result = sp.x_post_tweet(access_token, text)
-    if item.get("media_path"):
-        note = "media_path presente pero el media upload de X no está implementado -- se posteó solo el texto."
-        result["note"] = (result.get("note") + " " + note).strip() if result.get("note") else note
-    return result
+    media_path = resolve_media_path(item)
+    media_id = None
+    if media_path:
+        if not os.path.isfile(media_path):
+            return {"ok": False, "error": "no existe el archivo: " + media_path}
+        # Si falla el upload, NO se postea el tweet a secas -- el pedido de Roi (14/8) fue
+        # justamente que un post con media adjunta no salga silenciosamente sin ella. Mejor
+        # "failed" y reintentar que un tweet de texto que no era la intención.
+        upload_result = sp.x_upload_media(access_token, media_path)
+        if not upload_result.get("ok"):
+            upload_result.setdefault("error", "no pude subir el media a X")
+            upload_result["error"] = "media upload: " + upload_result["error"]
+            return upload_result
+        media_id = upload_result.get("media_id")
+
+    return sp.x_post_tweet(access_token, text, media_id=media_id)
 
 
 def _fire_tiktok(item, creds):

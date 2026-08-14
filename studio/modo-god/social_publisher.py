@@ -3,12 +3,17 @@
 """
 Modo God -- disparo real de posteo en redes.
 
-Estado (14/8/2026): Discord, YouTube y X disparan de verdad. TikTok también llama a la API real
-(Content Posting API), pero con una salvedad que no es cosmética: hasta que TikTok apruebe la
-revisión de la app, todo lo que suba queda forzado a `privacy_level=SELF_ONLY` (solo lo ve la
-cuenta que autorizó) -- lo impone TikTok del lado del servidor, no hay flag que lo evite. Ver
-`README.md` y `tiktok_oauth_setup.py` para el detalle completo. Reddit queda AFUERA de esta pasada
-por decisión explícita de Roi (no invertir tiempo ahí todavía).
+Estado (14/8/2026): Discord, YouTube y X disparan de verdad. X ahora también sube media (imagen o
+GIF, `x_upload_media()`) antes de tuitear -- SIN VERIFICAR contra la API real todavía (ver
+docstring de `x_upload_media`); en particular, el access_token que ya está guardado en
+`publish-credentials.json` fue emitido ANTES de sumar el scope `media.write`, así que hace falta
+que Roi vuelva a correr `x_oauth_setup.py` para re-autorizar antes de que un disparo con media
+pueda funcionar. TikTok también llama a la API real (Content Posting API), pero con una salvedad
+que no es cosmética: hasta que TikTok apruebe la revisión de la app, todo lo que suba queda
+forzado a `privacy_level=SELF_ONLY` (solo lo ve la cuenta que autorizó) -- lo impone TikTok del
+lado del servidor, no hay flag que lo evite. Ver `README.md` y `tiktok_oauth_setup.py` para el
+detalle completo. Reddit queda AFUERA de esta pasada por decisión explícita de Roi (no invertir
+tiempo ahí todavía).
 
 Solo stdlib (`urllib`), sin dependencias nuevas -- mismo criterio que el resto de Modo God
 (`collect.py`, `qa_board.py`): nada de pip install para levantar la consola local.
@@ -42,7 +47,20 @@ YT_SCOPE = "https://www.googleapis.com/auth/youtube.upload"
 X_AUTHORIZE_URL = "https://x.com/i/oauth2/authorize"
 X_TOKEN_URL = "https://api.x.com/2/oauth2/token"
 X_TWEETS_URL = "https://api.x.com/2/tweets"
-X_SCOPE = "tweet.read tweet.write users.read offline.access"
+# Media upload v2 (chunked) -- reemplaza al viejo endpoint v1.1 (upload.twitter.com/1.1/media/
+# upload.json), que exigía OAuth 1.0a. La API v2 documentada en docs.x.com/x-api/media/quickstart/
+# media-upload-chunked acepta OAuth 2.0 User Context (Bearer, el mismo access_token que ya usa
+# x_post_tweet) siempre que el token tenga el scope `media.write` -- por eso se sumó a X_SCOPE más
+# abajo. OJO: agregar el scope acá NO alcanza para un token ya emitido -- X fija los scopes al
+# momento de la autorización, y refrescar un refresh_token viejo devuelve el MISMO set de scopes
+# original. Hace falta que Roi vuelva a correr x_oauth_setup.py (re-consentir) para que el próximo
+# access_token incluya media.write; hasta entonces, x_upload_media() va a fallar con un 403/
+# insufficient_scope contra credenciales ya guardadas.
+X_MEDIA_INIT_URL = "https://api.x.com/2/media/upload/initialize"
+X_MEDIA_APPEND_URL_TMPL = "https://api.x.com/2/media/upload/{}/append"
+X_MEDIA_FINALIZE_URL_TMPL = "https://api.x.com/2/media/upload/{}/finalize"
+X_MEDIA_STATUS_URL = "https://api.x.com/2/media/upload"
+X_SCOPE = "tweet.read tweet.write users.read offline.access media.write"
 
 TIKTOK_AUTHORIZE_URL = "https://www.tiktok.com/v2/auth/authorize/"
 TIKTOK_TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/"
@@ -265,20 +283,21 @@ def x_refresh_access_token(client_id, client_secret, refresh_token, timeout=20):
     return token, body.get("refresh_token")
 
 
-def x_post_tweet(access_token, text, timeout=25):
+def x_post_tweet(access_token, text, media_id=None, timeout=25):
     """POST /2/tweets -- pay-per-use, lo paga Roi del lado de su cuenta de X (ver Asana
     1217475928610505 para el pricing vigente: $0,015 texto plano / $0,20 si el tweet lleva un
     link). Esta función no maneja billing en absoluto, solo llama al endpoint con el access_token
     vigente -- si falta saldo/billing configurado, X devuelve un HTTPError que se propaga tal cual
     en el 'error' del resultado.
 
-    SIN media todavía: adjuntar imagen/gif necesita el endpoint de media upload (chunked,
-    api.x.com/2/media/upload, con scope media.write aparte), que es un flujo distinto de éste y no
-    está implementado en esta pasada. Si el item de la cola trae media_path, se postea solo el
-    texto y se avisa en el resultado en vez de fallar en silencio."""
+    `media_id` es opcional -- lo produce x_upload_media() en un paso previo (INIT/APPEND/FINALIZE).
+    Si viene, se manda como `media.media_ids: [media_id]` en el body, según la doc de POST /2/tweets."""
     if not text or not text.strip():
         return {"ok": False, "error": "nada para postear: el texto está vacío"}
-    body = json.dumps({"text": text}, ensure_ascii=False).encode("utf-8")
+    payload = {"text": text}
+    if media_id:
+        payload["media"] = {"media_ids": [media_id]}
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(X_TWEETS_URL, data=body, method="POST")
     req.add_header("Authorization", "Bearer " + access_token)
     req.add_header("Content-Type", "application/json")
@@ -296,6 +315,132 @@ def x_post_tweet(access_token, text, timeout=25):
         "url": ("https://x.com/i/web/status/" + tweet_id) if tweet_id else None,
         "error": None if tweet_id else "X no devolvió id de tweet: " + json.dumps(data, ensure_ascii=False),
     }
+
+
+X_MEDIA_CATEGORY_BY_TYPE = {
+    "image/gif": "tweet_gif",
+    "video/mp4": "tweet_video",
+    "video/quicktime": "tweet_video",
+}
+X_MEDIA_CHUNK_SIZE = 4 * 1024 * 1024  # 4 MiB por segmento APPEND -- bajo el límite de X (5 MiB)
+
+
+def x_upload_media(access_token, file_path, timeout=120, poll_timeout=90):
+    """Media upload v2 chunked (INIT -> APPEND(s) -> FINALIZE -> STATUS si hace falta procesar),
+    para adjuntar el media_id resultante a x_post_tweet(). X acepta GIF animado nativo en
+    media_category='tweet_gif' -- a diferencia de YouTube/TikTok, NO hace falta convertir el .gif
+    a .mp4 antes de subirlo acá.
+
+    SIN VERIFICAR contra la API real todavía -- mismo estado que youtube_upload_video/
+    tiktok_upload_video antes de correr sus setups: sigue la doc oficial
+    (docs.x.com/x-api/media/quickstart/media-upload-chunked) pero falta la prueba end to end. Dos
+    cosas a confirmar la primera vez que se dispare de verdad:
+      1. Que el access_token guardado tenga el scope `media.write` (ver nota junto a X_SCOPE --
+         un token viejo NO lo tiene aunque el código ya lo pida; hace falta re-correr
+         x_oauth_setup.py).
+      2. La forma exacta de la respuesta de STATUS (path/query params) -- implementada según el
+         patrón documentado, pero es la parte con menos certeza de esta función."""
+    if not os.path.isfile(file_path):
+        return {"ok": False, "error": "no existe el archivo: " + file_path}
+    size = os.path.getsize(file_path)
+    content_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+    media_category = X_MEDIA_CATEGORY_BY_TYPE.get(content_type, "tweet_image")
+
+    # 1. INIT
+    init_body = json.dumps({
+        "media_type": content_type,
+        "total_bytes": size,
+        "media_category": media_category,
+    }, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(X_MEDIA_INIT_URL, data=init_body, method="POST")
+    req.add_header("Authorization", "Bearer " + access_token)
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            init_data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return {"ok": False, "error": "init HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace"))}
+    except Exception as e:
+        return {"ok": False, "error": "init: " + str(e)}
+
+    media_id = (init_data.get("data") or {}).get("id")
+    if not media_id:
+        return {"ok": False, "error": "X no devolvió id de media en INIT: " + json.dumps(init_data, ensure_ascii=False)}
+
+    # 2. APPEND -- uno o más chunks, segment_index incremental.
+    with open(file_path, "rb") as f:
+        segment_index = 0
+        while True:
+            chunk = f.read(X_MEDIA_CHUNK_SIZE)
+            if not chunk:
+                break
+            body, boundary = _form_data_multipart(
+                {"segment_index": str(segment_index)},
+                {"media": (os.path.basename(file_path), chunk, "application/octet-stream")},
+            )
+            append_req = urllib.request.Request(
+                X_MEDIA_APPEND_URL_TMPL.format(media_id), data=body, method="POST")
+            append_req.add_header("Authorization", "Bearer " + access_token)
+            append_req.add_header("Content-Type", "multipart/form-data; boundary=" + boundary)
+            try:
+                with urllib.request.urlopen(append_req, timeout=timeout):
+                    pass
+            except urllib.error.HTTPError as e:
+                return {"ok": False, "error": "append HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace")), "media_id": media_id}
+            except Exception as e:
+                return {"ok": False, "error": "append: " + str(e), "media_id": media_id}
+            segment_index += 1
+
+    # 3. FINALIZE
+    finalize_req = urllib.request.Request(X_MEDIA_FINALIZE_URL_TMPL.format(media_id), data=b"", method="POST")
+    finalize_req.add_header("Authorization", "Bearer " + access_token)
+    finalize_req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(finalize_req, timeout=timeout) as resp:
+            finalize_data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return {"ok": False, "error": "finalize HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace")), "media_id": media_id}
+    except Exception as e:
+        return {"ok": False, "error": "finalize: " + str(e), "media_id": media_id}
+
+    processing = (finalize_data.get("data") or {}).get("processing_info")
+    if processing:
+        result = _x_wait_media_processing(access_token, media_id, processing, timeout=poll_timeout)
+        if not result.get("ok"):
+            return result
+
+    return {"ok": True, "media_id": media_id}
+
+
+def _x_wait_media_processing(access_token, media_id, processing_info, timeout=90):
+    """Poll de STATUS mientras processing_info.state sea pending/in_progress -- GIF y video
+    necesitan que X termine de procesarlos antes de poder usar el media_id en un tweet. Respeta el
+    check_after_secs que devuelve cada respuesta (recomendado por la doc en vez de un intervalo
+    fijo)."""
+    import time
+    elapsed = 0
+    while True:
+        state = processing_info.get("state")
+        if state == "succeeded":
+            return {"ok": True}
+        if state == "failed":
+            return {"ok": False, "error": "X no pudo procesar el media: " + json.dumps(processing_info, ensure_ascii=False), "media_id": media_id}
+        wait_s = processing_info.get("check_after_secs", 3)
+        if elapsed + wait_s > timeout:
+            return {"ok": False, "error": "timeout esperando que X termine de procesar el media (media_id={})".format(media_id), "media_id": media_id}
+        time.sleep(wait_s)
+        elapsed += wait_s
+        status_url = X_MEDIA_STATUS_URL + "?" + urllib.parse.urlencode({"command": "STATUS", "media_id": media_id})
+        status_req = urllib.request.Request(status_url, method="GET")
+        status_req.add_header("Authorization", "Bearer " + access_token)
+        try:
+            with urllib.request.urlopen(status_req, timeout=25) as resp:
+                status_data = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            return {"ok": False, "error": "status HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace")), "media_id": media_id}
+        except Exception as e:
+            return {"ok": False, "error": "status: " + str(e), "media_id": media_id}
+        processing_info = (status_data.get("data") or {}).get("processing_info") or {"state": "succeeded"}
 
 
 # ── TikTok Content Posting API -- OAuth 2.0 (authorization code + PKCE) ──────

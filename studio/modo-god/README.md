@@ -65,9 +65,30 @@ este código solo llama al endpoint con el access_token vigente; sin billing con
 devuelve un HTTP error que el tablero muestra tal cual. El access_token expira a las 2hs —
 `publish_board._fire_x()` lo refresca solo antes de cada disparo. X **rota el refresh_token en
 cada uso** (a diferencia de Google): el código persiste el nuevo automáticamente, Roi no tiene
-que volver a correr el script salvo revocación manual. Media (imagen/gif adjunto) **no está
-implementado todavía** — necesita el endpoint de media upload aparte (chunked, scope
-`media.write`); si un item trae `media_path`, se postea el texto solo y se avisa en el resultado.
+que volver a correr el script salvo revocación manual.
+
+**Media (imagen/gif adjunto), agregado 14/8/2026.** `x_upload_media()` sube el archivo con el
+endpoint de media v2 chunked (`api.x.com/2/media/upload/{initialize,append,finalize}`, doc oficial
+`docs.x.com/x-api/media/quickstart/media-upload-chunked`), consigue un `media_id`, y recién
+después `_fire_x()` postea el tweet con `media.media_ids: [media_id]`. GIF animado sube nativo
+(`media_category=tweet_gif`), sin convertir a mp4 como sí hace falta para YouTube/TikTok.
+
+**SIN VERIFICAR contra la API real todavía** — implementado siguiendo la doc oficial, pero sin una
+prueba end-to-end (cuesta dinero por request disparar de verdad). Dos cosas concretas antes de
+confiar en esto a ciegas:
+1. **El scope `media.write` se sumó a `X_SCOPE`, pero el `access_token` ya guardado en
+   `publish-credentials.json` fue emitido ANTES de ese cambio.** X fija los scopes al momento de
+   autorizar, y refrescar un `refresh_token` viejo devuelve el mismo set de scopes original —
+   **hace falta que Roi vuelva a correr `x_oauth_setup.py` (re-autorizar la app) antes de que un
+   disparo con media tenga chance de funcionar**, si no va a fallar con 403/insufficient_scope.
+2. No pude confirmar contra la documentación oficial en vivo si el endpoint v1.1 legado
+   (`upload.twitter.com/1.1/media/upload.json`, que exige OAuth 1.0a) sigue siendo obligatorio en
+   algún caso, o si el v2 con Bearer OAuth 2.0 alcanza siempre — esta implementación asume v2 +
+   Bearer porque es lo que documenta `docs.x.com` según el conocimiento con el que se escribió
+   este código, no algo que se haya podido re-chequear en vivo en esta pasada (sin acceso a
+   navegación web desde esta sesión). Si el primer disparo real con media falla con un error de
+   auth/scope que no se resuelve re-autorizando, es la señal de que hace falta el flujo OAuth 1.0a
+   aparte -- avisar antes de improvisar una firma OAuth 1.0a sin probarla.
 
 ### TikTok — Content Posting API, OAuth 2.0 + PKCE, gratis pero con revisión pendiente
 
