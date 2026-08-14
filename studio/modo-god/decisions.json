@@ -340,6 +340,27 @@
         "label": "Dejarla fija en Hextech por ahora. Se revisita cuando un segundo proyecto realmente tenga una pasada de QA que correr."
       },
       "execution_note": "Sin trabajo que ejecutar: la decisión es dejar la paleta tal cual está."
+    },
+    {
+      "id": "moba-launch-eve-qa-gap",
+      "project": "moba-warmup",
+      "asana_task_gid": "1216540339869285",
+      "due_on": "2026-08-14",
+      "question": "ADCKite y Loading (núcleo, no beta) tienen grabación y GIFs listos para el lanzamiento de mañana, pero la mini-QA formal de esos dos modos (mini-qa-checklist.md secciones 2 y 3, K1-K11 / F1-F8) nunca se corrió. ¿Se corre esa pasada antes de lanzar, o se lanza asumiendo el riesgo?",
+      "context": "om-qa confirmó 13/8 (docs/recording-log.md): LastHit sí tiene mini-QA cerrada (pasada del 13/7, 2 fixes aplicados). ADCKite/Loading solo tuvieron una tanda mucho más liviana sobre el build final (AK1-AK2, L1 -- 3 ítems, no los 19 de la checklist original). No es lo mismo: la checklist original cubre casos como windup del bot, kite-cancel, dodge, VFX de silence (ADCKite) y piso de hexágonos / caída / salida limpia (Loading). Nadie puede decidir por Roi si ese riesgo es aceptable a horas del lanzamiento.",
+      "options": [
+        {
+          "label": "Correr la pasada completa (K1-K11 + F1-F8) desde el tablero web de QA (skill qa) antes de lanzar mañana.",
+          "why": "Es lo que la constitución del estudio pide (QA no se improvisa, §5) -- cierra el hueco real antes de que lo vea el público.",
+          "recommended": true
+        },
+        {
+          "label": "Lanzar igual, asumiendo la deuda a propósito: son modos ya jugados extensamente en sesiones previas (ver commits 'Loading:' y 'ADCKite' en el git log), el riesgo es de regresión puntual, no de que el modo no funcione.",
+          "why": "El tiempo entre hoy y el lanzamiento es corto y hay otras tareas de marketing/infra compitiendo por él -- es una decisión de prioridad, no solo de QA.",
+          "recommended": false
+        }
+      ],
+      "status": "pending"
     }
   ]
 }

@@ -38,9 +38,15 @@ Al detectar señal de cierre ("nos vemos", "ya está", "terminamos por hoy", o e
 
 1. **Memoria** — actualizar lo aprendido (decisiones, estado, feedback nuevo). Limpiar duplicados en `MEMORY.md`.
 2. **Asana** — completar lo cerrado, crear lo nuevo (ideas sueltas → *Parked*), corregir alcance.
-3. **Sound Sheet** — solo MOBA Warmup y solo si se tocaron WAVs: reportar las filas a cambiar, no editarla sola.
-4. **Git** — `status` → `add` → commit descriptivo → `push`. Verificar que no haya secretos staged.
-5. **Build** — si el proyecto tiene deploy manual y se tocó código de runtime, generar el artifact. Si no aplica, decirlo explícitamente.
+3. **Modo God** — refrescar `studio/modo-god/decisions.json`: si algo que se descubrió o resolvió
+   en la sesión es un juicio de Roi (no algo que un agente pueda ejecutar solo), dejarlo ahí con
+   2-4 opciones y una `recommended: true`, aunque el trigger de la sesión no haya sido
+   `obscuro-lux` — el tablero es infra del estudio, no de un proyecto puntual (ver §8/§9). Pedido
+   explícito de Roi, 2026-08-13: pasa a ser parte del cierre de **todo** proyecto, no solo del
+   arranque de `obscuro-lux`.
+4. **Sound Sheet** — solo MOBA Warmup y solo si se tocaron WAVs: reportar las filas a cambiar, no editarla sola.
+5. **Git** — `status` → `add` → commit descriptivo → `push`. Verificar que no haya secretos staged.
+6. **Build** — si el proyecto tiene deploy manual y se tocó código de runtime, generar el artifact. Si no aplica, decirlo explícitamente.
 
 Si un paso no aplica en ese cierre, **decirlo**; no omitirlo en silencio.
 
@@ -127,5 +133,8 @@ resuelve una, se marca `"status": "decided"` en `decisions.json` (deja de listar
 pero el archivo conserva el historial).
 
 **Esto es infraestructura general del estudio** (`decisions.json` vive junto al resto de
-`studio/modo-god/`), pero hoy solo está en uso para el proyecto `obscuro-lux` — extenderlo a los
-demás triggers es una decisión de Roi, no algo que un agente asuma solo.
+`studio/modo-god/`). La rutina de *arranque* de este §9 (refrescar Asana al trigger, repartir a
+roles) sigue activa solo para `obscuro-lux` salvo que Roi pida extenderla. La rutina de *cierre*
+(§2.3) sí es transversal desde el 13/8/2026: cualquier proyecto que termine su sesión con un
+juicio de Roi pendiente lo deja anotado acá, sin esperar a que alguien dispare el trigger de
+`obscuro-lux` de nuevo.
