@@ -7,19 +7,18 @@
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
       "total": 47,
-      "open": 16,
-      "done": 30,
+      "open": 14,
+      "done": 33,
       "overdue": null,
       "highlights": [
-        "[Lanzamiento] ⭐ Lanzamiento público v1 — vence HOY 14/8",
+        "[Lanzamiento] ⭐ Lanzamiento público v1 — vence HOY 14/8. Único bloqueo: Roi tiene que sacar el secret de preview de itch y disparar la cola de /publish",
         "[Marketing] Campaña orgánica: clips diarios TikTok/Shorts/X — vence HOY 14/8",
-        "[Marketing] Trailer 30-60s + GIFs/clips — vencía 11/8. GIFs listos (9, commiteados), falta armar el trailer en sí",
-        "[Marketing] Página de itch completa — vencía 12/8. Texto/cover/screenshots/GIFs listos; faltan 2 pasos manuales de Roi (banner 960x300, sacar el secret de preview)",
+        "[Marketing] Página de itch completa — vencía 12/8. Todo listo (texto/cover/screenshots/GIFs/banner); falta 1 paso manual de Roi (sacar el secret de preview)",
         "[Marketing] Press kit / one-pager — vencía 12/8. Falta link jugable final + confirmar logo/email",
         "[Marketing] Lista + outreach a streamers — vencía 13/8. Borrador de mensaje listo, falta que Roi arme la lista real en Twitch",
-        "[Marketing] Posts en comunidades (r/summonerschool, etc.) — vence 15/8",
+        "[Marketing] Posts en comunidades (r/summonerschool, etc.) — vence 15/8. Draft completo para los 4 subs, faltan los Discords de LoL",
         "Decisión pendiente en Modo God: mini-QA formal de ADCKite/Loading nunca se corrió (ver decisions.json id moba-launch-eve-qa-gap)",
-        "TikTok Content Posting API en vivo, solicitud de revisión ya enviada (nueva tarea, ya cerrada)"
+        "Cola de lanzamiento lista en /publish (4 items draft: discord/x/tiktok/youtube), esperando que Roi la dispare"
       ]
     },
     "le2": {
