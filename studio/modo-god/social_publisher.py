@@ -3,10 +3,12 @@
 """
 Modo God -- disparo real de posteo en redes.
 
-Foco de esta pasada (13/8/2026, pedido explícito de Roi): Discord y YouTube lo más completo
-posible. X/TikTok quedan en modo asistido (copiar texto + abrir la página de compose, sin API) --
-ver `publish_board.py`. Reddit queda AFUERA de esta pasada por decisión explícita de Roi (no
-invertir tiempo ahí todavía).
+Estado (14/8/2026): Discord, YouTube y X disparan de verdad. TikTok también llama a la API real
+(Content Posting API), pero con una salvedad que no es cosmética: hasta que TikTok apruebe la
+revisión de la app, todo lo que suba queda forzado a `privacy_level=SELF_ONLY` (solo lo ve la
+cuenta que autorizó) -- lo impone TikTok del lado del servidor, no hay flag que lo evite. Ver
+`README.md` y `tiktok_oauth_setup.py` para el detalle completo. Reddit queda AFUERA de esta pasada
+por decisión explícita de Roi (no invertir tiempo ahí todavía).
 
 Solo stdlib (`urllib`), sin dependencias nuevas -- mismo criterio que el resto de Modo God
 (`collect.py`, `qa_board.py`): nada de pip install para levantar la consola local.
@@ -15,6 +17,9 @@ Las credenciales NUNCA viven acá ni en el repo -- se leen de `publish-credentia
 (gitignoreado). Ver `publish-credentials.example.json` para el formato.
 """
 
+import base64
+import hashlib
+import http.server
 import json
 import mimetypes
 import os
@@ -33,6 +38,17 @@ YT_DEVICE_CODE_URL = "https://oauth2.googleapis.com/device/code"
 YT_TOKEN_URL = "https://oauth2.googleapis.com/token"
 YT_UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/videos"
 YT_SCOPE = "https://www.googleapis.com/auth/youtube.upload"
+
+X_AUTHORIZE_URL = "https://x.com/i/oauth2/authorize"
+X_TOKEN_URL = "https://api.x.com/2/oauth2/token"
+X_TWEETS_URL = "https://api.x.com/2/tweets"
+X_SCOPE = "tweet.read tweet.write users.read offline.access"
+
+TIKTOK_AUTHORIZE_URL = "https://www.tiktok.com/v2/auth/authorize/"
+TIKTOK_TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/"
+TIKTOK_INIT_URL = "https://open.tiktokapis.com/v2/post/publish/video/init/"
+TIKTOK_STATUS_URL = "https://open.tiktokapis.com/v2/post/publish/status/fetch/"
+TIKTOK_SCOPE = "video.publish"
 
 
 # ── Credenciales ─────────────────────────────────────────────────────────────
@@ -131,6 +147,290 @@ def post_discord(webhook_url, content, file_path=None, username=None, timeout=25
         return {"ok": False, "error": "HTTP {}: {}".format(e.code, detail)}
     except Exception as e:
         return {"ok": False, "error": str(e)}
+
+
+# ── Callback local de OAuth (X, TikTok -- authorization code flow) ──────────
+# YouTube usa device flow (sin redirect, ver youtube_device_auth_start más abajo). X y TikTok son
+# authorization code flow clásico: necesitan un redirect_uri que reciba el `code` de vuelta. Un
+# server HTTP mínimo, para UN solo request, vive acá porque lo comparten x_oauth_setup.py y
+# tiktok_oauth_setup.py -- no tiene sentido duplicarlo.
+
+def pkce_pair():
+    """PKCE (RFC 7636): code_verifier al azar + code_challenge = SHA256(code_verifier) en
+    base64url sin padding. Tanto X como TikTok piden method S256, no 'plain'."""
+    verifier = base64.urlsafe_b64encode(os.urandom(40)).rstrip(b"=").decode("ascii")
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("ascii")).digest()).rstrip(b"=").decode("ascii")
+    return verifier, challenge
+
+
+def random_state(n_bytes=16):
+    return base64.urlsafe_b64encode(os.urandom(n_bytes)).rstrip(b"=").decode("ascii")
+
+
+def _add_basic_auth(req, user, password):
+    token = base64.b64encode("{}:{}".format(user, password).encode("utf-8")).decode("ascii")
+    req.add_header("Authorization", "Basic " + token)
+
+
+def wait_for_oauth_redirect(port, path="/oauth/callback", timeout=300):
+    """Levanta un HTTPServer en 127.0.0.1:<port>, atiende UN solo GET a `path` y devuelve sus
+    query params como dict plano (último valor si hay repetidos). Sirve una página HTML mínima de
+    vuelta para que el navegador no quede colgado con un error de conexión -- nadie más la ve."""
+    result = {}
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            parsed = urllib.parse.urlparse(self.path)
+            if parsed.path != path:
+                self.send_response(404)
+                self.end_headers()
+                return
+            result.update(urllib.parse.parse_qs(parsed.query))
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(
+                "<html><body style='font-family:sans-serif;padding:2rem'>"
+                "Listo, ya podés cerrar esta pestaña y volver a la terminal."
+                "</body></html>".encode("utf-8")
+            )
+
+        def log_message(self, fmt, *args):
+            pass  # silencioso -- el script que llama a esto imprime su propio progreso
+
+    server = http.server.HTTPServer(("127.0.0.1", port), Handler)
+    server.timeout = timeout
+    server.handle_request()  # bloquea hasta el primer (y único) request, o hasta el timeout
+    server.server_close()
+    return {k: v[0] for k, v in result.items()}
+
+
+# ── X (ex-Twitter) API v2 -- OAuth 2.0 Authorization Code + PKCE ─────────────
+
+def x_build_authorize_url(client_id, redirect_uri, state, code_challenge):
+    params = {
+        "response_type": "code",
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "scope": X_SCOPE,
+        "state": state,
+        "code_challenge": code_challenge,
+        "code_challenge_method": "S256",
+    }
+    return X_AUTHORIZE_URL + "?" + urllib.parse.urlencode(params)
+
+
+def x_exchange_code(client_id, client_secret, code, redirect_uri, code_verifier, timeout=20):
+    """Canjea el authorization code por access_token + refresh_token (scope offline.access).
+    X trata la app como 'confidential client' (tiene client_secret): exige HTTP Basic Auth con
+    client_id:client_secret ADEMÁS de mandar client_id en el body -- las dos cosas, según la doc."""
+    data = urllib.parse.urlencode({
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirect_uri,
+        "code_verifier": code_verifier,
+        "client_id": client_id,
+    }).encode("utf-8")
+    req = urllib.request.Request(X_TOKEN_URL, data=data, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    _add_basic_auth(req, client_id, client_secret)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return {"error": "HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace"))}
+
+
+def x_refresh_access_token(client_id, client_secret, refresh_token, timeout=20):
+    """A diferencia de Google, X ROTA el refresh_token en cada uso -- devuelve (access_token,
+    refresh_token_nuevo_o_None). El caller (publish_board._fire_x) tiene que persistir el nuevo
+    refresh_token o el próximo refresh va a fallar con 'invalid_grant'."""
+    data = urllib.parse.urlencode({
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": client_id,
+    }).encode("utf-8")
+    req = urllib.request.Request(X_TOKEN_URL, data=data, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    _add_basic_auth(req, client_id, client_secret)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        raise RuntimeError("no pude refrescar el token de X: HTTP {}: {}".format(
+            e.code, e.read().decode("utf-8", "replace")))
+    token = body.get("access_token")
+    if not token:
+        raise RuntimeError("X no devolvió access_token: " + json.dumps(body, ensure_ascii=False))
+    return token, body.get("refresh_token")
+
+
+def x_post_tweet(access_token, text, timeout=25):
+    """POST /2/tweets -- pay-per-use, lo paga Roi del lado de su cuenta de X (ver Asana
+    1217475928610505 para el pricing vigente: $0,015 texto plano / $0,20 si el tweet lleva un
+    link). Esta función no maneja billing en absoluto, solo llama al endpoint con el access_token
+    vigente -- si falta saldo/billing configurado, X devuelve un HTTPError que se propaga tal cual
+    en el 'error' del resultado.
+
+    SIN media todavía: adjuntar imagen/gif necesita el endpoint de media upload (chunked,
+    api.x.com/2/media/upload, con scope media.write aparte), que es un flujo distinto de éste y no
+    está implementado en esta pasada. Si el item de la cola trae media_path, se postea solo el
+    texto y se avisa en el resultado en vez de fallar en silencio."""
+    if not text or not text.strip():
+        return {"ok": False, "error": "nada para postear: el texto está vacío"}
+    body = json.dumps({"text": text}, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(X_TWEETS_URL, data=body, method="POST")
+    req.add_header("Authorization", "Bearer " + access_token)
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return {"ok": False, "error": "HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace"))}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    tweet_id = (data.get("data") or {}).get("id")
+    return {
+        "ok": bool(tweet_id),
+        "tweet_id": tweet_id,
+        "url": ("https://x.com/i/web/status/" + tweet_id) if tweet_id else None,
+        "error": None if tweet_id else "X no devolvió id de tweet: " + json.dumps(data, ensure_ascii=False),
+    }
+
+
+# ── TikTok Content Posting API -- OAuth 2.0 (authorization code + PKCE) ──────
+#
+# OJO -- diferencia real con X/YouTube, ver README.md: pedir el scope video.publish mete la app
+# en la cola de revisión manual de TikTok (1-4 semanas, sin forma de pagar para acelerar). Hasta
+# que aprueben, TODO lo que suba esta API queda forzado a privacy_level=SELF_ONLY (solo lo ve la
+# cuenta que autorizó, no es público) -- lo impone TikTok del lado del servidor, el código no
+# tiene control sobre eso. El flujo sirve igual para el video demo que TikTok pide junto con la
+# solicitud de revisión (ver README).
+
+def tiktok_build_authorize_url(client_key, redirect_uri, state, code_challenge):
+    params = {
+        "client_key": client_key,
+        "response_type": "code",
+        "scope": TIKTOK_SCOPE,
+        "redirect_uri": redirect_uri,
+        "state": state,
+        "code_challenge": code_challenge,
+        "code_challenge_method": "S256",
+    }
+    return TIKTOK_AUTHORIZE_URL + "?" + urllib.parse.urlencode(params)
+
+
+def tiktok_exchange_code(client_key, client_secret, code, redirect_uri, code_verifier, timeout=20):
+    data = urllib.parse.urlencode({
+        "client_key": client_key,
+        "client_secret": client_secret,
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": redirect_uri,
+        "code_verifier": code_verifier,
+    }).encode("utf-8")
+    req = urllib.request.Request(TIKTOK_TOKEN_URL, data=data, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    req.add_header("Cache-Control", "no-cache")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return {"error": "HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace"))}
+
+
+def tiktok_refresh_access_token(client_key, client_secret, refresh_token, timeout=20):
+    """TikTok también rota el refresh_token en cada uso -- mismo trato que x_refresh_access_token."""
+    data = urllib.parse.urlencode({
+        "client_key": client_key,
+        "client_secret": client_secret,
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+    }).encode("utf-8")
+    req = urllib.request.Request(TIKTOK_TOKEN_URL, data=data, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        raise RuntimeError("no pude refrescar el token de TikTok: HTTP {}: {}".format(
+            e.code, e.read().decode("utf-8", "replace")))
+    token = body.get("access_token")
+    if not token:
+        raise RuntimeError("TikTok no devolvió access_token: " + json.dumps(body, ensure_ascii=False))
+    return token, body.get("refresh_token")
+
+
+def tiktok_upload_video(access_token, file_path, title, privacy_level="SELF_ONLY", timeout=600):
+    """Content Posting API, flujo FILE_UPLOAD directo (un solo chunk -- alcanza para clips cortos;
+    PULL_FROM_URL es la alternativa si el archivo ya está en una URL pública, no hace falta acá).
+    Dos pasos:
+      1. POST /video/init/ -- declara tamaño, TikTok devuelve upload_url + publish_id.
+      2. PUT al upload_url con los bytes del video.
+
+    privacy_level default SELF_ONLY porque es el ÚNICO valor que aceptan las apps sin auditar --
+    si el video sube con otro valor antes de la aprobación, TikTok lo fuerza a SELF_ONLY igual del
+    lado de ellos. El día que Roi mande la solicitud y la aprueben, este default hay que
+    revisarlo (pasar a PUBLIC_TO_EVERYONE o el valor que corresponda).
+
+    SIN VERIFICAR contra la API real todavía -- mismo estado que youtube_upload_video antes de
+    correr el setup: sigue developers.tiktok.com/doc/content-posting-api-reference-direct-post,
+    pero falta la prueba end to end contra una app real."""
+    if not os.path.isfile(file_path):
+        return {"ok": False, "error": "no existe el archivo de video: " + file_path}
+    size = os.path.getsize(file_path)
+
+    init_body = json.dumps({
+        "post_info": {
+            "title": (title or "")[:150],
+            "privacy_level": privacy_level,
+            "disable_duet": False,
+            "disable_comment": False,
+            "disable_stitch": False,
+        },
+        "source_info": {
+            "source": "FILE_UPLOAD",
+            "video_size": size,
+            "chunk_size": size,
+            "total_chunk_count": 1,
+        },
+    }, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(TIKTOK_INIT_URL, data=init_body, method="POST")
+    req.add_header("Authorization", "Bearer " + access_token)
+    req.add_header("Content-Type", "application/json; charset=UTF-8")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            init_data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return {"ok": False, "error": "init HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace"))}
+    except Exception as e:
+        return {"ok": False, "error": "init: " + str(e)}
+
+    info = init_data.get("data") or {}
+    upload_url = info.get("upload_url")
+    publish_id = info.get("publish_id")
+    if not upload_url or not publish_id:
+        return {"ok": False, "error": "TikTok no devolvió upload_url/publish_id: " + json.dumps(init_data, ensure_ascii=False)}
+
+    with open(file_path, "rb") as f:
+        video_bytes = f.read()
+    put_req = urllib.request.Request(upload_url, data=video_bytes, method="PUT")
+    put_req.add_header("Content-Type", "video/mp4")
+    put_req.add_header("Content-Range", "bytes 0-{}/{}".format(size - 1, size))
+    try:
+        with urllib.request.urlopen(put_req, timeout=timeout):
+            pass
+    except urllib.error.HTTPError as e:
+        return {"ok": False, "error": "upload HTTP {}: {}".format(e.code, e.read().decode("utf-8", "replace")), "publish_id": publish_id}
+    except Exception as e:
+        return {"ok": False, "error": "upload: " + str(e), "publish_id": publish_id}
+
+    return {
+        "ok": True,
+        "publish_id": publish_id,
+        "note": "Subido con privacy_level={} -- revisar el estado con /v2/post/publish/status/fetch/ "
+                "(publish_id) o en la app de TikTok, bandeja de borradores/privados.".format(privacy_level),
+    }
 
 
 # ── YouTube Data API v3 (OAuth device/installed-app flow) ───────────────────

@@ -1,5 +1,5 @@
 {
-  "$comment": "Cola de contenido de Modo God -- mismo espíritu que decisions.json: se arma acá (a mano o por un agente), pero el disparo real de 'publicar' pasa por la consola local (/publish, POST /api/publish/fire) y espera aprobación explícita de Roi (ver STUDIO.md §8). status: draft (recién armado, nadie lo revisó) -> queued (Roi lo aprobó, listo para disparar cuando toque) -> posted (ya salió) / failed (se intentó y falló, ver result.error). network discord/youtube = disparo automático real desde el tablero. network x/tiktok = asistido: el tablero da 'copiar texto' + 'abrir compose', el click real lo hace Roi a mano. Reddit queda AFUERA de esta pasada por decisión explícita de Roi (13/8/2026) -- no hay entradas ni código para esa red todavía.",
+  "$comment": "Cola de contenido de Modo God -- mismo espíritu que decisions.json: se arma acá (a mano o por un agente), pero el disparo real de 'publicar' pasa por la consola local (/publish, POST /api/publish/fire) y espera aprobación explícita de Roi (ver STUDIO.md §8). status: draft (recién armado, nadie lo revisó) -> queued (Roi lo aprobó, listo para disparar cuando toque) -> posted (ya salió) / failed (se intentó y falló, ver result.error). network discord/youtube/x/tiktok = disparo automático real desde el tablero (14/8/2026: X y TikTok se sumaron -- antes eran asistidos, ver social_publisher.py, x_oauth_setup.py, tiktok_oauth_setup.py). TikTok sale privado (SELF_ONLY) hasta que TikTok apruebe la revisión de la app. Reddit queda AFUERA de esta pasada por decisión explícita de Roi (13/8/2026) -- no hay entradas ni código para esa red todavía.",
   "items": [
     {
       "id": "moba-devlog-buildsize-discord",
@@ -50,7 +50,7 @@
       "media_path": "docs/screenshots/loading_mode.png",
       "target": {},
       "suggested_at": "2026-08-13T20:00:00-03:00",
-      "source": "MOBAWarmup/docs/social-content-calendar.md -- fila 'Jue 13/8 (hoy)'. Asistido: sin API gratis que alcance para postear en X, se copia el texto y se abre el compose a mano.",
+      "source": "MOBAWarmup/docs/social-content-calendar.md -- fila 'Jue 13/8 (hoy)'. Dispara real (14/8: X pasó a auto) una vez que Roi cargue las credenciales con x_oauth_setup.py -- hasta entonces, 'Disparar' devuelve qué falta.",
       "created_by": "om-marketing",
       "created_at": "2026-08-13",
       "posted_at": null,
@@ -99,7 +99,7 @@
       "media_path": null,
       "target": {},
       "suggested_at": "2026-08-28T12:00:00-03:00",
-      "source": "MOBAWarmup/docs/community-posts-draft.md, o una pregunta abierta sobre una feature reciente -- termina en pregunta, no en pitch. Asistido: copiar + abrir compose, no dispara solo.",
+      "source": "MOBAWarmup/docs/community-posts-draft.md, o una pregunta abierta sobre una feature reciente -- termina en pregunta, no en pitch. Dispara real una vez que haya credenciales de X cargadas.",
       "created_by": "publish_rotation.py",
       "created_at": "2026-08-13",
       "posted_at": null,

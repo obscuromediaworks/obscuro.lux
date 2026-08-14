@@ -3,9 +3,13 @@
 """
 Modo God -- tablero de Publish (cola de contenido para redes).
 
-Foco de esta pasada (13/8/2026): Discord (webhook, auto) y YouTube (Data API v3, OAuth, auto)
-lo más completo posible; X y TikTok quedan asistidos (copiar texto + abrir compose, sin API);
-Reddit queda AFUERA por decisión explícita de Roi -- no hay código ni entradas para esa red acá.
+Estado (14/8/2026): Discord (webhook), YouTube (Data API v3, OAuth device flow) y X (API v2,
+OAuth2 + PKCE) disparan de verdad. TikTok también llama a la API real (Content Posting API,
+OAuth2 + PKCE), pero con una salvedad real: hasta que TikTok apruebe la revisión de la app, todo
+lo que suba queda forzado a `privacy_level=SELF_ONLY` (privado, solo la cuenta que autorizó lo
+ve) -- lo impone TikTok del lado del servidor, no es un límite de este código. Ver
+`tiktok_oauth_setup.py` para el detalle completo. Reddit queda AFUERA por decisión explícita de
+Roi -- no hay código ni entradas para esa red acá.
 
 Mismo patrón que qa_board.py: vive junto al resto de Modo God, lo sirve modo-god.py, y el disparo
 real (`POST /api/publish/fire`) es **exclusivo de la consola local** -- el Worker público
@@ -13,7 +17,8 @@ real (`POST /api/publish/fire`) es **exclusivo de la consola local** -- el Worke
 (ver STUDIO.md §8 y la regla de que el espejo público nunca escribe).
 
     GET  /publish[?project=<slug>]        -> el tablero
-    POST /api/publish/fire                -> {"id": "<item-id>"} dispara un item auto (discord/youtube)
+    POST /api/publish/fire                -> {"id": "<item-id>"} dispara un item auto
+                                              (discord/youtube/x/tiktok)
 """
 
 import json
@@ -26,8 +31,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 QUEUE_PATH = os.path.join(HERE, "publish-queue.json")
 SCHEDULE_PATH = os.path.join(HERE, "publish-schedule.json")
 
-AUTO_NETWORKS = ("discord", "youtube")
-ASSISTED_NETWORKS = ("x", "tiktok")
+AUTO_NETWORKS = ("discord", "youtube", "x", "tiktok")
+ASSISTED_NETWORKS = ()
 
 
 # ── Cola: leer/escribir ───────────────────────────────────────────────────────
@@ -94,8 +99,12 @@ def fire(item_id):
     try:
         if network == "discord":
             result = _fire_discord(item, creds)
-        else:
+        elif network == "youtube":
             result = _fire_youtube(item, creds)
+        elif network == "x":
+            result = _fire_x(item, creds)
+        else:
+            result = _fire_tiktok(item, creds)
     except Exception as e:
         result = {"ok": False, "error": str(e)}
 
@@ -147,6 +156,67 @@ def _fire_youtube(item, creds):
         description=item.get("text") or "",
         tags=target.get("tags"),
         privacy_status=target.get("privacy_status", "unlisted"),
+    )
+
+
+def _fire_x(item, creds):
+    x = creds.get("x") or {}
+    missing = [k for k in ("client_id", "client_secret", "access_token", "refresh_token")
+               if sp._looks_like_placeholder(x.get(k))]
+    if missing:
+        return {"ok": False, "error": "falta(n) {} en publish-credentials.json -- correr x_oauth_setup.py primero.".format(", ".join(missing))}
+
+    # X rota el refresh_token en cada uso -- refrescar SIEMPRE antes de postear (el access_token
+    # dura 2hs, más corto que el intervalo típico entre disparos) y persistir el par nuevo antes
+    # de intentar el post, así un fallo de x_post_tweet() no deja credenciales vencidas guardadas.
+    try:
+        access_token, new_refresh = sp.x_refresh_access_token(x["client_id"], x["client_secret"], x["refresh_token"])
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    if new_refresh:
+        creds["x"]["refresh_token"] = new_refresh
+        sp.save_credentials(creds)
+
+    text = item.get("text") or ""
+    result = sp.x_post_tweet(access_token, text)
+    if item.get("media_path"):
+        note = "media_path presente pero el media upload de X no está implementado -- se posteó solo el texto."
+        result["note"] = (result.get("note") + " " + note).strip() if result.get("note") else note
+    return result
+
+
+def _fire_tiktok(item, creds):
+    tk = creds.get("tiktok") or {}
+    missing = [k for k in ("client_key", "client_secret", "access_token", "refresh_token")
+               if sp._looks_like_placeholder(tk.get(k))]
+    if missing:
+        return {"ok": False, "error": "falta(n) {} en publish-credentials.json -- correr tiktok_oauth_setup.py primero.".format(", ".join(missing))}
+
+    media_path = resolve_media_path(item)
+    if not media_path:
+        return {"ok": False, "error": "el item no tiene media_path -- TikTok necesita un archivo de video."}
+    if not os.path.isfile(media_path):
+        return {"ok": False, "error": "no existe el archivo: " + media_path}
+    upload_path = media_path
+    if media_path.lower().endswith(".gif"):
+        try:
+            upload_path = sp.gif_to_mp4(media_path)
+        except Exception as e:
+            return {"ok": False, "error": "no pude convertir el gif a mp4: " + str(e)}
+
+    try:
+        access_token, new_refresh = sp.tiktok_refresh_access_token(tk["client_key"], tk["client_secret"], tk["refresh_token"])
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    if new_refresh:
+        creds["tiktok"]["refresh_token"] = new_refresh
+        sp.save_credentials(creds)
+
+    target = item.get("target") or {}
+    return sp.tiktok_upload_video(
+        access_token, upload_path,
+        title=target.get("title") or item.get("text") or "",
+        privacy_level=target.get("privacy_level", "SELF_ONLY"),
     )
 
 
@@ -221,13 +291,15 @@ PAGE = """<!doctype html>
 <body>
   <a class="back" href="/">&larr; Modo God</a>
   <h1>Publish</h1>
-  <p class="lede">Cola de contenido para redes. Discord y YouTube disparan de verdad desde acá
-    (webhook / Data API v3). X y TikTok quedan asistidos: copiás el texto y abrís la página de
-    compose a mano -- sin API paga ni revisión pendiente de por medio.</p>
+  <p class="lede">Cola de contenido para redes. Discord, YouTube y X disparan de verdad desde acá
+    (webhook / Data API v3 / API v2 con OAuth). TikTok también dispara de verdad (Content Posting
+    API), pero sale privado (solo vos lo ves) hasta que TikTok apruebe la revisión de la app --
+    ver <code>tiktok_oauth_setup.py</code>. Sin credenciales cargadas, "Disparar" devuelve el
+    detalle de qué falta en vez de intentarlo.</p>
   <div class="filters">__FILTERS__</div>
   <div id="items">__ITEMS__</div>
-  <footer>El disparo real (Discord/YouTube) es exclusivo de esta consola local -- el espejo
-    público de Modo God no tiene este endpoint. Las credenciales viven en
+  <footer>El disparo real (Discord/YouTube/X/TikTok) es exclusivo de esta consola local -- el
+    espejo público de Modo God no tiene este endpoint. Las credenciales viven en
     <code>publish-credentials.json</code>, gitignoreado.</footer>
 
 <script>

@@ -19,20 +19,80 @@ que nadie remoto puede ver). **Es la versión que vale para decidir.** También 
 **Tablero de Publish (cola de contenido para redes).** `http://localhost:5080/publish` — la cola
 vive en `publish-queue.json` (mismo espíritu que `decisions.json`): cada item tiene proyecto, red,
 texto, archivo opcional, horario sugerido y `status` (`draft` → `queued` → `posted`/`failed`).
-**Discord y YouTube disparan de verdad** desde el botón "Disparar" (`POST /api/publish/fire`, ver
-`publish_board.py` + `social_publisher.py`): Discord vía webhook (sin OAuth, sin costo), YouTube
-vía Data API v3 (OAuth device flow, ver `youtube_oauth_setup.py` — Roi corre ese script una vez
-después de crear las credenciales en Google Cloud Console). **X y TikTok quedan asistidos**:
-el botón copia el texto formateado y abre la página de compose, el click real lo hace Roi a mano
-— sin API paga (X) ni pasar por la revisión de app pendiente (TikTok Content Posting API). Roi
-confirmó (13/8) que más adelante quiere pagar el tier de X que sirve para automatizarlo de
-verdad, pero explícitamente **después** de que Discord/YouTube estén sólidos — ver la tarea de
-Asana `1217475928610505`, no arrancar esa parte todavía. **Reddit queda afuera de esta pasada**
-por decisión explícita de Roi (no hay código ni entradas de cola para esa red).
+**Discord, YouTube y X disparan de verdad** desde el botón "Disparar" (`POST /api/publish/fire`,
+ver `publish_board.py` + `social_publisher.py`). **TikTok también dispara de verdad** (Content
+Posting API), con una salvedad real, no cosmética: sale **privado** (`privacy_level=SELF_ONLY`,
+solo lo ve la cuenta que autorizó) hasta que TikTok apruebe la revisión de la app — lo impone
+TikTok del lado del servidor, el código no tiene forma de evitarlo. **Reddit queda afuera de esta
+pasada** por decisión explícita de Roi (no hay código ni entradas de cola para esa red).
 
-Las credenciales (`discord.webhook_url`, `youtube.client_id/client_secret/refresh_token`) viven en
-`publish-credentials.json` — **gitignoreado, nunca al repo**, mismo criterio que `ASANA_TOKEN` o
-la `service_role` key de Supabase. Ver `publish-credentials.example.json` para el formato.
+Las credenciales viven en `publish-credentials.json` — **gitignoreado, nunca al repo**, mismo
+criterio que `ASANA_TOKEN` o la `service_role` key de Supabase. Ver
+`publish-credentials.example.json` para el formato completo. Sin las credenciales de una red
+cargadas, el botón "Disparar" no falla en silencio: `publish_board.py` devuelve exactamente qué
+campo falta y qué script correr para completarlo.
+
+### Discord — webhook, sin OAuth
+
+Server Settings → Integrations → Webhooks → New Webhook → Copy Webhook URL → pegarla en
+`discord.webhook_url` de `publish-credentials.json`. Sin costo, sin expiración salvo que se borre
+el webhook a mano.
+
+### YouTube — Data API v3, OAuth device flow
+
+Ver `youtube_oauth_setup.py` (docstring completo con los pasos de Google Cloud Console). Resumen:
+crear proyecto en Google Cloud Console → habilitar "YouTube Data API v3" → OAuth consent screen en
+modo Testing con la cuenta de @MOBAWarmup como test user → credencial tipo "TVs and Limited Input
+devices" → `python youtube_oauth_setup.py --client-id ... --client-secret ...` (Roi confirma desde
+cualquier navegador con el código de 8 caracteres, sin puerto local).
+
+### X (ex-Twitter) — OAuth 2.0 + PKCE, pay-per-use
+
+Ver `x_oauth_setup.py` (docstring completo con los pasos de developer.x.com). Resumen: crear
+proyecto + app en developer.x.com → "User authentication settings" con permisos **Read and
+write** y tipo **"Web App, Automated App or Bot"** (da client_secret) → Callback URI
+`http://127.0.0.1:8721/oauth/callback` (tiene que matchear exacto con lo que usa el script) →
+copiar Client ID/Secret de la pestaña "Keys and tokens" (sección OAuth 2.0, NO el API Key/Secret
+de arriba que es OAuth 1.0a) → `python x_oauth_setup.py --client-id ... --client-secret ...`.
+
+Scopes: `tweet.read tweet.write users.read offline.access`. Flujo: authorization code + PKCE
+(`social_publisher.x_build_authorize_url`/`x_exchange_code`) contra `x.com/i/oauth2/authorize` +
+`api.x.com/2/oauth2/token`, con un server HTTP local temporal (`wait_for_oauth_redirect()`) que
+atiende el redirect y se cierra solo. El posteo real (`x_post_tweet`, `POST /2/tweets`) es
+**pay-per-use** — ver Asana `1217475928610505` para el pricing vigente ($0,015 texto plano /
+$0,20 con link al momento de escribir esto). El billing lo paga Roi directo en developer.x.com,
+este código solo llama al endpoint con el access_token vigente; sin billing configurado, X
+devuelve un HTTP error que el tablero muestra tal cual. El access_token expira a las 2hs —
+`publish_board._fire_x()` lo refresca solo antes de cada disparo. X **rota el refresh_token en
+cada uso** (a diferencia de Google): el código persiste el nuevo automáticamente, Roi no tiene
+que volver a correr el script salvo revocación manual. Media (imagen/gif adjunto) **no está
+implementado todavía** — necesita el endpoint de media upload aparte (chunked, scope
+`media.write`); si un item trae `media_path`, se postea el texto solo y se avisa en el resultado.
+
+### TikTok — Content Posting API, OAuth 2.0 + PKCE, gratis pero con revisión pendiente
+
+Ver `tiktok_oauth_setup.py` (docstring completo, incluye el plan para el problema del redirect
+URI). Diferencia real con X/YouTube, no un detalle menor: la API es gratis, pero pedir el scope
+`video.publish` mete la app en la **cola de revisión manual de TikTok** (1-4 semanas, sin forma de
+pagar para acelerar). **Hasta que aprueben, todo lo que suba la API queda forzado a
+`privacy_level=SELF_ONLY`** — privado, solo lo ve la cuenta que autorizó, aunque el código
+funcione perfecto. No es un bug si un post "no aparece" públicamente durante esta ventana.
+
+Registro de cuenta de developer en developers.tiktok.com es instantáneo (sin aprobación previa) —
+lo que requiere revisión es específicamente el scope de posteo. Pasos: crear app → agregar
+producto "Content Posting API" → configurar redirect URI (**ojo**: a diferencia de X, TikTok en
+producción suele exigir domain verification del redirect URI; el plan es probar primero
+`http://127.0.0.1:8730/oauth/callback` en modo Sandbox, y si lo rechaza, usar un subpath ya
+verificado de `obscuromediaworks.com.ar` como fallback — no armado todavía, se arma si hace
+falta) → agregar la cuenta que va a postear como "target user" del Sandbox → copiar Client
+Key/Secret → `python tiktok_oauth_setup.py --client-key ... --client-secret ...`.
+
+**Prerequisito real para poder mandar la solicitud de revisión**: TikTok pide, junto con la
+solicitud, (1) un **video demo** del flujo OAuth + upload funcionando de punta a punta (privado
+está bien para el demo) y (2) una **URL de política de privacidad** pública — hoy probablemente no
+existe una para MOBAWarmup/Obscuro, queda pendiente de Roi (o de quien la redacte; no es tarea de
+un agente resolverla sola). Construir esta integración ahora es lo que le permite a Roi grabar ese
+demo, no es trabajo en el aire.
 
 **Rotación semanal.** `publish-rotation.json` define un ciclo simple (lunes devlog / miércoles
 clip de gameplay / viernes engagement de comunidad) para DESPUÉS de la ventana de lanzamiento
@@ -187,10 +247,16 @@ qa_board.py         Tablero de QA embebido (Board + plantilla HTML). Resuelve el
                     slug contra registry.json. Lo usa modo-god.py; no corre solo.
 publish_board.py    Tablero de Publish (cola + plantilla HTML + fire()). Lo usa modo-god.py;
                     no corre solo.
-social_publisher.py Disparo real: POST a webhook de Discord, OAuth device flow + upload de
-                    YouTube Data API v3, conversión gif->mp4 con ffmpeg. Solo stdlib.
+social_publisher.py Disparo real: POST a webhook de Discord; OAuth device flow + upload de
+                    YouTube Data API v3; OAuth2+PKCE + POST /2/tweets de X; OAuth2+PKCE + upload
+                    de TikTok Content Posting API; conversión gif->mp4 con ffmpeg; server HTTP
+                    local compartido para capturar el redirect de X/TikTok. Solo stdlib.
 youtube_oauth_setup.py  Script standalone -- lo corre Roi UNA vez para autorizar YouTube y
                     escribir el refresh_token en publish-credentials.json.
+x_oauth_setup.py    Script standalone -- ídem para X (developer.x.com, OAuth2+PKCE,
+                    pay-per-use -- ver Asana 1217475928610505).
+tiktok_oauth_setup.py  Script standalone -- ídem para TikTok (developers.tiktok.com,
+                    OAuth2+PKCE). Posts salen privados hasta que TikTok apruebe la revisión.
 publish_rotation.py Genera slots vacíos (draft) para la rotación semanal de contenido en
                     publish-queue.json, según publish-rotation.json. No corre solo (sin cron).
 publish.py         Arma dist/ (index.html + _worker.js + robots.txt) para deployar. Ya no
