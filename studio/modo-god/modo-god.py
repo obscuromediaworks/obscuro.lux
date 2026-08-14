@@ -196,7 +196,8 @@ class Handler(SimpleHTTPRequestHandler):
         # mismo criterio que /qa y /api/decide (STUDIO.md §8: el espejo público nunca escribe).
         q = self.qa_query()
         project = (q.get("project") or [None])[0]
-        html = publish_board.render_page(project_filter=project)
+        network = (q.get("network") or [None])[0]
+        html = publish_board.render_page(project_filter=project, network_filter=network)
         return self.send_html(html)
 
     def handle_publish_fire(self):

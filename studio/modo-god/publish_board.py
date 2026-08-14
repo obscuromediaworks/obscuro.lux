@@ -16,7 +16,8 @@ real (`POST /api/publish/fire`) es **exclusivo de la consola local** -- el Worke
 (`_worker.js`) no tiene esta ruta ni la de `/publish`, igual que `/api/decide` y `/api/qa/mark`
 (ver STUDIO.md §8 y la regla de que el espejo público nunca escribe).
 
-    GET  /publish[?project=<slug>]        -> el tablero
+    GET  /publish[?project=<slug>][&network=<discord|youtube|x|tiktok>]  -> el tablero,
+                                              filtros combinables
     POST /api/publish/fire                -> {"id": "<item-id>"} dispara un item auto
                                               (discord/youtube/x/tiktok)
 """
@@ -308,6 +309,7 @@ PAGE = """<!doctype html>
     ver <code>tiktok_oauth_setup.py</code>. Sin credenciales cargadas, "Disparar" devuelve el
     detalle de qué falta en vez de intentarlo.</p>
   <div class="filters">__FILTERS__</div>
+  <div class="filters">__NETWORK_FILTERS__</div>
   <div id="items">__ITEMS__</div>
   <footer>El disparo real (Discord/YouTube/X/TikTok) es exclusivo de esta consola local -- el
     espejo público de Modo God no tiene este endpoint. Las credenciales viven en
@@ -437,24 +439,60 @@ def _item_html(item):
     )
 
 
-def render_page(project_filter=None):
+def _filter_href(project=None, network=None):
+    """Arma /publish con los query params que estén presentes, para que cambiar un filtro
+    (proyecto o red) preserve el otro -- ej. /publish?project=moba-warmup&network=x."""
+    from urllib.parse import quote
+    params = []
+    if project:
+        params.append("project=" + quote(project))
+    if network:
+        params.append("network=" + quote(network))
+    return "/publish" + ("?" + "&".join(params) if params else "")
+
+
+def render_page(project_filter=None, network_filter=None):
     doc = load_queue()
-    items = doc.get("items", [])
+    all_items = doc.get("items", [])
+    items = all_items
     if project_filter:
         items = [it for it in items if it.get("project") == project_filter]
+    if network_filter:
+        items = [it for it in items if it.get("network") == network_filter]
 
-    projects = sorted({it.get("project") for it in doc.get("items", []) if it.get("project")})
-    filters = ['<a href="/publish"{on}>todos</a>'.format(on=" class=\"on\"" if not project_filter else "")]
+    projects = sorted({it.get("project") for it in all_items if it.get("project")})
+    filters = ['<a href="{href}"{on}>todos</a>'.format(
+        href=_esc(_filter_href(network=network_filter)), on=" class=\"on\"" if not project_filter else "")]
     for p in projects:
         on = " class=\"on\"" if p == project_filter else ""
-        filters.append('<a href="/publish?project={p}"{on}>{p}</a>'.format(p=p, on=on))
+        filters.append('<a href="{href}"{on}>{p}</a>'.format(
+            href=_esc(_filter_href(project=p, network=network_filter)), on=on, p=_esc(p)))
+
+    # Networks sacadas de la cola en sí, no hardcodeadas -- así se banca que mañana se sume una
+    # red nueva sin tocar este archivo.
+    networks = sorted({it.get("network") for it in all_items if it.get("network")})
+    network_filters = ['<a href="{href}"{on}>todas</a>'.format(
+        href=_esc(_filter_href(project=project_filter)), on=" class=\"on\"" if not network_filter else "")]
+    for n in networks:
+        on = " class=\"on\"" if n == network_filter else ""
+        network_filters.append('<a href="{href}"{on}>{label}</a>'.format(
+            href=_esc(_filter_href(project=project_filter, network=n)), on=on,
+            label=_esc(NETWORK_LABEL.get(n, n))))
 
     if not items:
-        items_html = '<div class="empty">Nada en la cola' + (" para " + _esc(project_filter) if project_filter else "") + '. Agregar entradas a mano en publish-queue.json.</div>'
+        empty_bits = []
+        if project_filter:
+            empty_bits.append("proyecto " + _esc(project_filter))
+        if network_filter:
+            empty_bits.append("red " + _esc(NETWORK_LABEL.get(network_filter, network_filter)))
+        suffix = (" para " + " · ".join(empty_bits)) if empty_bits else ""
+        items_html = '<div class="empty">Nada en la cola' + suffix + '. Agregar entradas a mano en publish-queue.json.</div>'
     else:
         # draft/queued/failed primero -- lo que necesita atención; posted al final.
         order = {"queued": 0, "draft": 1, "failed": 2, "posted": 3}
         items = sorted(items, key=lambda it: order.get(it.get("status"), 1))
         items_html = "".join(_item_html(it) for it in items)
 
-    return PAGE.replace("__FILTERS__", "".join(filters)).replace("__ITEMS__", items_html)
+    return (PAGE.replace("__FILTERS__", "".join(filters))
+                .replace("__NETWORK_FILTERS__", "".join(network_filters))
+                .replace("__ITEMS__", items_html))
