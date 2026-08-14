@@ -360,7 +360,14 @@
           "recommended": false
         }
       ],
-      "status": "pending"
+      "status": "decided",
+      "decided_at": "2026-08-14T13:15:00-03:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Correr la pasada completa (K1-K11 + F1-F8) desde el tablero web de QA (skill qa) antes de lanzar mañana."
+      },
+      "executed_at": "2026-08-14T13:10:35-03:00",
+      "execution_note": "Pasada completa corrida por Roi sobre el build 5fe3a48 (equivalente al HEAD b99306a, sin diffs de código entre ambos). Resultado: 19/19 OK, cero fallas. Detalle en docs/qa/runs/5fe3a48.json y en MOBAWarmup/docs/recording-log.md. Hallazgo colateral en F2: el código apaga el auto-attack en Loading a propósito -- el GDD (sección 08, prosa) quedó desalineado, no el código; abrir tarea de docs si hace falta corregirlo."
     }
   ]
 }

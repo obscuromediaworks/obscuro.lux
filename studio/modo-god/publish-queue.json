@@ -6,7 +6,7 @@
       "project": "moba-warmup",
       "network": "discord",
       "status": "draft",
-      "text": "El build de MOBA Warmup Gym pesaba 71% texturas. No era compresión -- era resolución: bajamos los atlas de Synty a 512 y la VRAM pasó de 58 a 31,6 MB, sin que se note a simple vista (comparado con diff de píxeles, no a ojo). Sumado a la pasada de audio, el zip bajó de 47,6 a 35,9 MB.",
+      "text": "MOBA Warmup Gym's build was 71% textures. It wasn't compression -- it was resolution: we dropped the Synty atlases to 512 and VRAM went from 58 to 31.6 MB, with no visible difference (checked with a pixel diff, not eyeballing it). Combined with the audio pass, the zip went from 47.6 to 35.9 MB.",
       "media_path": null,
       "target": {},
       "suggested_at": "2026-08-13T18:00:00-03:00",
@@ -46,7 +46,7 @@
       "project": "moba-warmup",
       "network": "x",
       "status": "draft",
-      "text": "Mañana.",
+      "text": "Tomorrow.",
       "media_path": "docs/screenshots/loading_mode.png",
       "target": {},
       "suggested_at": "2026-08-13T20:00:00-03:00",
@@ -105,7 +105,7 @@
       "project": "moba-warmup",
       "network": "discord",
       "status": "draft",
-      "text": "MOBA Warmup Gym está arriba. Last Hit, Kite Mode y Loading Frenzy -- los tres modos del núcleo, congelados hace semanas -- ya se juegan en el navegador, gratis, sin instalar, sin cuenta. Gracias a los que probaron builds temprano y a los que le dieron forma al feedback del Kite en el camino. mobawarmup.obscuromediaworks.com.ar",
+      "text": "MOBA Warmup Gym is live. Last Hit, Kite Mode, and Loading Frenzy -- the three core modes, frozen for weeks -- are playable in the browser now, free, no install, no account. Thanks to everyone who tested early builds and helped shape the Kite Mode feedback along the way. mobawarmup.obscuromediaworks.com.ar",
       "media_path": "docs/gifs/lasthit-drill-launch.gif",
       "target": {},
       "suggested_at": "2026-08-14T12:15:00-03:00",
@@ -120,7 +120,7 @@
       "project": "moba-warmup",
       "network": "x",
       "status": "draft",
-      "text": "MOBA Warmup Gym ya está arriba. Last hit, kite, loading frenzy -- en el navegador, gratis, sin instalar. mobawarmup.obscuromediaworks.com.ar",
+      "text": "MOBA Warmup Gym is live. Last hit, kite, loading frenzy -- in your browser, free, no install. mobawarmup.obscuromediaworks.com.ar",
       "media_path": "docs/gifs/loading-tile-rescue.gif",
       "target": {},
       "suggested_at": "2026-08-14T12:30:00-03:00",
@@ -128,7 +128,14 @@
       "created_by": "om-marketing",
       "created_at": "2026-08-14",
       "posted_at": null,
-      "result": null
+      "result": null,
+      "history": [
+        {
+          "posted_at": "2026-08-14T17:05:24.171927+00:00",
+          "tweet_id": "2088311026060067296",
+          "note": "Versión en español, sin imagen (media upload de X no implementado todavía). Borrada por Roi -- reemplazada por esta versión en inglés, pendiente de re-disparar una vez que el media upload esté listo."
+        }
+      ]
     },
     {
       "id": "moba-launch-tiktok-announce",
