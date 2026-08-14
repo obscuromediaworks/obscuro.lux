@@ -12,6 +12,7 @@ Desarrollo ............... agente om-dev         (Code)
 QA ....................... agente om-qa          (Cowork + Code)
 Arte / Diseño ............ agente om-art         (Design + Code + Cowork)
 Contenido / Edición ...... agente om-content     (Design + Cowork + Code)
+Testing / Experimentación  agente om-test        (Code)
 ```
 
 Ningún agente decide alcance ni fecha. Proponen, ejecutan y reportan; **Roi aprueba**.

@@ -14,7 +14,8 @@
     { "id": "dev",       "name": "Desarrollo",        "surface": "code",   "brief": "studio/roles/dev.md" },
     { "id": "qa",        "name": "QA",                "surface": "cowork+code", "brief": "studio/roles/qa.md" },
     { "id": "art",       "name": "Arte / Diseño",     "surface": "design+code+cowork", "brief": "studio/roles/art.md" },
-    { "id": "content",   "name": "Contenido / Edición", "surface": "design+cowork+code", "brief": "studio/roles/content.md" }
+    { "id": "content",   "name": "Contenido / Edición", "surface": "design+cowork+code", "brief": "studio/roles/content.md" },
+    { "id": "test",      "name": "Testing / Experimentación", "surface": "code", "brief": "studio/roles/test.md" }
   ],
   "projects": [
     {
@@ -154,7 +155,7 @@
       "socials": {},
       "dossier": "studio/games/zapamooke.md",
       "gdd": null,
-      "roles": ["dev"]
+      "roles": ["dev", "test"]
     },
     {
       "slug": "obscuro-lux",
