@@ -45,7 +45,7 @@
       "id": "moba-teaser-launch-x",
       "project": "moba-warmup",
       "network": "x",
-      "status": "draft",
+      "status": "dropped",
       "text": "Tomorrow.",
       "media_path": "docs/screenshots/loading_mode.png",
       "target": {},
@@ -54,7 +54,8 @@
       "created_by": "om-marketing",
       "created_at": "2026-08-13",
       "posted_at": null,
-      "result": null
+      "result": null,
+      "dropped_note": "Descartado 14/8: teaser 'Tomorrow.' pensado para el día antes del lanzamiento, ya pasó -- el lanzamiento real ya salió por otros posts."
     },
     {
       "id": "moba-launch-tiktok-floorcollapse",
