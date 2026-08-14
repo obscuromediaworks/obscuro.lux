@@ -57,6 +57,50 @@
       "result": null
     },
     {
+      "id": "moba-launch-tiktok-floorcollapse",
+      "project": "moba-warmup",
+      "network": "tiktok",
+      "status": "posted",
+      "text": "The floor is the enemy. Loading Frenzy -- a skill drill built for your League of Legends loading screen. Free, browser, no install. #leagueoflegends #moba #gamedev #indiegame",
+      "media_path": "docs/gifs/loading-floor-collapse.gif",
+      "target": {
+        "title": "The floor is the enemy -- MOBA Warmup Gym",
+        "privacy_level": "SELF_ONLY"
+      },
+      "suggested_at": "2026-08-14T12:00:00-03:00",
+      "source": "Primer item de TikTok en la cola (14/8) -- no había ninguno, por eso no aparecía la red en el tablero. GIF ya commiteado (45a19f6). Sale privado (SELF_ONLY) hasta que TikTok apruebe la revisión de la app -- sirve igual como el upload real que pide el video demo del review.",
+      "created_by": "claude",
+      "created_at": "2026-08-14",
+      "posted_at": "2026-08-14T03:57:52.503607+00:00",
+      "result": {
+        "ok": true,
+        "publish_id": "v_pub_file~v2-1.7673730924642732053",
+        "note": "Subido con privacy_level=SELF_ONLY -- revisar el estado con /v2/post/publish/status/fetch/ (publish_id) o en la app de TikTok, bandeja de borradores/privados."
+      }
+    },
+    {
+      "id": "moba-launch-tiktok-cstracker",
+      "project": "moba-warmup",
+      "network": "tiktok",
+      "status": "posted",
+      "text": "CS tracker turns your last-hit accuracy into a number you can actually improve. MOBA Warmup Gym -- free browser drill for the dead time before your LoL queue pops. #leagueoflegends #lastfit #moba #gamedev #indiegame",
+      "media_path": "docs/gifs/lasthit-cs-tracker.gif",
+      "target": {
+        "title": "Track your CS accuracy -- MOBA Warmup Gym",
+        "privacy_level": "SELF_ONLY"
+      },
+      "suggested_at": "2026-08-14T13:00:00-03:00",
+      "source": "Segundo item de TikTok (14/8), para re-grabar limpio el disparo de app review despues del fix de cuenta privada -- el primero (moba-launch-tiktok-floorcollapse) ya quedo posted con el intento fallido de por medio.",
+      "created_by": "claude",
+      "created_at": "2026-08-14",
+      "posted_at": "2026-08-14T04:01:18.497134+00:00",
+      "result": {
+        "ok": true,
+        "publish_id": "v_pub_file~v2-1.7673732335594833941",
+        "note": "Subido con privacy_level=SELF_ONLY -- revisar el estado con /v2/post/publish/status/fetch/ (publish_id) o en la app de TikTok, bandeja de borradores/privados."
+      }
+    },
+    {
       "id": "slot-moba-warmup-devlog-2026-08-24",
       "project": "moba-warmup",
       "network": "discord",
