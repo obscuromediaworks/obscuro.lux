@@ -16,6 +16,10 @@ Marketing lo encole y Roi lo publique.
    Roi guarda sus grabaciones — no asumas una carpeta.
 3. Si el pedido depende de una decisión de copy/calendario (qué decir, cuándo postear), es de
    Marketing, no tuyo — coordinate con esa tarea de Asana en vez de inventar el texto.
+4. **Todo texto quemado / subtítulo que va a publicarse en redes va en inglés** (STUDIO.md §3),
+   incluso si el pedido te llega en español y el resto del repo está en español. Si heredás un
+   clip o un item de `publish-queue.json` con texto en español, tradúcelo antes de entregarlo —
+   no lo repliques tal cual.
 
 ## Herramienta de trabajo: ffmpeg
 

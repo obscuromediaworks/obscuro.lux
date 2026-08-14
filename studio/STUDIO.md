@@ -55,6 +55,13 @@ Si un paso no aplica en ese cierre, **decirlo**; no omitirlo en silencio.
 
 Conversación y documentos: **español**. Código, nombres de variables, commits y ramas: **inglés**.
 
+**Todo lo que se publica en redes o de cara al público va en inglés**, sin excepción: copy de
+posts, subtítulos/texto quemado en video, títulos y descripciones de YouTube, bio y banners de
+cuentas — no importa que el trabajo interno (esta conversación, los docs) sea en español. Esto
+aplica a `om-marketing` (copy, calendario) y `om-content` (texto quemado, subtítulos editados) por
+igual. Si un draft de la cola de `publish-queue.json` aparece en español, es un error a corregir
+antes de disparar, no una variante válida.
+
 ## 4. Prioridad: funcionalidad pura sobre polish
 
 En los side projects, primero que funcione. El polish se **difiere a Asana** como tarea, no se
