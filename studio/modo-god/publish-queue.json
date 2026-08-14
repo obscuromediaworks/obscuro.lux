@@ -166,7 +166,7 @@
       "id": "moba-launch-youtube-announce",
       "project": "moba-warmup",
       "network": "youtube",
-      "status": "failed",
+      "status": "posted",
       "text": "MOBA Warmup Gym is live. Free, browser-based skill trainer built for the dead time between League of Legends queues -- last hit drills, Kite Mode against a bot with real windup telegraphs, and Loading Frenzy for the loading screen itself. No install, no account, starts in under 3 seconds. Play now: mobawarmup.obscuromediaworks.com.ar",
       "media_path": "docs/gifs/lasthit-wave-clash.gif",
       "target": {
@@ -185,10 +185,12 @@
       "source": "Lanzamiento coordinado del día D -- ships_on 2026-08-14 en registry.json. GIF de docs/gifs/lasthit-wave-clash.gif (commit 9b37f07). privacy_status public porque es el video que anuncia el lanzamiento real, a diferencia de moba-shorts-adckite-pierce (unlisted, contenido de rotación)",
       "created_by": "om-marketing",
       "created_at": "2026-08-14",
-      "posted_at": null,
+      "posted_at": "2026-08-14T18:00:03.220914+00:00",
       "result": {
-        "ok": false,
-        "error": "falta(n) client_id, client_secret, refresh_token en publish-credentials.json -- correr youtube_oauth_setup.py primero."
+        "ok": true,
+        "video_id": "Y8Slgeapbmw",
+        "url": "https://youtube.com/shorts/Y8Slgeapbmw",
+        "error": null
       }
     },
     {
