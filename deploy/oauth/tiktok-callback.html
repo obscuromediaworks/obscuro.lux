@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TikTok OAuth — Obscuro Mediaworks</title>
+<meta name="robots" content="noindex,nofollow" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<style>
+  :root { color-scheme: dark; }
+  html, body { background: #0a0a0a; margin: 0; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: 'Geist', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #f5f4ef;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 640px; margin: 0 auto; padding: 64px 24px 100px; }
+  .eyebrow {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(245, 244, 239, 0.5);
+    margin: 0 0 24px;
+  }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  p.sub { font-size: 14px; color: rgba(245, 244, 239, 0.65); margin: 0 0 40px; }
+  .field { margin-bottom: 28px; }
+  .field label {
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: #c9a96e;
+    margin-bottom: 8px;
+  }
+  .valuebox {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .valuebox code {
+    flex: 1;
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 13px;
+    background: rgba(245, 244, 239, 0.06);
+    border: 1px solid rgba(245, 244, 239, 0.14);
+    border-radius: 6px;
+    padding: 12px 14px;
+    word-break: break-all;
+    color: #f5f4ef;
+  }
+  button.copy {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 12px;
+    background: rgba(201, 169, 110, 0.12);
+    border: 1px solid rgba(201, 169, 110, 0.4);
+    color: #c9a96e;
+    border-radius: 6px;
+    padding: 0 16px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button.copy:hover { background: rgba(201, 169, 110, 0.22); }
+  button.copy.copied { color: #06d6a0; border-color: #06d6a0; }
+  .empty { font-size: 13px; color: rgba(245, 244, 239, 0.4); font-style: italic; }
+  .error {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #ef476f;
+  }
+  .instructions {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(245, 244, 239, 0.12);
+    font-size: 13px;
+    color: rgba(245, 244, 239, 0.65);
+  }
+  .instructions p { margin: 0 0 10px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="eyebrow">Obscuro Mediaworks · TikTok OAuth</p>
+  <h1>Autorización recibida</h1>
+  <p class="sub">Esta página no manda estos datos a ningún lado — solo lee los parámetros que
+  TikTok agregó a la URL y te los muestra para que los copies.</p>
+
+  <div class="field">
+    <label>code</label>
+    <div class="valuebox">
+      <code id="code-val">—</code>
+      <button class="copy" id="code-copy" type="button">Copiar</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>state</label>
+    <div class="valuebox">
+      <code id="state-val">—</code>
+      <button class="copy" id="state-copy" type="button">Copiar</button>
+    </div>
+  </div>
+
+  <div id="error-box"></div>
+
+  <div class="instructions">
+    <p>Pegá ambos valores en la terminal donde corriste <code style="font-family:ui-monospace,monospace;background:rgba(245,244,239,.08);padding:1px 5px;border-radius:3px">tiktok_oauth_setup.py</code> cuando te los pida.</p>
+    <p>Ya podés cerrar esta pestaña una vez que los copiaste.</p>
+  </div>
+</div>
+
+<script>
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get('code');
+  var state = params.get('state');
+  var error = params.get('error');
+  var errorDesc = params.get('error_description');
+
+  document.getElementById('code-val').textContent = code || '(no llegó ningún code)';
+  document.getElementById('state-val').textContent = state || '(no llegó ningún state)';
+
+  if (error) {
+    var box = document.getElementById('error-box');
+    box.innerHTML = '<p class="error"><strong>TikTok devolvió un error:</strong> ' +
+      (errorDesc || error) + '</p>';
+  }
+
+  function wireCopy(btnId, valId) {
+    var btn = document.getElementById(btnId);
+    btn.addEventListener('click', function () {
+      var text = document.getElementById(valId).textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = 'Copiado ✓';
+        btn.classList.add('copied');
+        setTimeout(function () {
+          btn.textContent = 'Copiar';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+  }
+  wireCopy('code-copy', 'code-val');
+  wireCopy('state-copy', 'state-val');
+</script>
+</body>
+</html>

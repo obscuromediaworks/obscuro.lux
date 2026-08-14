@@ -88,19 +88,34 @@ cada disparo, no hace falta correr este script de nuevo salvo revocación manual
 
 import argparse
 import sys
+import urllib.parse
 import webbrowser
 
 import social_publisher as sp
+
+
+def _is_local_redirect(redirect_uri):
+    host = urllib.parse.urlparse(redirect_uri).hostname or ""
+    return host in ("127.0.0.1", "localhost")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--client-key", required=True, help="Client Key de la app, developers.tiktok.com")
     ap.add_argument("--client-secret", required=True, help="Client Secret de la misma app")
-    ap.add_argument("--port", type=int, default=8730, help="Puerto local para el redirect (default 8730)")
+    ap.add_argument("--port", type=int, default=8730, help="Puerto local para el redirect (default 8730, solo si --redirect-uri no se pasa)")
+    ap.add_argument("--redirect-uri", default=None,
+                     help="Redirect URI configurado en el panel de TikTok. Default: "
+                          "http://127.0.0.1:<port>/oauth/callback. Si el panel de TikTok exige un "
+                          "dominio verificado (pasa con apps Web), pasá acá la URL pública, ej. "
+                          "https://obscuromediaworks.com.ar/oauth/tiktok-callback -- en ese caso el "
+                          "script no levanta ningún server local: abre el navegador y te pide pegar "
+                          "'code'/'state' a mano, que la página de callback te muestra para copiar.")
     args = ap.parse_args()
 
-    redirect_uri = "http://127.0.0.1:{}/oauth/callback".format(args.port)
+    redirect_uri = args.redirect_uri or "http://127.0.0.1:{}/oauth/callback".format(args.port)
+    local_flow = _is_local_redirect(redirect_uri)
+
     verifier, challenge = sp.pkce_pair()
     state = sp.random_state()
     url = sp.tiktok_build_authorize_url(args.client_key, redirect_uri, state, challenge)
@@ -115,26 +130,37 @@ def main():
     except Exception:
         pass
 
-    print("Esperando el redirect en " + redirect_uri + " (hasta 5 min)...")
-    try:
-        params = sp.wait_for_oauth_redirect(args.port, timeout=300)
-    except OSError as e:
-        sys.exit(
-            "No pude levantar el server local en el puerto {}: {}\n"
-            "Probá con --port otro Y actualizá el redirect URI en developers.tiktok.com para que matchee."
-            .format(args.port, e)
-        )
-
-    if not params:
-        sys.exit("Se agotó el tiempo de espera sin que llegara ningún redirect. Corré el script de nuevo.")
-    if "error" in params:
-        sys.exit("TikTok devolvió un error: " + params.get("error_description", params["error"]))
-    if params.get("state") != state:
-        sys.exit("El 'state' del redirect no coincide con el que mandamos -- posible problema de "
-                  "seguridad, abortando sin guardar nada. Corré el script de nuevo.")
-    code = params.get("code")
-    if not code:
-        sys.exit("No llegó ningún 'code' en el redirect: " + str(params))
+    if local_flow:
+        print("Esperando el redirect en " + redirect_uri + " (hasta 5 min)...")
+        try:
+            params = sp.wait_for_oauth_redirect(args.port, timeout=300)
+        except OSError as e:
+            sys.exit(
+                "No pude levantar el server local en el puerto {}: {}\n"
+                "Probá con --port otro Y actualizá el redirect URI en developers.tiktok.com para que matchee."
+                .format(args.port, e)
+            )
+        if not params:
+            sys.exit("Se agotó el tiempo de espera sin que llegara ningún redirect. Corré el script de nuevo.")
+        if "error" in params:
+            sys.exit("TikTok devolvió un error: " + params.get("error_description", params["error"]))
+        if params.get("state") != state:
+            sys.exit("El 'state' del redirect no coincide con el que mandamos -- posible problema de "
+                      "seguridad, abortando sin guardar nada. Corré el script de nuevo.")
+        code = params.get("code")
+        if not code:
+            sys.exit("No llegó ningún 'code' en el redirect: " + str(params))
+    else:
+        print("Redirect URI no-local (" + redirect_uri + "): después de autorizar, TikTok te manda")
+        print("a esa página, que te muestra 'code' y 'state' para copiar (no los manda a ningún")
+        print("lado). Pegalos acá abajo.\n")
+        code = input("code: ").strip()
+        pasted_state = input("state: ").strip()
+        if not code:
+            sys.exit("No pegaste ningún 'code'. Corré el script de nuevo.")
+        if pasted_state != state:
+            sys.exit("El 'state' pegado no coincide con el que mandamos -- posible problema de "
+                      "seguridad (o copiaste mal), abortando sin guardar nada. Corré el script de nuevo.")
 
     print("Code recibido, canjeando por tokens...")
     token_data = sp.tiktok_exchange_code(args.client_key, args.client_secret, code, redirect_uri, verifier)
