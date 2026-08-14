@@ -31,18 +31,35 @@ está en spec-zapamooke.md §12; los dos que importan ahora:
 
 ## Estado (14/8/2026)
 
-Bootstrap del repo hecho. `experiments/r1-vorbis-encode/` tiene el scaffold **funcional y
-verificado** para correr el experimento R1:
+**R1 corrido y PASA.** Experimento automatizado de punta a punta (Playwright + Chromium headless,
+micrófono falso, sin nadie mirando una pestaña), 20 minutos continuos reales (1199.885 s medidos
+por la propia app), evidencia en `experiments/r1-vorbis-encode/RESULTS.md` +
+`experiments/r1-vorbis-encode/results/` (reporte JSON de 1405 muestras, log con timestamps).
+
+- `overrunCount = 0` en toda la corrida (la señal dura de pérdida real de audio).
+- Real-time factor medio 0.006, máximo puntual 0.0116, peor chunk individual con RTF≈0.111 —
+  muy por debajo del umbral de la spec (<1) y del que codifica el propio scaffold (<0.5).
+- Corrido en hardware de escritorio de 2014 (i7-4790), no el equipo más rápido del estudio.
+- Hallazgo documentado en `RESULTS.md`: el contador `underrunCount` del scaffold sube todo el
+  tiempo por diseño del polling (5 ms de reintento contra ~85 ms por chunk), no porque el
+  encoder se atrase — se cruza con `overrunCount=0` y RTF estable para descartar que sea señal
+  real de starvation. No se redondeó el resultado: se documentó el matiz con los números.
+- **Implicación de roadmap:** no hace falta el plan B (Opus + transcodificación server-side,
+  spec §12 R1) para este riesgo. Sigue pendiente la prueba de Fase 1 completa (dos ciudades, con
+  NINJAM real) porque necesita gateway + scheduler que todavía no existen — R1 destrababa esa
+  construcción, no la reemplaza.
+- Sigue **sin verificar** C2 de OBSCUROSTUDIO (FLAC en paralelo al Vorbis) — es un experimento
+  relacionado pero no idéntico a R1; no se corrió acá.
+
+Scaffold base (`experiments/r1-vorbis-encode/`), sin cambios de fondo desde el bootstrap:
 
 - AudioWorklet de captura (plain JS, sin dependencias — ver nota de Vite abajo) → ring buffer
   lock-free sobre `SharedArrayBuffer` → Worker que codifica con un encoder Vorbis **real**
   compilado a WASM (`wasm-media-encoders`, no un stub).
 - `vite.config.ts` sirve COOP/COEP en dev y preview. **Verificado con `curl -I`**: los headers
   salen.
-- Verificado con `npx tsc --noEmit` (sin errores) y `npx vite build` (build limpio).
-- **Lo que falta y es trabajo real, no scaffolding:** correr los 20 minutos continuos que pide
-  el criterio de salida de Fase 1 (spec §11) y exportar el reporte JSON como evidencia antes de
-  marcar R1 como resuelto. Esto no se hizo todavía — sin verificar.
+- Verificado con `npx tsc --noEmit` (sin errores) y `npx vite build` (build limpio) — re-verificado
+  después de agregar el harness de automatización.
 
 ### Gotcha de plataforma encontrado armando el scaffold
 
@@ -89,4 +106,11 @@ resuelto con evidencia) → R13–R18 → Backlog/Parked (incluye OBSCUROSTUDIO)
 Confirmado por Roi (14/8): repo/slug `zapamooke`, trigger "Sigamos con Zapamooke", y
 OBSCUROSTUDIO **espera** a que R1 esté validado antes de bootstrapear su propio repo/setup.
 
-1. Correr el experimento R1 20 minutos y decidir con evidencia.
+1. ~~Correr el experimento R1 20 minutos y decidir con evidencia.~~ **Hecho 14/8/2026 — R1 pasa.**
+   Ver sección Estado arriba y `experiments/r1-vorbis-encode/RESULTS.md`. Actualizar el board de
+   Asana (sección R1) a mano — esta sesión no tuvo el conector de Asana disponible.
+2. Mover el foco a R2–R5 (deriva de reloj, onboarding del intervalo, headers COOP/COEP en
+   producción, Safari/iOS diferido) y a construir el gateway mínimo de Fase 1 — R1 ya no bloquea
+   eso.
+3. C2 de OBSCUROSTUDIO (FLAC en paralelo al Vorbis) sigue sin correrse — no es lo mismo que R1,
+   queda pendiente cuando arranque ese trabajo puntual.
