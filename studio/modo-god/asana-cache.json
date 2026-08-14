@@ -1,24 +1,25 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-14T01:15:00Z",
-  "generated_by": "rutina de arranque (refrescó obscuro-lux con get_tasks tras cerrar la tarea de repos sueltos)",
-  "note": "obscuro-lux refrescado con get_tasks: 12/13 done. Cerrada '[Estudio] Clasificar los repos sueltos' (ya resuelta en decisions.json). Queda 1 abierta: '[Sitio] Mobile dedicado para LUX', marcada como polish no bloqueante -- se difiere a Asana (feedback_polish_vs_funcionalidad), no se dispara sola. moba-warmup: conteos post-migración de las 17 tareas de v0 (12 a Backlog v2, 3 vigentes, 2 cerradas) -- board v0 quedó en 0 abiertas, listo para archivar desde la UI de Asana. Highlights de moba-warmup sin re-chequear vencimientos individuales desde el 12/8.",
+  "generated_at": "2026-08-14T04:20:00Z",
+  "generated_by": "cierre de sesión (refrescó moba-warmup con get_tasks -- los highlights viejos ya estaban completed en Asana y el caché no se había tocado desde antes del 14/8)",
+  "note": "obscuro-lux: 13/14 done tras sumar la tarea de TikTok (nueva, ya cerrada). Sigue 1 abierta: '[Sitio] Mobile dedicado para LUX', polish no bloqueante. moba-warmup: refrescado a fondo, 30/47 done (sumó 'Grabar gameplay limpio', ya resuelto). Highlights de abajo reflejan lo que queda realmente abierto hoy, día de lanzamiento.",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
-      "total": 58,
-      "open": 35,
-      "done": 23,
+      "total": 47,
+      "open": 16,
+      "done": 30,
       "overdue": null,
       "highlights": [
-        "[Lanzamiento] Soft launch beta — vencía 7/8",
-        "[QA] Pasada de QA por modo del núcleo + fixes — vencía 11/8",
-        "[QA] Barrido de los otros drills — sin ver en las dos pasadas del 6/8",
-        "[Marketing] Trailer 30-60s + clips — vencía 11/8",
-        "[Marketing] Grabar gameplay limpio de cada modo — vencía 10/8",
-        "[Build] Bumpear a 1.0.0 ANTES del build final — YA HECHO, build v1.0.0 c415b2d listo",
-        "[Infra] Supabase pausado de nuevo — reactivar antes de limpiar datos de prueba del leaderboard",
-        "+15 migradas hoy desde el board v0 (12 [Backlog v2] + 3 vigentes: assets 3D pendientes, música de Javi, SFX ChampSelect Advisor)"
+        "[Lanzamiento] ⭐ Lanzamiento público v1 — vence HOY 14/8",
+        "[Marketing] Campaña orgánica: clips diarios TikTok/Shorts/X — vence HOY 14/8",
+        "[Marketing] Trailer 30-60s + GIFs/clips — vencía 11/8. GIFs listos (9, commiteados), falta armar el trailer en sí",
+        "[Marketing] Página de itch completa — vencía 12/8. Texto/cover/screenshots/GIFs listos; faltan 2 pasos manuales de Roi (banner 960x300, sacar el secret de preview)",
+        "[Marketing] Press kit / one-pager — vencía 12/8. Falta link jugable final + confirmar logo/email",
+        "[Marketing] Lista + outreach a streamers — vencía 13/8. Borrador de mensaje listo, falta que Roi arme la lista real en Twitch",
+        "[Marketing] Posts en comunidades (r/summonerschool, etc.) — vence 15/8",
+        "Decisión pendiente en Modo God: mini-QA formal de ADCKite/Loading nunca se corrió (ver decisions.json id moba-launch-eve-qa-gap)",
+        "TikTok Content Posting API en vivo, solicitud de revisión ya enviada (nueva tarea, ya cerrada)"
       ]
     },
     "le2": {
@@ -68,9 +69,9 @@
     },
     "obscuro-lux": {
       "board": "OBSCUROMEDIAWORKS — Sitio & Estudio",
-      "total": 13,
+      "total": 14,
       "open": 1,
-      "done": 12,
+      "done": 13,
       "overdue": 0,
       "highlights": [
         "[Sitio] Mobile dedicado para LUX — polish no bloqueante, diferido a Asana (feedback_polish_vs_funcionalidad), no se ejecuta sin pedido explícito"
