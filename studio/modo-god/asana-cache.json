@@ -1,8 +1,8 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-13T03:07:00Z",
-  "generated_by": "rutina de arranque (refrescó obscuro-lux con get_tasks + conteos de get_projects para moba-warmup tras migrar v0)",
-  "note": "obscuro-lux refrescado con get_tasks. moba-warmup: conteos post-migración de las 17 tareas de v0 (12 a Backlog v2, 3 vigentes, 2 cerradas) -- board v0 quedó en 0 abiertas, listo para archivar desde la UI de Asana. Highlights de moba-warmup sin re-chequear vencimientos individuales desde el 12/8.",
+  "generated_at": "2026-08-14T01:15:00Z",
+  "generated_by": "rutina de arranque (refrescó obscuro-lux con get_tasks tras cerrar la tarea de repos sueltos)",
+  "note": "obscuro-lux refrescado con get_tasks: 12/13 done. Cerrada '[Estudio] Clasificar los repos sueltos' (ya resuelta en decisions.json). Queda 1 abierta: '[Sitio] Mobile dedicado para LUX', marcada como polish no bloqueante -- se difiere a Asana (feedback_polish_vs_funcionalidad), no se dispara sola. moba-warmup: conteos post-migración de las 17 tareas de v0 (12 a Backlog v2, 3 vigentes, 2 cerradas) -- board v0 quedó en 0 abiertas, listo para archivar desde la UI de Asana. Highlights de moba-warmup sin re-chequear vencimientos individuales desde el 12/8.",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
@@ -69,12 +69,11 @@
     "obscuro-lux": {
       "board": "OBSCUROMEDIAWORKS — Sitio & Estudio",
       "total": 13,
-      "open": 2,
-      "done": 11,
+      "open": 1,
+      "done": 12,
       "overdue": 0,
       "highlights": [
-        "[Estudio] Clasificar los repos sueltos de G:\\Github — bony_lite/bony_tale.v0.1.0 archivados en GitHub; bony_00 sin remote, decisión nueva pendiente (id bony-00-no-remote)",
-        "[Sitio] Mobile dedicado para LUX — sin decisión, es polish, no bloquea"
+        "[Sitio] Mobile dedicado para LUX — polish no bloqueante, diferido a Asana (feedback_polish_vs_funcionalidad), no se ejecuta sin pedido explícito"
       ]
     }
   }

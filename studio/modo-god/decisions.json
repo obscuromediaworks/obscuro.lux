@@ -301,7 +301,13 @@
           "recommended": false
         }
       ],
-      "status": "pending"
+      "status": "decided",
+      "decided_at": "2026-08-14T00:59:27.345887+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Dejarlo como fallback permanente: si un repo nuevo no está en registry.json todavía, el skill usa el script standalone hasta que se registre. Cero mantenimiento extra -- es código que ya funciona y no estorba."
+      },
+      "execution_note": "Sin trabajo que ejecutar: la decisión es dejar el código existente tal cual está."
     },
     {
       "id": "qa-board-palette-per-project",
@@ -327,7 +333,13 @@
           "recommended": false
         }
       ],
-      "status": "pending"
+      "status": "decided",
+      "decided_at": "2026-08-14T00:59:45.537341+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Dejarla fija en Hextech por ahora. Se revisita cuando un segundo proyecto realmente tenga una pasada de QA que correr."
+      },
+      "execution_note": "Sin trabajo que ejecutar: la decisión es dejar la paleta tal cual está."
     }
   ]
 }

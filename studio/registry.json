@@ -160,7 +160,7 @@
     {
       "gid": "1215263538370822",
       "name": "MOBA Warmup — v0",
-      "note": "Board histórico con 17 incompletas. El activo es Launch v1. Migrar lo que siga vivo y archivar. Clasificación propuesta esperando el ok de Roi -- ver conversación, no tocar el board todavía."
+      "note": "RESUELTO (decisions.json: archive-moba-v0-board). Las 17 tareas abiertas migradas a Launch v1 (12 a Backlog v2, 3 vigentes, 2 cerradas) -- el board quedó en 0 abiertas. Falta solo el archivado manual en la UI de Asana: el conector MCP no expone un método para archivar proyectos."
     }
   ],
   "unclassified_repos": [
