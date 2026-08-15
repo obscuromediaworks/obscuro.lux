@@ -51,6 +51,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.handle_qa_mark()
         if path in ("/api/publish/fire", "api/publish/fire"):
             return self.handle_publish_fire()
+        if path in ("/api/publish/archive", "api/publish/archive"):
+            return self.handle_publish_archive()
         self.send_response(404)
         self.end_headers()
 
@@ -198,7 +200,9 @@ class Handler(SimpleHTTPRequestHandler):
         project = (q.get("project") or [None])[0]
         network = (q.get("network") or [None])[0]
         status = (q.get("status") or [None])[0]
-        html = publish_board.render_page(project_filter=project, network_filter=network, status_filter=status)
+        archived = (q.get("archived") or [None])[0]
+        html = publish_board.render_page(project_filter=project, network_filter=network,
+                                          status_filter=status, archived_filter=archived)
         return self.send_html(html)
 
     def handle_publish_fire(self):
@@ -212,6 +216,31 @@ class Handler(SimpleHTTPRequestHandler):
             if not item_id:
                 raise ValueError("falta id")
             result = publish_board.fire(item_id)
+            code = 200
+        except Exception as e:
+            result = {"ok": False, "error": str(e)}
+            code = 400
+
+        body = json.dumps(result, ensure_ascii=False).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def handle_publish_archive(self):
+        # Archiva/desarchiva un item de la cola -- NO toca status (draft/posted/failed/dropped),
+        # solo el campo `archived`, que decide si el item aparece en la vista default de /publish.
+        # Mismo patrón que handle_publish_fire; publish_board.archive() hace el toggle real.
+        try:
+            length = int(self.headers.get("Content-Length", 0) or 0)
+            payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
+            item_id = payload.get("id")
+            if not item_id:
+                raise ValueError("falta id")
+            archived = payload.get("archived", True)
+            result = publish_board.archive(item_id, archived=archived)
             code = 200
         except Exception as e:
             result = {"ok": False, "error": str(e)}

@@ -16,10 +16,18 @@ real (`POST /api/publish/fire`) es **exclusivo de la consola local** -- el Worke
 (`_worker.js`) no tiene esta ruta ni la de `/publish`, igual que `/api/decide` y `/api/qa/mark`
 (ver STUDIO.md §8 y la regla de que el espejo público nunca escribe).
 
-    GET  /publish[?project=<slug>][&network=<discord|youtube|x|tiktok>][&status=<draft|queued|posted|failed|dropped>]
-                                           -> el tablero, filtros combinables
+    GET  /publish[?project=<slug>][&network=<discord|youtube|x|tiktok>][&status=<draft|queued|posted|failed|dropped>][&archived=1]
+                                           -> el tablero, filtros combinables. Sin `archived=1`
+                                              NO se muestran los items archivados (ver campo
+                                              `archived` más abajo); con `archived=1` se ve
+                                              SOLO los archivados.
     POST /api/publish/fire                -> {"id": "<item-id>"} dispara un item auto
                                               (discord/youtube/x/tiktok)
+    POST /api/publish/archive             -> {"id": "<item-id>", "archived": true|false} marca o
+                                              desmarca un item como archivado. Campo independiente
+                                              de `status`: archivar NO cambia si se posteó o no,
+                                              solo lo saca de la vista default (ruido de items ya
+                                              disparados) -- ver `archive()`.
 """
 
 import json
@@ -117,6 +125,19 @@ def fire(item_id):
     item["result"] = result
     save_queue(doc)
     return result
+
+
+def archive(item_id, archived=True):
+    """Marca (o desmarca) un item como archivado. NO toca `status` -- un item posteado sigue
+    posteado, un draft sigue draft; `archived` solo decide si aparece en la vista default de
+    /publish. Es un toggle: llamar de nuevo con archived=False desarchiva."""
+    doc = load_queue()
+    item = next((it for it in doc.get("items", []) if it.get("id") == item_id), None)
+    if item is None:
+        return {"ok": False, "error": "no existe el item: " + str(item_id)}
+    item["archived"] = bool(archived)
+    save_queue(doc)
+    return {"ok": True, "archived": item["archived"]}
 
 
 def _fire_discord(item, creds):
@@ -264,6 +285,7 @@ PAGE = """<!doctype html>
   .item.posted { border-color:rgba(106,176,76,.5); }
   .item.failed { border-color:var(--rec); }
   .item.dropped { border-color:var(--line); opacity:.6; }
+  .item.archived { opacity:.55; }
   .head { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; margin-bottom:.5rem; }
   .tag { font:500 .66rem/1.5 ui-monospace,Consolas,monospace; letter-spacing:.1em; text-transform:uppercase;
     border:1px solid currentColor; padding:.1rem .5rem; white-space:nowrap; }
@@ -296,6 +318,8 @@ PAGE = """<!doctype html>
   button:disabled { opacity:.4; cursor:default; background:transparent; color:var(--gold); }
   .btn-fire { border-color:var(--gold); }
   .btn-copy.done { color:var(--ok); border-color:var(--ok); }
+  .btn-archive { color:#8a8175; border-color:var(--line); }
+  .btn-archive:hover { background:#8a8175; color:var(--ink-900); }
 
   .empty { font-family:ui-monospace,Consolas,monospace; font-size:.85rem; color:#8a8175;
     border:1px dashed var(--line); padding:1rem; }
@@ -310,6 +334,7 @@ PAGE = """<!doctype html>
     API), pero sale privado (solo vos lo ves) hasta que TikTok apruebe la revisión de la app --
     ver <code>tiktok_oauth_setup.py</code>. Sin credenciales cargadas, "Disparar" devuelve el
     detalle de qué falta en vez de intentarlo.</p>
+  <div class="filters">__ARCHIVED_FILTERS__</div>
   <div class="filters">__STATUS_FILTERS__</div>
   <div class="filters">__FILTERS__</div>
   <div class="filters">__NETWORK_FILTERS__</div>
@@ -336,6 +361,24 @@ function fire(id, btn) {
   });
 }
 
+function toggleArchive(id, btn) {
+  const archiving = btn.getAttribute("data-archived") === "0";
+  if (!confirm(archiving ? "¿Archivar este post?" : "¿Desarchivar este post?")) return;
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = archiving ? "Archivando…" : "Desarchivando…";
+  fetch("api/publish/archive", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({id, archived: archiving})
+  }).then(r => r.json()).then(data => {
+    location.reload();
+  }).catch(err => {
+    btn.disabled = false;
+    btn.textContent = original;
+    alert("Fallo de red archivando el post: " + err.message);
+  });
+}
+
 async function copyText(text, btn) {
   try {
     await navigator.clipboard.writeText(text);
@@ -352,8 +395,10 @@ async function copyText(text, btn) {
 document.getElementById("items").addEventListener("click", (e) => {
   const fireBtn = e.target.closest("[data-fire]");
   const copyBtn = e.target.closest("[data-copy]");
+  const archiveBtn = e.target.closest("[data-archive]");
   if (fireBtn) fire(fireBtn.getAttribute("data-fire"), fireBtn);
   else if (copyBtn) copyText(copyBtn.getAttribute("data-copy"), copyBtn);
+  else if (archiveBtn) toggleArchive(archiveBtn.getAttribute("data-archive"), archiveBtn);
 });
 </script>
 </body></html>
@@ -390,6 +435,7 @@ def _item_html(item):
     network = item.get("network", "?")
     status = item.get("status", "draft")
     mode = "auto" if network in AUTO_NETWORKS else "assisted"
+    is_archived = bool(item.get("archived"))
     text = item.get("text") or ""
     media = item.get("media_path")
     # Slot de la rotación semanal (publish_rotation.py) sin llenar todavía -- o cualquier item sin
@@ -404,6 +450,8 @@ def _item_html(item):
     ]
     if item.get("slot"):
         tags.append('<span class="tag" style="color:#8a8175">slot · {b}</span>'.format(b=_esc(item.get("bucket") or "?")))
+    if is_archived:
+        tags.append('<span class="tag" style="color:#8a8175">📁 archivado</span>')
 
     meta_bits = []
     if item.get("suggested_at"):
@@ -428,6 +476,13 @@ def _item_html(item):
             actions.append('<a class="btnlink" href="{url}" target="_blank" rel="noopener">Abrir compose ↗</a>'.format(
                 url=_esc(url_fn(text))))
 
+    # Archivar/desarchivar -- toggle, disponible siempre (item vacío, auto o asistido). No es
+    # excluyente con "Disparar"/"Copiar texto": archivar solo saca el item de la vista default,
+    # no cambia status ni impide re-disparar si hiciera falta.
+    actions.append('<button class="btn-archive" type="button" data-archive="{id}" data-archived="{archived}">{label}</button>'.format(
+        id=_esc(item.get("id")), archived="1" if is_archived else "0",
+        label=("📂 Desarchivar" if is_archived else "📁 Archivar")))
+
     result_html = ""
     r = item.get("result")
     if r:
@@ -437,23 +492,24 @@ def _item_html(item):
         result_html = '<div class="result {cls}">{detail}</div>'.format(cls=cls, detail=_esc(detail))
 
     return """
-  <article class="item {status}" data-id="{id}">
+  <article class="item {status}{archived_cls}" data-id="{id}">
     <div class="head">{tags}<span class="proj">{project}</span></div>
     <p class="text">{text}</p>
     <p class="meta">{meta}</p>
     <div class="actions">{actions}</div>
     {result}
   </article>""".format(
-        status=_esc(status), id=_esc(item.get("id")), tags="".join(tags),
+        status=_esc(status), archived_cls=" archived" if is_archived else "",
+        id=_esc(item.get("id")), tags="".join(tags),
         project=_esc(item.get("project") or ""), text=_esc(text) or "&mdash;", meta=meta_html,
         actions="".join(actions), result=result_html,
     )
 
 
-def _filter_href(project=None, network=None, status=None):
+def _filter_href(project=None, network=None, status=None, archived=None):
     """Arma /publish con los query params que estén presentes, para que cambiar un filtro
-    (proyecto, red o status) preserve los otros dos -- ej.
-    /publish?project=moba-warmup&network=x&status=draft."""
+    (proyecto, red, status o archivado) preserve los otros tres -- ej.
+    /publish?project=moba-warmup&network=x&status=draft&archived=1."""
     from urllib.parse import quote
     params = []
     if project:
@@ -462,10 +518,12 @@ def _filter_href(project=None, network=None, status=None):
         params.append("network=" + quote(network))
     if status:
         params.append("status=" + quote(status))
+    if archived:
+        params.append("archived=" + quote(archived))
     return "/publish" + ("?" + "&".join(params) if params else "")
 
 
-def render_page(project_filter=None, network_filter=None, status_filter=None):
+def render_page(project_filter=None, network_filter=None, status_filter=None, archived_filter=None):
     doc = load_queue()
     all_items = doc.get("items", [])
     items = all_items
@@ -475,27 +533,36 @@ def render_page(project_filter=None, network_filter=None, status_filter=None):
         items = [it for it in items if it.get("network") == network_filter]
     if status_filter:
         items = [it for it in items if it.get("status") == status_filter]
+    # Default: sacar los archivados de la vista para bajar el ruido (pedido de Roi, 14/8) --
+    # ?archived=1 los muestra a ELLOS, no "todo incluido archivados": si hace falta ver un
+    # archivado puntual junto a los activos, combinar con project/network/status en vez de
+    # este filtro, que es binario a propósito (más simple que un tercer estado "todo").
+    if archived_filter:
+        items = [it for it in items if it.get("archived")]
+    else:
+        items = [it for it in items if not it.get("archived")]
 
     projects = sorted({it.get("project") for it in all_items if it.get("project")})
     filters = ['<a href="{href}"{on}>todos</a>'.format(
-        href=_esc(_filter_href(network=network_filter, status=status_filter)),
+        href=_esc(_filter_href(network=network_filter, status=status_filter, archived=archived_filter)),
         on=" class=\"on\"" if not project_filter else "")]
     for p in projects:
         on = " class=\"on\"" if p == project_filter else ""
         filters.append('<a href="{href}"{on}>{p}</a>'.format(
-            href=_esc(_filter_href(project=p, network=network_filter, status=status_filter)), on=on, p=_esc(p)))
+            href=_esc(_filter_href(project=p, network=network_filter, status=status_filter, archived=archived_filter)),
+            on=on, p=_esc(p)))
 
     # Networks sacadas de la cola en sí, no hardcodeadas -- así se banca que mañana se sume una
     # red nueva sin tocar este archivo.
     networks = sorted({it.get("network") for it in all_items if it.get("network")})
     network_filters = ['<a href="{href}"{on}>todas</a>'.format(
-        href=_esc(_filter_href(project=project_filter, status=status_filter)),
+        href=_esc(_filter_href(project=project_filter, status=status_filter, archived=archived_filter)),
         on=" class=\"on\"" if not network_filter else "")]
     for n in networks:
         on = " class=\"on\"" if n == network_filter else ""
         network_filters.append('<a href="{href}"{on}>{label}</a>'.format(
-            href=_esc(_filter_href(project=project_filter, network=n, status=status_filter)), on=on,
-            label=_esc(NETWORK_LABEL.get(n, n))))
+            href=_esc(_filter_href(project=project_filter, network=n, status=status_filter, archived=archived_filter)),
+            on=on, label=_esc(NETWORK_LABEL.get(n, n))))
 
     # Statuses sacados de la cola en sí, mismo criterio que projects/networks -- no hardcodear
     # qué valores existen. "draft" (pendientes) va primero si está presente: es el filtro que
@@ -505,13 +572,23 @@ def render_page(project_filter=None, network_filter=None, status_filter=None):
         statuses.remove("draft")
         statuses.insert(0, "draft")
     status_filters = ['<a href="{href}"{on}>todos</a>'.format(
-        href=_esc(_filter_href(project=project_filter, network=network_filter)),
+        href=_esc(_filter_href(project=project_filter, network=network_filter, archived=archived_filter)),
         on=" class=\"on\"" if not status_filter else "")]
     for s in statuses:
         on = " class=\"on\"" if s == status_filter else ""
         status_filters.append('<a href="{href}"{on}>{label}</a>'.format(
-            href=_esc(_filter_href(project=project_filter, network=network_filter, status=s)), on=on,
-            label=_esc(STATUS_LABEL.get(s, s))))
+            href=_esc(_filter_href(project=project_filter, network=network_filter, status=s, archived=archived_filter)),
+            on=on, label=_esc(STATUS_LABEL.get(s, s))))
+
+    # Archivado: binario a propósito (activas/archivadas) -- ver comentario del filtro arriba.
+    archived_filters = [
+        '<a href="{href}"{on}>📂 activas</a>'.format(
+            href=_esc(_filter_href(project=project_filter, network=network_filter, status=status_filter)),
+            on=" class=\"on\"" if not archived_filter else ""),
+        '<a href="{href}"{on}>📁 archivadas</a>'.format(
+            href=_esc(_filter_href(project=project_filter, network=network_filter, status=status_filter, archived="1")),
+            on=" class=\"on\"" if archived_filter else ""),
+    ]
 
     if not items:
         empty_bits = []
@@ -521,6 +598,8 @@ def render_page(project_filter=None, network_filter=None, status_filter=None):
             empty_bits.append("red " + _esc(NETWORK_LABEL.get(network_filter, network_filter)))
         if status_filter:
             empty_bits.append("status " + _esc(STATUS_LABEL.get(status_filter, status_filter)))
+        if archived_filter:
+            empty_bits.append("archivadas")
         suffix = (" para " + " · ".join(empty_bits)) if empty_bits else ""
         items_html = '<div class="empty">Nada en la cola' + suffix + '. Agregar entradas a mano en publish-queue.json.</div>'
     else:
@@ -529,7 +608,8 @@ def render_page(project_filter=None, network_filter=None, status_filter=None):
         items = sorted(items, key=lambda it: order.get(it.get("status"), 1))
         items_html = "".join(_item_html(it) for it in items)
 
-    return (PAGE.replace("__STATUS_FILTERS__", "".join(status_filters))
+    return (PAGE.replace("__ARCHIVED_FILTERS__", "".join(archived_filters))
+                .replace("__STATUS_FILTERS__", "".join(status_filters))
                 .replace("__FILTERS__", "".join(filters))
                 .replace("__NETWORK_FILTERS__", "".join(network_filters))
                 .replace("__ITEMS__", items_html))
