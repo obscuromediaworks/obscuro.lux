@@ -101,16 +101,72 @@ que el resto del estudio. Secciones por riesgo (spec §12 / `docs/INDEX.md`, no 
 R1 (crítico, bloqueante) → R2–R5 → R9/R10 → Fase 2 (Producto, no arranca hasta que R1 esté
 resuelto con evidencia) → R13–R18 → Backlog/Parked (incluye OBSCUROSTUDIO).
 
+## Estado R2–R5 + gateway (15/8/2026)
+
+Todo con evidencia automática (Playwright/Chromium headless o tests contra un `ninjamsrv` real en
+Docker), re-verificada antes de cerrar la sesión, no solo la corrida original:
+
+- **R2 (deriva de reloj) — MATIZADO, no bloquea.** Veredicto sin cambios respecto del 14/8 (ver
+  arriba). Esta pasada además: reescribió el análisis en vivo de saltos/parada a un método por
+  ventanas de 20 s (mediana de ppm) — más robusto que el umbral por muestra, que daba falsos
+  positivos con audio real conectado; **no cambia el veredicto**, que salió de analizar a mano
+  `boundaries[]`, no de esa vista en vivo. Y corrió un A/B `idle` vs `active` (3 min cada uno) para
+  probar la hipótesis de causa raíz de los 11 saltos de la corrida de 20 min: el número que le
+  importa a la mitigación (peor residual por intervalo) es igual en los dos modos (49.0 ms vs
+  50.6 ms), pero el lag total concentrado en "paradas" es mucho menor en `active` (2.3 ms vs
+  70.8 ms) — apunta hacia throttling de un `AudioContext` idle, sin confirmarlo con certeza (muestra
+  chica, no se repitió a la escala de 150 intervalos). Ver `experiments/r2-clock-drift/RESULTS.md`.
+- **R3 (loopback de intervalo) — RESUELTO.** La corrida del 14/8 fallaba su propio umbral (5/36
+  intervalos con 10.688 ms de error, causa: el `AudioBufferSourceNode` se creaba y agendaba recién
+  al terminar de grabar el intervalo, con margen cero antes de su propio deadline). Fix aplicado y
+  **confirmado con dos corridas nuevas** de 5 min cada una: 0.042 ms de error máximo, 0/36
+  mismatches, ambas idénticas. Ver `experiments/r3-interval-loopback/RESULTS.md`.
+- **R4 (headers COOP/COEP en hosting real) — PASA en emulación local, reconfirmado.** `wrangler
+  pages dev` (mismo runtime/mecanismo `_headers` que un deploy real de Cloudflare Pages, sin
+  publicar nada afuera) sirve los headers, `crossOriginIsolated` da `true`, y el pipeline real de
+  R1 corre sin overruns a través de ese host — corrido dos veces, mismo resultado ambas. **Deploy
+  público real sigue sin probarse a propósito**: necesita el OK explícito de Roi (`STUDIO.md` §7),
+  queda anotado como decisión pendiente, no como trabajo técnico pendiente.
+  Ver `experiments/r4-coop-coep-hosting/RESULTS.md`.
+- **R5 (Safari/iOS) — diferido correctamente, documentado, sin código a propósito.** La spec dice
+  literal "Fase 2, no antes" (§12) — no es ambiguo. `experiments/r5-safari-ios-deferred/NOTE.md`
+  documenta por qué R1–R4 corrieron solo en Chromium a propósito.
+- **Gateway mínimo (`gateway/`, del 14/8)** — relay transparente WS⇄TCP, sin capa de auth/sesión
+  propia. Tests re-corridos esta sesión, ambos pasan: fidelidad de bytes C2S contra un mock TCP
+  (37/37 bytes) y fidelidad S2C contra un `ninjamsrv` **real** en Docker (el Auth Challenge de
+  1221 bytes llega intacto). **No probado todavía:** un handshake de auth completo (solo se
+  confirmó que el Challenge inicial pasa; la respuesta con el hash SHA1 del usuario no se armó ni
+  se probó), audio Vorbis real de punta a punta a través del gateway, ni el canal de chat.
+
+## ¿Listo para la prueba de Fase 1 completa (dos ciudades, NINJAM real)? Todavía no.
+
+Cada pieza por separado tiene evidencia sólida (R1 encoder, R2 deriva, R3 mecanismo de intervalo,
+R4 hosting, gateway relay de bytes), pero **falta la integración**, que es justo lo que pide el
+criterio de salida de §11 Fase 1 ("20 minutos de zapada continua... con menos de 1% de intervalos
+perdidos", dos personas, dos ciudades). Concretamente, sin verificar todavía:
+
+1. Un cliente único que junte R1 (encoder) + R2 (corrección de deriva) + R3 (loopback de
+   intervalo) en una sola app — hoy son 4 scaffolds separados, no una experiencia integrada.
+2. El handshake de auth completo contra `ninjamsrv` a través del gateway (solo el primer paso está
+   confirmado).
+3. Audio Vorbis real viajando por el gateway de punta a punta (cliente → gateway → `ninjamsrv` →
+   gateway → otro cliente).
+4. El canal de chat que pide §11 para el gateway mínimo — no se tocó en ninguna sesión.
+5. Una corrida real con dos clientes distintos (dos procesos como mínimo; "dos ciudades" idealmente
+   con latencia real, no localhost).
+
 ## Pendiente inmediato
 
 Confirmado por Roi (14/8): repo/slug `zapamooke`, trigger "Sigamos con Zapamooke", y
 OBSCUROSTUDIO **espera** a que R1 esté validado antes de bootstrapear su propio repo/setup.
 
 1. ~~Correr el experimento R1 20 minutos y decidir con evidencia.~~ **Hecho 14/8/2026 — R1 pasa.**
-   Ver sección Estado arriba y `experiments/r1-vorbis-encode/RESULTS.md`. Actualizar el board de
-   Asana (sección R1) a mano — esta sesión no tuvo el conector de Asana disponible.
-2. Mover el foco a R2–R5 (deriva de reloj, onboarding del intervalo, headers COOP/COEP en
-   producción, Safari/iOS diferido) y a construir el gateway mínimo de Fase 1 — R1 ya no bloquea
-   eso.
-3. C2 de OBSCUROSTUDIO (FLAC en paralelo al Vorbis) sigue sin correrse — no es lo mismo que R1,
+2. ~~R2–R5 + gateway mínimo.~~ **Hecho 14–15/8/2026 — ver sección arriba.** R3 se arregló y se
+   reconfirmó; R2 sigue matizado (no bloquea); R4 pasa en emulación local; R5 diferido a propósito.
+3. Próximo paso real: integrar las piezas en un cliente único y correr el handshake de auth +
+   audio de punta a punta por el gateway, antes de intentar el criterio de salida de Fase 1 (dos
+   ciudades, 20 min, NINJAM real).
+4. C2 de OBSCUROSTUDIO (FLAC en paralelo al Vorbis) sigue sin correrse — no es lo mismo que R1,
    queda pendiente cuando arranque ese trabajo puntual.
+5. Actualizar el board de Asana (secciones R2–R5) a mano — esta sesión tampoco tuvo el conector de
+   Asana disponible.
