@@ -368,6 +368,27 @@
       },
       "executed_at": "2026-08-14T13:10:35-03:00",
       "execution_note": "Pasada completa corrida por Roi sobre el build 5fe3a48 (equivalente al HEAD b99306a, sin diffs de código entre ambos). Resultado: 19/19 OK, cero fallas. Detalle en docs/qa/runs/5fe3a48.json y en MOBAWarmup/docs/recording-log.md. Hallazgo colateral en F2: el código apaga el auto-attack en Loading a propósito -- el GDD (sección 08, prosa) quedó desalineado, no el código; abrir tarea de docs si hace falta corregirlo."
+    },
+    {
+      "id": "zapamooke-gateway-relay-vs-protocol",
+      "project": "zapamooke",
+      "asana_task_gid": "1217512483700918",
+      "due_on": null,
+      "question": "El gateway de ZAPAMOoKE! (BACKLINE) hoy es un relay transparente WebSocket<->TCP: el frontend termina hablando NINJAM directo a través de él. La spec (§2.3) dice textual que el frontend NUNCA debería hablar NINJAM -- debería hablar un protocolo propio (JSON de control + binario de audio) sobre WebSocket. ¿Se sigue construyendo sobre el relay transparente, o se para a meter el protocolo propio antes de seguir?",
+      "context": "Verificado 15/8 por om-dev: `gateway/src/server.ts` reenvía bytes 1:1 sin traducir el protocolo NINJAM. Funciona bien para validar riesgos técnicos (R1-R4 ya lo usan así) y es la vía más rápida para probar el criterio de salida de Fase 1 (dos ciudades, NINJAM real). El problema no es hoy: es que cuanto más cliente se construya asumiendo bytes NINJAM crudos (auth handshake, canal de chat, audio), más caro sale después insertar el protocolo propio en el medio sin reescribir el cliente entero. La spec dice que el protocolo propio es lo que habilita la Fase 3 (moneda, reputación, moderación) -- no es un detalle de implementación descartable.",
+      "options": [
+        {
+          "label": "Seguir construyendo sobre el relay transparente para cerrar la validación de Fase 1 (auth + chat + audio + prueba de dos ciudades), y recién ahí evaluar meter el protocolo propio antes de construir Fase 2.",
+          "why": "Es la vía más rápida para saber si el producto entero es viable (Fase 1 sigue siendo la prueba que decide eso). El costo de reescribir se paga una sola vez, después de la validación, no antes de saber si vale la pena.",
+          "recommended": true
+        },
+        {
+          "label": "Parar la construcción del cliente y meter el protocolo propio (JSON control + binario audio) en el gateway ANTES de seguir con auth/chat/audio, siguiendo la spec al pie de la letra.",
+          "why": "Evita cualquier retrabajo futuro y respeta la arquitectura documentada desde el día uno -- pero agrega una capa de diseño/implementación antes de tener ninguna evidencia de que el resto del producto funciona, y retrasa la prueba de Fase 1.",
+          "recommended": false
+        }
+      ],
+      "status": "pending"
     }
   ]
 }

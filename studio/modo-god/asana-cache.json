@@ -1,8 +1,8 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-15T09:20:00Z",
-  "generated_by": "cierre de sesión (refrescó moba-warmup con get_tasks -- los highlights viejos ya estaban completed en Asana y el caché no se había tocado desde antes del 14/8)",
-  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. zapamooke: proyecto nuevo (14/8), R1 paso (cerrado), R2-R5 en curso en otra sesion -- no se toca aca todavia.",
+  "generated_at": "2026-08-15T19:40:00Z",
+  "generated_by": "cierre de sesión de zapamooke (refrescó zapamooke con update_tasks + create_tasks -- moba-warmup sin cambios desde el refresh anterior, se conserva tal cual)",
+  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. zapamooke: R1-R5 + gateway minimo validados, board actualizado (2/8 done), nombre comercial BACKLINE decidido (el interno sigue Zapamooke), direccion visual + wordmark cerrados, falta diseñador profesional para el logo de produccion.",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
@@ -76,14 +76,16 @@
     },
     "zapamooke": {
       "board": "ZAPAMOoKE!",
-      "total": 6,
-      "open": 4,
+      "total": 8,
+      "open": 6,
       "done": 2,
       "overdue": null,
       "highlights": [
-        "R1 (critico) PASA. R3 (loopback) ARREGLADO de raiz (no solo documentado) -- verificado con 2 corridas, 0.042ms error. R2 (deriva de reloj) matizado, no bloquea. R4 (COOP/COEP prod) pasa. R5 (Safari/iOS) diferido a proposito.",
-        "Gateway minimo (WebSocket<->TCP) con tests pasando contra un ninjamsrv real en Docker.",
+        "R1 (critico) PASA. R3 (loopback) ARREGLADO de raiz (no solo documentado) -- verificado con 2 corridas, 0.042ms error. R2 (deriva de reloj) matizado, no bloquea. R4 (COOP/COEP prod) pasa. R5 (Safari/iOS) diferido a proposito. Tarea R2-R5 marcada completed en Asana.",
+        "Gateway minimo (WebSocket<->TCP) con tests pasando contra un ninjamsrv real en Docker. Tarea nueva creada: handshake de auth completo + chat + audio end-to-end + cliente unico -- proximo paso real de construccion, no de validacion de riesgo.",
+        "NOMBRE COMERCIAL CAMBIO A BACKLINE (15/8) -- el nombre interno del proyecto/repo/board sigue siendo Zapamooke, decision explicita de Roi (\"para mi siempre es zapamooke, fue una decision estrategica\"). Direccion visual cerrada: mood de gabinete amplificador (tolex, laton, placa crema) + wordmark BACKLINE final (textura de cuero negro desgastado). Tarea nueva creada: contratar diseñador profesional para el logo de produccion.",
         "NO listo para Fase 1 completa (dos ciudades, NINJAM real) -- falta integrar los 4 scaffolds en un cliente unico, handshake de auth completo, audio end-to-end por el gateway, canal de chat, corrida con dos clientes reales.",
+        "Decision de arquitectura pendiente en decisions.json: el gateway hoy es un relay transparente NINJAM<->WebSocket; la spec S2.3 pide que el frontend nunca hable NINJAM directo. Juicio de Roi, no ejecutable por un agente.",
         "OBSCUROSTUDIO (producto hermano) sigue sin bootstrapear a proposito, esperando validacion tecnica completa."
       ]
     }

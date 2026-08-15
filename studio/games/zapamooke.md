@@ -155,6 +155,29 @@ perdidos", dos personas, dos ciudades). Concretamente, sin verificar todavía:
 5. Una corrida real con dos clientes distintos (dos procesos como mínimo; "dos ciudades" idealmente
    con latencia real, no localhost).
 
+## Nombre comercial: BACKLINE (15/8/2026) — el interno sigue siendo Zapamooke
+
+Roi probó varias rondas de wordmark para "ZAPAMOoKE!" (incluida una generación por IA en Leonardo)
+y lo rechazó: sonaba a IA / se confundía con "karaoke". Decidió **BACKLINE**, todo mayúsculas —
+término real de la industria musical (el equipo que ya está en el escenario esperando a la banda),
+coherente directo con la estética de gabinete amplificador. **Aclaración explícita de Roi: "para mi
+siempre es zapamooke, fue una decisión estratégica"** — repo, carpeta, board de Asana, specs y
+trigger de sesión ("Sigamos con Zapamooke") NO cambian. BACKLINE es únicamente la marca de cara al
+público, sin ninguna migración de infraestructura.
+
+## Dirección visual del sitio (15/8/2026) — CERRADA
+
+Mood de gabinete amplificador: tolex negro cálido, placa crema tipo Marshall, jacks de latón,
+rejilla de parlante, cinta de gaffer — hardware de banda de garage de 1990 en adelante, no
+dashboard SaaS. Definida en `design/mood-sala-de-ensayo.html` + `design/README.md` (tokens de
+paleta, tipografía, mapeo componente→hardware). A Roi "le encantó, es el camino correcto".
+
+Wordmark final: variante D de una segunda ronda (`design/wordmark-backline.html`, 4 direcciones
+tipográficas) — letras grandes con **textura de cuero/tolex negro desgastado** vía
+`background-clip:text`, pieza cerrada en `design/logo-backline-final.html`. Esto **cierra la
+exploración interna del logo**; el logo de producción definitivo (vectorización, variantes de uso,
+favicon) queda pendiente de contratar un diseñador profesional — tarea creada en Asana (Backlog).
+
 ## Pendiente inmediato
 
 Confirmado por Roi (14/8): repo/slug `zapamooke`, trigger "Sigamos con Zapamooke", y
@@ -163,10 +186,16 @@ OBSCUROSTUDIO **espera** a que R1 esté validado antes de bootstrapear su propio
 1. ~~Correr el experimento R1 20 minutos y decidir con evidencia.~~ **Hecho 14/8/2026 — R1 pasa.**
 2. ~~R2–R5 + gateway mínimo.~~ **Hecho 14–15/8/2026 — ver sección arriba.** R3 se arregló y se
    reconfirmó; R2 sigue matizado (no bloquea); R4 pasa en emulación local; R5 diferido a propósito.
-3. Próximo paso real: integrar las piezas en un cliente único y correr el handshake de auth +
-   audio de punta a punta por el gateway, antes de intentar el criterio de salida de Fase 1 (dos
-   ciudades, 20 min, NINJAM real).
-4. C2 de OBSCUROSTUDIO (FLAC en paralelo al Vorbis) sigue sin correrse — no es lo mismo que R1,
+3. ~~Actualizar el board de Asana.~~ **Hecho 15/8/2026** — tarea R2-R5 marcada completed con
+   notas completas; tareas nuevas creadas para el gateway y para contratar diseñador del logo.
+4. ~~Dirección visual + wordmark.~~ **Hecho 15/8/2026 — ver sección arriba.**
+5. Próximo paso real: handshake de auth completo + canal de chat + audio end-to-end por el
+   gateway + cliente único que integre R1+R2+R3, antes de intentar el criterio de salida de
+   Fase 1 (dos ciudades, 20 min, NINJAM real). Ver tarea de Asana
+   `1217512483700918`.
+6. **Decisión de arquitectura pendiente de Roi** (anotada en
+   `studio/modo-god/decisions.json`, id `zapamooke-gateway-relay-vs-protocol`): el gateway hoy es
+   un relay transparente NINJAM↔WebSocket; la spec §2.3 pide que el frontend nunca hable NINJAM
+   directo. No bloquea seguir construyendo — es una decisión de cuándo pagar el costo de meterlo.
+7. C2 de OBSCUROSTUDIO (FLAC en paralelo al Vorbis) sigue sin correrse — no es lo mismo que R1,
    queda pendiente cuando arranque ese trabajo puntual.
-5. Actualizar el board de Asana (secciones R2–R5) a mano — esta sesión tampoco tuvo el conector de
-   Asana disponible.
