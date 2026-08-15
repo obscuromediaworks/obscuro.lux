@@ -138,17 +138,77 @@ Docker), re-verificada antes de cerrar la sesión, no solo la corrida original:
   confirmó que el Challenge inicial pasa; la respuesta con el hash SHA1 del usuario no se armó ni
   se probó), audio Vorbis real de punta a punta a través del gateway, ni el canal de chat.
 
+## ¿Listo para la prueba de Fase 1 completa (dos ciudades, NINJAM real)? Todavía no — pero Roi ya
+## se puede conectar a una sala real. (15/8/2026, segunda pasada del día)
+
+**Roi puede conectarse hoy.** `client/` (nuevo) es un cliente mínimo de una sola pantalla — feo,
+funcional — con tres piezas verificadas de punta a punta, no asumidas:
+
+1. **Handshake de auth completo, resuelto.** El campo `success` de la Auth Reply venía en 0
+   ("license not agreed to") hasta este trabajo. Se reconstruyó el layout de bytes de `0x80`
+   (Auth User: `passhash[20]` + username NUL-terminated + `client_caps` u32 LE con el bit 0 en 1
+   para aceptar la licencia + `protocol_version` u32 LE) y de `0x01` (Auth Reply: byte de éxito +
+   mensaje NUL-terminated + **un solo byte** de `maxChannels`, no un u32 — se confirmó cruzando
+   contra `MaxChannels 32 2` del `ninjam_server.cfg` del contenedor) a fuerza de dump de bytes
+   reales contra `ninjam-test`, iterando hasta `success=1`. Ningún dato de estos offsets estaba en
+   la spec (§1.2 solo nombra los campos). Evidencia automática, reproducible:
+   `gateway/test/auth-handshake-real-ninjam.test.mjs` (nuevo, correr con `npm test` en `gateway/`)
+   — pasa con `success=1`, username devuelto (`"myuser"`) y `maxChannels=32` reales.
+2. **Cliente con UI real, no mock.** `client/` (Vite+TS nuevo): campo de sala/usuario/password,
+   botón "Conectar" que corre el handshake real por WebSocket contra el gateway, y muestra
+   *"Conectado a la sala como "myuser" (máx 32 canales)"* solo cuando el Auth Reply real dice
+   éxito — si falla, muestra el error real del servidor. Verificado con Chromium headless
+   (Playwright) sirviendo el build de producción contra el gateway y el `ninjamsrv` real: el texto
+   de conexión y la clase CSS `ok` aparecen con evidencia automática, no solo "no tiró error".
+3. **Selección real de dispositivo de audio.** `enumerateDevices()` puebla un `<select>` con los
+   inputs reales que ve el navegador (una Focusrite conectada aparecería ahí por nombre) — nada
+   hardcodeado. Botón de loopback: mic → salida directa (el tramo que Roi realmente escucha,
+   headphones obligatorio, hay warning en pantalla) + el encoder de R1 corriendo en paralelo sobre
+   la misma señal, midiendo su propio costo (no insertado en el camino que se escucha — no hay
+   decoder en este cliente todavía, ver limitación abajo). Números reales medidos por Chromium en
+   la corrida de verificación: `baseLatency=10.00ms`, `encodeMean=1.03ms`, `rtf=0.012`.
+
+**Limitación explícita, no hay integración de audio de sala todavía.** La conexión a la sala
+(punto 2) y el loopback de audio (punto 3) son dos caminos separados en este build: conectarse no
+enruta el mic por el gateway hacia otros clientes, y el loopback no toca la red. Conectar el canal
+de audio real (`0x83`/`0x84`) con el encoder de R1 es el próximo paso técnico real, no se llegó a
+tiempo en esta sesión. Tampoco hay decoder, chat, ni lista de usuarios. El acuerdo de licencia se
+acepta automáticamente sin mostrarlo — vale para el servidor de prueba local, no para producción.
+
+**Esfuerzo estimado de lo que falta para el criterio de salida de Fase 1** (dos ciudades, 20 min,
+NINJAM real, spec §11): con el handshake y el cliente ya resueltos, conectar audio real punta a
+punta (encoder R1 → canal `0x83`/`0x84` → decoder nuevo → reproducción) es **una tarde más de
+trabajo enfocado**, no varios días — el riesgo grande (¿el encoder aguanta? ¿el handshake cierra?)
+ya está despejado con evidencia. Sumarle R2 (corrección de deriva) y R3 (loopback de intervalo) al
+mismo cliente, más una corrida real con dos procesos/dos máquinas, es la brecha real hasta el
+criterio de salida completo de Fase 1 — ahí sí estamos hablando de **varios días**, no de una
+sesión.
+
+**Decisión de hosting (recomendación, no aplicada):** para que Roi pruebe hoy, local es más rápido
+— no hay nada que deployar, `docker start ninjam-test` + `npm start` en `gateway/` + `npm run dev`
+en `client/` y ya está andando en su propia máquina en minutos. Fly.io ya no tiene el bloqueo de
+tarjeta, pero deployar ahora agrega superficie (config de Fly, exponer el gateway con una URL
+pública, decidir si el `ninjamsrv` de prueba también se expone) sin necesidad real todavía: nadie
+más que Roi va a probar esto hoy, y la prueba de "dos ciudades" real (que sí justifica una URL
+pública) todavía no está lista de este lado. Recomendación: local hoy, Fly.io cuando haya una
+segunda persona real probando o cuando el cliente integre R2/R3 y valga la pena una corrida con
+latencia real de internet. No se deployó nada — queda para que Roi confirme cuándo.
+
+Ver `client/README.md` para instrucciones de arranque exactas y qué mide cada número en pantalla,
+y `gateway/README.md` para el detalle del handshake.
+
 ## ¿Listo para la prueba de Fase 1 completa (dos ciudades, NINJAM real)? Todavía no.
 
 Cada pieza por separado tiene evidencia sólida (R1 encoder, R2 deriva, R3 mecanismo de intervalo,
-R4 hosting, gateway relay de bytes), pero **falta la integración**, que es justo lo que pide el
-criterio de salida de §11 Fase 1 ("20 minutos de zapada continua... con menos de 1% de intervalos
-perdidos", dos personas, dos ciudades). Concretamente, sin verificar todavía:
+R4 hosting, gateway relay de bytes, auth handshake, cliente mínimo), pero **falta la integración**,
+que es justo lo que pide el criterio de salida de §11 Fase 1 ("20 minutos de zapada continua... con
+menos de 1% de intervalos perdidos", dos personas, dos ciudades). Concretamente, sin verificar
+todavía:
 
 1. Un cliente único que junte R1 (encoder) + R2 (corrección de deriva) + R3 (loopback de
-   intervalo) en una sola app — hoy son 4 scaffolds separados, no una experiencia integrada.
-2. El handshake de auth completo contra `ninjamsrv` a través del gateway (solo el primer paso está
-   confirmado).
+   intervalo) en una sola app — hoy `client/` integra R1 y el handshake, pero no R2/R3.
+2. ~~El handshake de auth completo contra `ninjamsrv` a través del gateway.~~ **Resuelto 15/8/2026
+   (segunda pasada) — ver arriba.**
 3. Audio Vorbis real viajando por el gateway de punta a punta (cliente → gateway → `ninjamsrv` →
    gateway → otro cliente).
 4. El canal de chat que pide §11 para el gateway mínimo — no se tocó en ninguna sesión.
