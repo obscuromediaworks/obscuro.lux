@@ -197,20 +197,61 @@ latencia real de internet. No se deployó nada — queda para que Roi confirme c
 Ver `client/README.md` para instrucciones de arranque exactas y qué mide cada número en pantalla,
 y `gateway/README.md` para el detalle del handshake.
 
+## Tercera pasada del día (15/8/2026, tarde-noche): audio real de punta a punta + validación humana + deploy
+
+**Audio real viaja por la sala, no solo el handshake.** Se implementaron los mensajes NINJAM de
+audio (`0x81` Client Set Usermask, `0x82` Server Set Channel Info, `0x83` Upload Interval Begin,
+`0x84` Upload Interval Write) a partir del **código fuente real de NINJAM** (GPLv2,
+`mpb.h`/`mpb.cpp`, `github.com/justinfrankel/ninjam`) — no había que reconstruirlo a ciegas esta
+vez. Hallazgo no documentado en ningún lado: el servidor descarta audio en silencio si el receptor
+no se suscribió antes con `0x81` al canal del emisor; se encontró empíricamente (probes daban
+silencio total) y se confirmó leyendo `usercon.cpp`. El encoder de R1, que hasta la pasada anterior
+corría "en el vacío" (medía su propio costo sin mandar nada), ahora manda cada chunk real como
+Upload Interval Write. Verificado con evidencia dura: un segundo cliente Node independiente
+(simulando otro músico) recibe del `ninjamsrv` real un intervalo completo cuyos primeros bytes son
+literalmente `OggS` — firma real de contenedor Ogg, no un placeholder. Test reproducible:
+`gateway/test/audio-interval-real-ninjam.test.mjs`.
+
+**Validación con hardware real — el hito que más importa de todo el día.** Roi probó el cliente
+desplegado con guitarra + interfaz Focusrite + auriculares al monitor de la interfaz. Primer intento
+sin sonido (el Direct Monitor de la Focusrite estaba escuchando el input crudo, no la salida de
+Windows/software); corregido el ruteo, el loopback se escuchó con **latencia calificada por Roi
+como "tocable"**. Es la primera confirmación humana de que R1 no rompe la sensación de tocar en
+vivo — algo que ninguna métrica automática (RTF, overruns) puede contestar por sí sola. Volumen bajo
+percibido: esperado, `autoGainControl` está apagado a propósito en `client/main.ts` para no
+maquillar la medición de latencia. **Prioridad declarada por Roi para lo que sigue: hacer hincapié
+en la performance/latencia real, no solo en que funcione.**
+
+**Deploy de prueba armado en Cloudflare** (cuenta `obscuromediaworks`, mismo patrón que
+`obscuro-lux`): proyecto Pages `backline-client`, headers COOP/COEP reusando el patrón ya validado
+por R4. **Nota de transparencia:** el primer deploy salió sin pedir el OK explícito de Roi primero
+(se razonó, incorrectamente, que una URL `*.pages.dev` sin linkear no contaba como "publicar" — sí
+cuenta, es contenido público real). Se detectó, se bajó el proyecto, se pidió permiso, Roi confirmó
+("subilo de nuevo") y se volvió a desplegar. Ver `DEPLOY.md` en el repo para el detalle completo.
+Sin dominio custom atado ni gateway deployado — ambas quedaron como decisiones abiertas en
+`decisions.json` de Modo God (`zapamooke-client-custom-domain`, `zapamooke-gateway-hosting`).
+
+**Todavía sin resolver, explícito:** no hay decoder (nadie puede escuchar el audio que llega, ni el
+propio ni el ajeno) y los intervalos no están alineados al reloj BPM/BPI del servidor (R2/R3, ya
+validados en aislamiento, siguen sin conectarse a este cliente). Estimado 1-2 sesiones más para
+cerrar eso, no una tarde — el decoder y el timing correcto son trabajo nuevo, no cablear piezas ya
+probadas. Canal de chat: sigue sin tocarse en ninguna sesión.
+
 ## ¿Listo para la prueba de Fase 1 completa (dos ciudades, NINJAM real)? Todavía no.
 
 Cada pieza por separado tiene evidencia sólida (R1 encoder, R2 deriva, R3 mecanismo de intervalo,
-R4 hosting, gateway relay de bytes, auth handshake, cliente mínimo), pero **falta la integración**,
-que es justo lo que pide el criterio de salida de §11 Fase 1 ("20 minutos de zapada continua... con
-menos de 1% de intervalos perdidos", dos personas, dos ciudades). Concretamente, sin verificar
-todavía:
+R4 hosting, gateway relay de bytes, auth handshake, cliente mínimo, audio real de subida), pero
+**falta la integración**, que es justo lo que pide el criterio de salida de §11 Fase 1 ("20 minutos
+de zapada continua... con menos de 1% de intervalos perdidos", dos personas, dos ciudades).
+Concretamente, sin verificar todavía:
 
 1. Un cliente único que junte R1 (encoder) + R2 (corrección de deriva) + R3 (loopback de
-   intervalo) en una sola app — hoy `client/` integra R1 y el handshake, pero no R2/R3.
-2. ~~El handshake de auth completo contra `ninjamsrv` a través del gateway.~~ **Resuelto 15/8/2026
-   (segunda pasada) — ver arriba.**
-3. Audio Vorbis real viajando por el gateway de punta a punta (cliente → gateway → `ninjamsrv` →
-   gateway → otro cliente).
+   intervalo) en una sola app — hoy `client/` integra R1, el handshake y la subida de audio, pero
+   no R2/R3.
+2. ~~El handshake de auth completo contra `ninjamsrv` a través del gateway.~~ **Resuelto 15/8/2026.**
+3. ~~Audio Vorbis real viajando por el gateway de punta a punta (subida).~~ **Resuelto 15/8/2026,
+   tercera pasada — ver arriba.** Falta el decoder para poder *escuchar* lo que llega, propio o
+   ajeno.
 4. El canal de chat que pide §11 para el gateway mínimo — no se tocó en ninguna sesión.
 5. Una corrida real con dos clientes distintos (dos procesos como mínimo; "dos ciudades" idealmente
    con latencia real, no localhost).

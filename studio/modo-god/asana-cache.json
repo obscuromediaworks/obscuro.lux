@@ -1,8 +1,8 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-15T19:40:00Z",
-  "generated_by": "cierre de sesión de zapamooke (refrescó zapamooke con update_tasks + create_tasks -- moba-warmup sin cambios desde el refresh anterior, se conserva tal cual)",
-  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. zapamooke: R1-R5 + gateway minimo validados, board actualizado (2/8 done), nombre comercial BACKLINE decidido (el interno sigue Zapamooke), direccion visual + wordmark cerrados, falta diseñador profesional para el logo de produccion.",
+  "generated_at": "2026-08-16T02:20:00Z",
+  "generated_by": "cierre de sesión de zapamooke, segunda pasada del dia (update_tasks sobre la tarea de gateway con el estado final; moba-warmup sin cambios de Asana, solo nota de copy)",
+  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. Regla nueva 15/8: sin menciones directas a League of Legends/LoL en copy publico (revierte una decision anterior del 12/8), copy corregido y pusheado. zapamooke: R1-R5 + gateway minimo validados, board actualizado (2/8 done), nombre comercial BACKLINE decidido (el interno sigue Zapamooke), direccion visual + wordmark cerrados. Handshake de auth y audio real end-to-end (subida) RESUELTOS y verificados con hardware real -- Roi califico la latencia de \"tocable\". Deploy de prueba en Cloudflare Pages armado y confirmado con OK explicito. Falta decoder + intervalos por BPM + chat + decision de hosting del gateway.",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
@@ -16,7 +16,8 @@
         "[Marketing] Press kit / one-pager -- vencia 12/8, overdue. Falta confirmar logo/email final.",
         "[Marketing] Posts en comunidades (r/summonerschool, etc.) -- vence 15/8 (mañana). Draft completo para los 4 subs, faltan los Discords de LoL.",
         "Discord de lanzamiento sigue EN PAUSA a proposito (decision explicita de Roi, esperar mas comunidad) -- no es un olvido.",
-        "Resto de lo abierto es polish/perf sin fecha (Audio SFX/musica de Javi, peso de assets, forceToMono) -- nada urgente."
+        "Resto de lo abierto es polish/perf sin fecha (Audio SFX/musica de Javi, peso de assets, forceToMono) -- nada urgente.",
+        "15/8: regla nueva de copy -- sin LoL directo en material publico (revierte decision del 12/8 de nombrarlo a proposito). Corregido en itch, press kit, posts de comunidad, outreach y hashtags. Bio de canal de YouTube y descripciones de los 2 videos publicados quedaron con texto listo para pegar a mano (sin automatizacion de edicion de metadata existente)."
       ]
     },
     "le2": {
@@ -81,11 +82,13 @@
       "done": 2,
       "overdue": null,
       "highlights": [
-        "R1 (critico) PASA. R3 (loopback) ARREGLADO de raiz (no solo documentado) -- verificado con 2 corridas, 0.042ms error. R2 (deriva de reloj) matizado, no bloquea. R4 (COOP/COEP prod) pasa. R5 (Safari/iOS) diferido a proposito. Tarea R2-R5 marcada completed en Asana.",
-        "Gateway minimo (WebSocket<->TCP) con tests pasando contra un ninjamsrv real en Docker. Tarea nueva creada: handshake de auth completo + chat + audio end-to-end + cliente unico -- proximo paso real de construccion, no de validacion de riesgo.",
-        "NOMBRE COMERCIAL CAMBIO A BACKLINE (15/8) -- el nombre interno del proyecto/repo/board sigue siendo Zapamooke, decision explicita de Roi (\"para mi siempre es zapamooke, fue una decision estrategica\"). Direccion visual cerrada: mood de gabinete amplificador (tolex, laton, placa crema) + wordmark BACKLINE final (textura de cuero negro desgastado). Tarea nueva creada: contratar diseñador profesional para el logo de produccion.",
-        "NO listo para Fase 1 completa (dos ciudades, NINJAM real) -- falta integrar los 4 scaffolds en un cliente unico, handshake de auth completo, audio end-to-end por el gateway, canal de chat, corrida con dos clientes reales.",
-        "Decision de arquitectura pendiente en decisions.json: el gateway hoy es un relay transparente NINJAM<->WebSocket; la spec S2.3 pide que el frontend nunca hable NINJAM directo. Juicio de Roi, no ejecutable por un agente.",
+        "R1 PASA, R3 ARREGLADO de raiz, R2 matizado (no bloquea), R4 pasa, R5 diferido a proposito. Tarea R2-R5 completed en Asana.",
+        "HANDSHAKE DE AUTH y AUDIO REAL END-TO-END (subida) RESUELTOS 15/8, con evidencia dura: un cliente real (client/) se conecta a un ninjamsrv real, y el encoder de R1 manda audio que llega byte-identico (firma Ogg real) a otro cliente. Validado ademas con HARDWARE REAL: Roi probo con guitarra + interfaz Focusrite, latencia calificada \"tocable\" -- primera confirmacion humana, no solo metrica automatica.",
+        "Falta: decoder (nadie puede escuchar lo que llega todavia), intervalos alineados a BPM (R2/R3 sin conectar al cliente), canal de chat. Estimado 1-2 sesiones mas. Prioridad declarada por Roi: enfasis en performance/latencia real de aca en mas.",
+        "NOMBRE COMERCIAL CAMBIO A BACKLINE (15/8) -- el interno (repo/board/specs) sigue siendo Zapamooke, decision explicita de Roi. Direccion visual + wordmark final cerrados (textura de cuero negro desgastado). Tarea creada: contratar diseñador profesional para el logo de produccion.",
+        "Deploy de prueba armado en Cloudflare Pages (cuenta obscuromediaworks, backline-client.pages.dev) -- el primer intento salio sin pedir OK explicito primero, se corrigio (se bajo, se pidio permiso, se resubio con confirmacion de Roi). Gateway sin deployar a proposito.",
+        "3 decisiones en decisions.json: relay-vs-protocolo-propio (DECIDIDA por Roi -- seguir sobre el relay hasta cerrar Fase 1), hosting del gateway (abierta), dominio custom del cliente (abierta).",
+        "NO listo para Fase 1 completa (dos ciudades, NINJAM real) -- falta cliente unico con R2/R3 integrados, decoder, chat, corrida con dos clientes reales.",
         "OBSCUROSTUDIO (producto hermano) sigue sin bootstrapear a proposito, esperando validacion tecnica completa."
       ]
     }
