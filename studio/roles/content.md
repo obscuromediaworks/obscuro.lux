@@ -38,12 +38,18 @@ Usos típicos:
 
 ## Formatos por plataforma (no improvisar el tamaño)
 
-| Destino | Aspecto | Notas |
-|---|---|---|
-| TikTok / Shorts / Reels | 9:16 vertical | Primeros 1-2s tienen que enganchar — no hay intro lenta. |
-| X (twitter) | 16:9 o cuadrado | GIFs cortos (<15s) rinden mejor que video largo en el feed. |
-| itch.io (banner de juego / estudio) | según la página — ver el dossier del proyecto | No es contenido de redes, es identidad de tienda: mirar antes si esto es un pedido de Arte en vez de tuyo. |
-| Discord / comunidades | GIF o mp4 corto, sin autoplay garantizado | Que el primer frame ya diga algo, por si no llega a reproducirse. |
+**Regla dura (14/8/2026): GIF solo para X. Para YouTube, YouTube Shorts y TikTok siempre video
+(mp4).** No es solo estética — un GIF corto subido a YouTube puede salir mal clasificado (ver el
+lanzamiento de MOBA Warmup: un GIF de 5s horizontal se coló como Short). Si el material fuente es
+un GIF y el destino es YT/Shorts/TikTok, convertilo a mp4 antes de entregarlo, no lo mandes tal cual.
+
+| Destino | Aspecto | Formato | Notas |
+|---|---|---|---|
+| TikTok / Shorts / Reels | 9:16 vertical | **mp4** | Primeros 1-2s tienen que enganchar — no hay intro lenta. |
+| YouTube (normal o Shorts) | 16:9 o 9:16 según el video | **mp4** | Nunca subir un GIF/clip demasiado corto como si fuera un video normal — YouTube lo puede clasificar como Short igual. |
+| X (twitter) | 16:9 o cuadrado | **GIF** (o mp4 si el clip pide sonido) | GIFs cortos (<15s) rinden mejor que video largo en el feed — el único destino donde GIF es la opción por default. |
+| itch.io (banner de juego / estudio) | según la página — ver el dossier del proyecto | — | No es contenido de redes, es identidad de tienda: mirar antes si esto es un pedido de Arte en vez de tuyo. |
+| Discord / comunidades | GIF o mp4 corto, sin autoplay garantizado | GIF o mp4 | Que el primer frame ya diga algo, por si no llega a reproducirse. |
 
 ## Buenas prácticas de contenido atractivo
 
