@@ -22,7 +22,7 @@
       "slug": "moba-warmup",
       "name": "MOBA Warmup",
       "kind": "game",
-      "status": "launch",
+      "status": "launched",
       "priority": 1,
       "repo_path": "G:\\Github\\MOBAWarmup",
       "repo": "obscuromediaworks/moba_warmup",

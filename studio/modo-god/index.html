@@ -55,6 +55,7 @@
   .badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
          border:1px solid var(--line);padding:3px 8px;color:#8a8175;white-space:nowrap}
   .badge.launch{border-color:var(--rec);color:var(--rec)}
+  .badge.launched{border-color:var(--ok);color:var(--ok)}
   .badge.production{border-color:var(--gold);color:var(--gold)}
 
   .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -230,7 +231,7 @@ function sessionHref(p){
 function card(p){
   const g = p.git, lc = g && g.last_commit;
   const d = daysTo(p.ships_on);
-  const ship = d === null ? "" :
+  const ship = (d === null || p.status === "launched") ? "" :
     `<span class="ship">lanza en ${d} d</span>`;
   const session = p.trigger
     ? `<a class="icon-btn session-open" href="${esc(sessionHref(p))}"
