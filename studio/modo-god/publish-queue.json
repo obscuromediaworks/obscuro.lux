@@ -14,7 +14,8 @@
       "created_by": "om-dev",
       "created_at": "2026-08-13",
       "posted_at": null,
-      "result": null
+      "result": null,
+      "archived": true
     },
     {
       "id": "moba-shorts-adckite-pierce",
@@ -55,7 +56,8 @@
       "created_at": "2026-08-13",
       "posted_at": null,
       "result": null,
-      "dropped_note": "Descartado 14/8: teaser 'Tomorrow.' pensado para el día antes del lanzamiento, ya pasó -- el lanzamiento real ya salió por otros posts."
+      "dropped_note": "Descartado 14/8: teaser 'Tomorrow.' pensado para el día antes del lanzamiento, ya pasó -- el lanzamiento real ya salió por otros posts.",
+      "archived": true
     },
     {
       "id": "moba-launch-tiktok-floorcollapse",
@@ -77,7 +79,8 @@
         "ok": true,
         "publish_id": "v_pub_file~v2-1.7673730924642732053",
         "note": "Subido con privacy_level=SELF_ONLY -- revisar el estado con /v2/post/publish/status/fetch/ (publish_id) o en la app de TikTok, bandeja de borradores/privados."
-      }
+      },
+      "archived": true
     },
     {
       "id": "moba-launch-tiktok-cstracker",
@@ -114,7 +117,8 @@
       "created_by": "om-marketing",
       "created_at": "2026-08-14",
       "posted_at": null,
-      "result": null
+      "result": null,
+      "archived": true
     },
     {
       "id": "moba-launch-x-announce",
@@ -139,7 +143,8 @@
           "tweet_id": "2088311026060067296",
           "note": "Versión en español, sin imagen (media upload de X no implementado todavía). Borrada por Roi -- reemplazada por esta versión en inglés, pendiente de re-disparar una vez que el media upload esté listo."
         }
-      ]
+      ],
+      "archived": true
     },
     {
       "id": "moba-launch-tiktok-announce",
@@ -167,9 +172,9 @@
       "id": "moba-launch-youtube-announce",
       "project": "moba-warmup",
       "network": "youtube",
-      "status": "posted",
+      "status": "draft",
       "text": "MOBA Warmup Gym is live. Free, browser-based skill trainer built for the dead time between League of Legends queues -- last hit drills, Kite Mode against a bot with real windup telegraphs, and Loading Frenzy for the loading screen itself. No install, no account, starts in under 3 seconds. Play now: mobawarmup.obscuromediaworks.com.ar",
-      "media_path": "docs/gifs/lasthit-wave-clash.gif",
+      "media_path": "docs/trailer-launch-2026-08-14.mp4",
       "target": {
         "title": "MOBA Warmup Gym is live -- free browser skill trainer for LoL queue time",
         "tags": [
@@ -183,16 +188,44 @@
         "privacy_status": "public"
       },
       "suggested_at": "2026-08-14T13:30:00-03:00",
-      "source": "Lanzamiento coordinado del día D -- ships_on 2026-08-14 en registry.json. GIF de docs/gifs/lasthit-wave-clash.gif (commit 9b37f07). privacy_status public porque es el video que anuncia el lanzamiento real, a diferencia de moba-shorts-adckite-pierce (unlisted, contenido de rotación)",
+      "source": "Lanzamiento coordinado del día D -- ships_on 2026-08-14 en registry.json. Trailer final con música mezclada (docs/trailer-launch-2026-08-14.mp4, commit a2e022d) -- horizontal, video normal de YouTube (no Shorts). El item hermano para YouTube Shorts es moba-launch-youtube-shorts-vertical.",
       "created_by": "om-marketing",
       "created_at": "2026-08-14",
-      "posted_at": "2026-08-14T18:00:03.220914+00:00",
-      "result": {
-        "ok": true,
-        "video_id": "Y8Slgeapbmw",
-        "url": "https://youtube.com/shorts/Y8Slgeapbmw",
-        "error": null
-      }
+      "posted_at": null,
+      "result": null,
+      "history": [
+        {
+          "posted_at": "2026-08-14T18:00:03.220914+00:00",
+          "video_id": "Y8Slgeapbmw",
+          "note": "Primer intento, con el GIF lasthit-wave-clash.gif (5s) -- salió mal clasificado como Short (horizontal pero demasiado corto). Borrado por Roi. Reemplazado por un intento posterior con el trailer completo (oGt87T9ZaB4), también borrado por Roi para editar la música. Este item ahora apunta al trailer final con la mezcla definitiva."
+        }
+      ]
+    },
+    {
+      "id": "moba-launch-youtube-shorts-vertical",
+      "project": "moba-warmup",
+      "network": "youtube",
+      "status": "draft",
+      "text": "MOBA Warmup Gym is live. Free skill trainer for League of Legends players -- last hit, kite, loading frenzy, right in your browser. No install, no account. mobawarmup.obscuromediaworks.com.ar",
+      "media_path": "docs/trailer-launch-2026-08-14-vertical.mp4",
+      "target": {
+        "title": "MOBA Warmup Gym is live! #shorts",
+        "tags": [
+          "MOBA Warmup",
+          "League of Legends",
+          "last hit",
+          "shorts",
+          "LoL training",
+          "launch"
+        ],
+        "privacy_status": "public"
+      },
+      "suggested_at": "2026-08-14T13:30:00-03:00",
+      "source": "Card hermano de moba-launch-youtube-announce, pedido explícito de Roi: 'tenemos que tener yt y yt shorts' -- vertical 9:16 propio (no derivado del horizontal), recompuesto para el formato. Pendiente: Roi está adaptando la música del horizontal a la duración/corte de esta versión (37.4s) antes de que esto pueda dispararse -- avisar cuando la mande.",
+      "created_by": "claude",
+      "created_at": "2026-08-14",
+      "posted_at": null,
+      "result": null
     },
     {
       "id": "slot-moba-warmup-devlog-2026-08-24",
