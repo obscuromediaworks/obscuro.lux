@@ -154,3 +154,13 @@ roles) sigue activa solo para `obscuro-lux` salvo que Roi pida extenderla. La ru
 (§2.3) sí es transversal desde el 13/8/2026: cualquier proyecto que termine su sesión con un
 juicio de Roi pendiente lo deja anotado acá, sin esperar a que alguien dispare el trigger de
 `obscuro-lux` de nuevo.
+
+**Chequeo de vencidas, transversal desde el 15/8/2026 (motivo: 2 tareas de MOBA Warmup vencidas
+desde el 12-13/8 pasaron desapercibidas porque la sesión de ese día trabajó otro proyecto y nadie
+miró esa card puntual de Modo God).** Al arrancar **cualquier** sesión con trigger de proyecto
+(no solo `obscuro-lux`), antes de la instrucción puntual de Roi: leer los campos `overdue` de
+**todos** los proyectos en `studio/modo-god/asana-cache.json` (lectura de caché, no refresco en
+vivo — barato, no depende de credenciales del proyecto que se está abriendo) y, si algún proyecto
+distinto al que se está trabajando tiene `overdue > 0`, mencionarlo en la línea de arranque (ej.
+"ojo: MOBA Warmup tiene 2 tareas vencidas"). No dispara reparto de trabajo por sí solo — es un
+aviso, Roi decide qué hacer con eso.
