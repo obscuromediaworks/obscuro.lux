@@ -1,6 +1,6 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-15T06:40:00Z",
+  "generated_at": "2026-08-15T09:20:00Z",
   "generated_by": "cierre de sesión (refrescó moba-warmup con get_tasks -- los highlights viejos ya estaban completed en Asana y el caché no se había tocado desde antes del 14/8)",
   "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. zapamooke: proyecto nuevo (14/8), R1 paso (cerrado), R2-R5 en curso en otra sesion -- no se toca aca todavia.",
   "projects": {
@@ -77,14 +77,14 @@
     "zapamooke": {
       "board": "ZAPAMOoKE!",
       "total": 6,
-      "open": 5,
-      "done": 1,
+      "open": 4,
+      "done": 2,
       "overdue": null,
       "highlights": [
-        "R1 (critico, decide si el proyecto existe) PASA -- codificar Vorbis en el navegador anda muy por debajo del umbral de la spec. No hace falta el plan B de Opus.",
-        "R2 (deriva de reloj): evidencia mixta -- el numero crudo falla el umbral pero la deriva de fondo real (~8ppm) esta muy por debajo. Ver RESULTS.md en el repo.",
-        "R3 (loopback del intervalo): NO pasa su propio umbral (10.688ms en 5/36 intervalos) pero con causa raiz identificada (alineamiento de quantums de audio) -- posiblemente arreglable.",
-        "R4/R5 y el gateway minimo en curso en otra sesion al cierre de este cache -- no reflejado todavia, confirmar en la proxima corrida."
+        "R1 (critico) PASA. R3 (loopback) ARREGLADO de raiz (no solo documentado) -- verificado con 2 corridas, 0.042ms error. R2 (deriva de reloj) matizado, no bloquea. R4 (COOP/COEP prod) pasa. R5 (Safari/iOS) diferido a proposito.",
+        "Gateway minimo (WebSocket<->TCP) con tests pasando contra un ninjamsrv real en Docker.",
+        "NO listo para Fase 1 completa (dos ciudades, NINJAM real) -- falta integrar los 4 scaffolds en un cliente unico, handshake de auth completo, audio end-to-end por el gateway, canal de chat, corrida con dos clientes reales.",
+        "OBSCUROSTUDIO (producto hermano) sigue sin bootstrapear a proposito, esperando validacion tecnica completa."
       ]
     }
   }
