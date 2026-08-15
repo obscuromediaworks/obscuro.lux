@@ -1,24 +1,22 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-14T04:20:00Z",
+  "generated_at": "2026-08-15T06:40:00Z",
   "generated_by": "cierre de sesión (refrescó moba-warmup con get_tasks -- los highlights viejos ya estaban completed en Asana y el caché no se había tocado desde antes del 14/8)",
-  "note": "obscuro-lux: 13/14 done tras sumar la tarea de TikTok (nueva, ya cerrada). Sigue 1 abierta: '[Sitio] Mobile dedicado para LUX', polish no bloqueante. moba-warmup: refrescado a fondo, 30/47 done (sumó 'Grabar gameplay limpio', ya resuelto). Highlights de abajo reflejan lo que queda realmente abierto hoy, día de lanzamiento.",
+  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. zapamooke: proyecto nuevo (14/8), R1 paso (cerrado), R2-R5 en curso en otra sesion -- no se toca aca todavia.",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
-      "total": 47,
-      "open": 14,
-      "done": 33,
-      "overdue": null,
+      "total": 46,
+      "open": 11,
+      "done": 35,
+      "overdue": 2,
       "highlights": [
-        "[Lanzamiento] ⭐ Lanzamiento público v1 — vence HOY 14/8. Único bloqueo: Roi tiene que sacar el secret de preview de itch y disparar la cola de /publish",
-        "[Marketing] Campaña orgánica: clips diarios TikTok/Shorts/X — vence HOY 14/8",
-        "[Marketing] Página de itch completa — vencía 12/8. Todo listo (texto/cover/screenshots/GIFs/banner); falta 1 paso manual de Roi (sacar el secret de preview)",
-        "[Marketing] Press kit / one-pager — vencía 12/8. Falta link jugable final + confirmar logo/email",
-        "[Marketing] Lista + outreach a streamers — vencía 13/8. Borrador de mensaje listo, falta que Roi arme la lista real en Twitch",
-        "[Marketing] Posts en comunidades (r/summonerschool, etc.) — vence 15/8. Draft completo para los 4 subs, faltan los Discords de LoL",
-        "Decisión pendiente en Modo God: mini-QA formal de ADCKite/Loading nunca se corrió (ver decisions.json id moba-launch-eve-qa-gap)",
-        "Cola de lanzamiento lista en /publish (4 items draft: discord/x/tiktok/youtube), esperando que Roi la dispare"
+        "LANZAMIENTO COMPLETO (14/8): itch publica, trailer horizontal+vertical con musica en X, TikTok, YouTube normal y Shorts. Nada bloqueante queda abierto.",
+        "[Marketing] Lista + outreach a streamers de LoL -- vencia 13/8, overdue. Falta que Roi arme la lista real en Twitch (paso manual, no delegable).",
+        "[Marketing] Press kit / one-pager -- vencia 12/8, overdue. Falta confirmar logo/email final.",
+        "[Marketing] Posts en comunidades (r/summonerschool, etc.) -- vence 15/8 (mañana). Draft completo para los 4 subs, faltan los Discords de LoL.",
+        "Discord de lanzamiento sigue EN PAUSA a proposito (decision explicita de Roi, esperar mas comunidad) -- no es un olvido.",
+        "Resto de lo abierto es polish/perf sin fecha (Audio SFX/musica de Javi, peso de assets, forceToMono) -- nada urgente."
       ]
     },
     "le2": {
@@ -74,6 +72,19 @@
       "overdue": 0,
       "highlights": [
         "[Sitio] Mobile dedicado para LUX — polish no bloqueante, diferido a Asana (feedback_polish_vs_funcionalidad), no se ejecuta sin pedido explícito"
+      ]
+    },
+    "zapamooke": {
+      "board": "ZAPAMOoKE!",
+      "total": 6,
+      "open": 5,
+      "done": 1,
+      "overdue": null,
+      "highlights": [
+        "R1 (critico, decide si el proyecto existe) PASA -- codificar Vorbis en el navegador anda muy por debajo del umbral de la spec. No hace falta el plan B de Opus.",
+        "R2 (deriva de reloj): evidencia mixta -- el numero crudo falla el umbral pero la deriva de fondo real (~8ppm) esta muy por debajo. Ver RESULTS.md en el repo.",
+        "R3 (loopback del intervalo): NO pasa su propio umbral (10.688ms en 5/36 intervalos) pero con causa raiz identificada (alineamiento de quantums de audio) -- posiblemente arreglable.",
+        "R4/R5 y el gateway minimo en curso en otra sesion al cierre de este cache -- no reflejado todavia, confirmar en la proxima corrida."
       ]
     }
   }

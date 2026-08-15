@@ -45,6 +45,14 @@ Al detectar señal de cierre ("nos vemos", "ya está", "terminamos por hoy", o e
    `obscuro-lux` — el tablero es infra del estudio, no de un proyecto puntual (ver §8/§9). Pedido
    explícito de Roi, 2026-08-13: pasa a ser parte del cierre de **todo** proyecto, no solo del
    arranque de `obscuro-lux`.
+3b. **Snapshot de Modo God** — si se tocó Asana en la sesión (tareas cerradas/creadas), refrescar
+   `studio/modo-god/asana-cache.json` a mano (el `note` y el bloque `projects.<slug>` del proyecto
+   tocado, con `board`/`total`/`open`/`done`/`overdue`/`highlights` actuales) y correr
+   `python studio/modo-god/collect.py` para regenerar `snapshot.json`. Si además hay una consola
+   local corriendo, reiniciarla para que sirva el snapshot nuevo. Pedido explícito de Roi,
+   2026-08-15 — el bug real que lo disparó: `asana-cache.json` lo escribe a mano un agente de
+   Claude (el conector es MCP, `collect.py` no puede llamarlo solo) y quedó desactualizado un día
+   entero, mostrando tareas ya cerradas como si siguieran en rojo.
 4. **Sound Sheet** — solo MOBA Warmup y solo si se tocaron WAVs: reportar las filas a cambiar, no editarla sola.
 5. **Git** — `status` → `add` → commit descriptivo → `push`. Verificar que no haya secretos staged.
 6. **Build** — si el proyecto tiene deploy manual y se tocó código de runtime, generar el artifact. Si no aplica, decirlo explícitamente.
