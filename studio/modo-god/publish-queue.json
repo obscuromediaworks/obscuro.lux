@@ -172,7 +172,7 @@
       "id": "moba-launch-youtube-announce",
       "project": "moba-warmup",
       "network": "youtube",
-      "status": "draft",
+      "status": "posted",
       "text": "MOBA Warmup Gym is live. Free, browser-based skill trainer built for the dead time between League of Legends queues -- last hit drills, Kite Mode against a bot with real windup telegraphs, and Loading Frenzy for the loading screen itself. No install, no account, starts in under 3 seconds. Play now: mobawarmup.obscuromediaworks.com.ar",
       "media_path": "docs/trailer-launch-2026-08-14.mp4",
       "target": {
@@ -191,8 +191,13 @@
       "source": "Lanzamiento coordinado del día D -- ships_on 2026-08-14 en registry.json. Trailer final con música mezclada (docs/trailer-launch-2026-08-14.mp4, commit a2e022d) -- horizontal, video normal de YouTube (no Shorts). El item hermano para YouTube Shorts es moba-launch-youtube-shorts-vertical.",
       "created_by": "om-marketing",
       "created_at": "2026-08-14",
-      "posted_at": null,
-      "result": null,
+      "posted_at": "2026-08-15T06:32:51.531434+00:00",
+      "result": {
+        "ok": true,
+        "video_id": "Km31dKghLP8",
+        "url": "https://youtube.com/shorts/Km31dKghLP8",
+        "error": null
+      },
       "history": [
         {
           "posted_at": "2026-08-14T18:00:03.220914+00:00",
@@ -205,7 +210,7 @@
       "id": "moba-launch-youtube-shorts-vertical",
       "project": "moba-warmup",
       "network": "youtube",
-      "status": "draft",
+      "status": "posted",
       "text": "MOBA Warmup Gym is live. Free skill trainer for League of Legends players -- last hit, kite, loading frenzy, right in your browser. No install, no account. mobawarmup.obscuromediaworks.com.ar",
       "media_path": "docs/trailer-launch-2026-08-14-vertical.mp4",
       "target": {
@@ -224,8 +229,13 @@
       "source": "Card hermano de moba-launch-youtube-announce, pedido explícito de Roi: 'tenemos que tener yt y yt shorts' -- vertical 9:16 propio (no derivado del horizontal), recompuesto para el formato. Pendiente: Roi está adaptando la música del horizontal a la duración/corte de esta versión (37.4s) antes de que esto pueda dispararse -- avisar cuando la mande.",
       "created_by": "claude",
       "created_at": "2026-08-14",
-      "posted_at": null,
-      "result": null
+      "posted_at": "2026-08-15T06:33:01.714354+00:00",
+      "result": {
+        "ok": true,
+        "video_id": "h358jfSyfvk",
+        "url": "https://youtube.com/shorts/h358jfSyfvk",
+        "error": null
+      }
     },
     {
       "id": "slot-moba-warmup-devlog-2026-08-24",
