@@ -388,7 +388,64 @@
           "recommended": false
         }
       ],
-      "status": "pending"
+      "status": "decided",
+      "decided_at": "2026-08-15T22:44:08.971670+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Seguir construyendo sobre el relay transparente para cerrar la validación de Fase 1 (auth + chat + audio + prueba de dos ciudades), y recién ahí evaluar meter el protocolo propio antes de construir Fase 2."
+      }
+    },
+    {
+      "id": "zapamooke-client-custom-domain",
+      "project": "zapamooke",
+      "asana_task_gid": null,
+      "due_on": null,
+      "question": "El cliente mínimo de BACKLINE ya deploya a `https://backline-client.pages.dev/` (proyecto Cloudflare Pages creado 15/8). ¿Se ata un dominio custom, y cuál subdominio de `obscuromediaworks.com.ar`?",
+      "context": "Infraestructura lista (client/wrangler.toml, DEPLOY.md), pero sin dominio atado a propósito: es un acto separado que requiere el OK explícito de Roi (STUDIO.md §7), y encima había una pregunta abierta en memoria sobre qué subdominio usar dado el nombre comercial nuevo (BACKLINE, decidido 15/8) vs. el slug interno (zapamooke). Hoy sirve solo en la URL default de pages.dev, que nadie conoce.",
+      "options": [
+        {
+          "label": "No atar dominio todavía. El cliente sigue siendo el prototipo mínimo (sin R2/R3/audio real integrado), no vale la pena gastar un subdominio de marca hasta que el producto tenga algo más que mostrar.",
+          "why": "Evita fijar un subdominio (`backline.` vs algo con `zapamooke`) antes de tener claro si BACKLINE es el nombre final de cara al público en todos los contextos, o solo del wordmark/logo.",
+          "recommended": true
+        },
+        {
+          "label": "Atar `backline.obscuromediaworks.com.ar` ahora, siguiendo la decisión de marca del 15/8.",
+          "why": "Consistente con que Roi ya cerró el nombre comercial. Pero publica un subdominio de marca para un cliente que hoy es feo a propósito y no tiene integración de audio real -- podría generar expectativa prematura si alguien lo encuentra.",
+          "recommended": false
+        },
+        {
+          "label": "Atar un subdominio interno/de staging (ej. `zapamooke-test.obscuromediaworks.com.ar`) para pruebas del equipo, y dejar `backline.` para el lanzamiento real.",
+          "why": "Separa 'URL que el equipo prueba con más comodidad que un hash de pages.dev' de 'lanzamiento real con la marca pública' -- pero es una capa de infraestructura extra que hoy no hace falta (pages.dev ya funciona para que Roi pruebe).",
+          "recommended": false
+        }
+      ],
+      "status": "open"
+    },
+    {
+      "id": "zapamooke-gateway-hosting",
+      "project": "zapamooke",
+      "asana_task_gid": null,
+      "due_on": null,
+      "question": "El gateway (`gateway/`, relay WS<->TCP hacia `ninjamsrv`) no está deployado en ningún lado -- ¿Cloudflare Workers vía `cloudflare:sockets`, o un host aparte tipo Fly.io?",
+      "context": "Verificado 15/8 por om-dev al armar el deploy de client/: el gateway mantiene un socket TCP persistente por sesión, una forma de runtime distinta al request/response de Workers/Pages que usa el resto del estudio. `cloudflare:sockets` existe pero no está evaluado para esta carga (límites de duración/CPU de Workers pensados para requests cortos, no relays de sesión larga). Fly.io ya no tiene el bloqueo de tarjeta que lo frenaba antes (ver dossier zapamooke.md, nota de hosting del 15/8), pero es infraestructura fuera de la cuenta de Cloudflare del estudio, con su propio costo/ops.",
+      "options": [
+        {
+          "label": "No decidir todavía -- seguir probando local (docker + npm start) hasta que el cliente integre audio real de punta a punta y haga falta una corrida con latencia real de internet.",
+          "why": "Nadie más que Roi está probando esto hoy; local ya alcanza. Evita comprometerse a una plataforma antes de que el gateway haga algo más que relay de bytes (falta chat, audio real, sesión/auth).",
+          "recommended": true
+        },
+        {
+          "label": "Investigar `cloudflare:sockets` primero (mismo proveedor que el resto del estudio, un solo panel de facturación/DNS).",
+          "why": "Mantiene todo en una cuenta. Riesgo: si los límites de Workers no bancan una sesión de zapada de 20+ minutos con el socket abierto, es trabajo de investigación que no llega a ningún lado.",
+          "recommended": false
+        },
+        {
+          "label": "Deployar directo a Fly.io (proceso Node tal cual, sin reescritura).",
+          "why": "Camino más directo técnicamente -- es el mismo `gateway/` que ya corre local. Costo: sale de la cuenta de Cloudflare, nueva superficie de infraestructura a mantener (otro login, otro billing, otro dominio/URL a asegurar).",
+          "recommended": false
+        }
+      ],
+      "status": "open"
     }
   ]
 }
