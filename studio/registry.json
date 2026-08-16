@@ -15,7 +15,8 @@
     { "id": "qa",        "name": "QA",                "surface": "cowork+code", "brief": "studio/roles/qa.md" },
     { "id": "art",       "name": "Arte / Diseño",     "surface": "design+code+cowork", "brief": "studio/roles/art.md" },
     { "id": "content",   "name": "Contenido / Edición", "surface": "design+cowork+code", "brief": "studio/roles/content.md" },
-    { "id": "test",      "name": "Testing / Experimentación", "surface": "code", "brief": "studio/roles/test.md" }
+    { "id": "test",      "name": "Testing / Experimentación", "surface": "code", "brief": "studio/roles/test.md" },
+    { "id": "deploy",    "name": "Deploy / Infraestructura", "surface": "code", "brief": "studio/roles/deploy.md" }
   ],
   "projects": [
     {
