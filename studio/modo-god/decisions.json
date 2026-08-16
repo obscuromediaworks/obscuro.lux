@@ -419,7 +419,13 @@
           "recommended": false
         }
       ],
-      "status": "open"
+      "status": "decided",
+      "decided_at": "2026-08-16T03:38:04.798272+00:00",
+      "decision": {
+        "option_index": 1,
+        "label": "Atar `backline.obscuromediaworks.com.ar` ahora, siguiendo la decisión de marca del 15/8."
+      },
+      "execution_note": "Ejecutado 16/8/2026: dominio backline.obscuromediaworks.com.ar agregado al proyecto Cloudflare Pages backline-client via API (POST /pages/projects/{name}/domains, zona ya en la misma cuenta). Status inicial: initializing/pending (SSL + DNS se resuelven solos, sin registro manual necesario -- misma zona). Confirmado por Roi en el chat antes de ejecutar (el auto-mode classifier bloqueo el comando inicial de wrangler por ser accion de infra publica)."
     },
     {
       "id": "zapamooke-gateway-hosting",
@@ -445,7 +451,12 @@
           "recommended": false
         }
       ],
-      "status": "open"
+      "status": "decided",
+      "decided_at": "2026-08-16T03:39:08.488699+00:00",
+      "decision": {
+        "option_index": 2,
+        "label": "Deployar directo a Fly.io (proceso Node tal cual, sin reescritura)."
+      }
     }
   ]
 }
