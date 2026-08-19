@@ -457,6 +457,34 @@
         "option_index": 2,
         "label": "Deployar directo a Fly.io (proceso Node tal cual, sin reescritura)."
       }
+    },
+    {
+      "id": "zapamooke-client-restyle-vs-merge",
+      "project": "zapamooke",
+      "asana_task_gid": null,
+      "due_on": null,
+      "question": "El cliente funcional (backline.obscuromediaworks.com.ar) usaba estilos genéricos de placeholder mientras la landing de marketing (backline-landing.pages.dev) ya tenía el look tolex/cabinet validado. Al pedir Roi \"incorporar el cliente mínimo\" a ese look, ¿se restylea solo el cliente existente, o se fusiona con la landing de marketing en un solo sitio/deploy?",
+      "context": "18/8/2026: ambigüedad real entre dos lecturas de \"incorporemos el cliente mínimo acá\" -- (a) aplicarle el sistema visual de la landing al cliente funcional que ya existe, dejando los dos deploys separados, o (b) combinar landing (hero/proof/status) + cliente real en un mismo sitio. Preguntado a Roi en el chat, no vía dashboard -- se resuelve y ejecuta en la misma sesión, se registra acá para que quede en el historial de decisiones del proyecto.",
+      "options": [
+        {
+          "label": "Solo restylear el cliente existente con el look cabinet, redeployado en el mismo dominio (backline.obscuromediaworks.com.ar). La landing de marketing queda separada, sin cambios de arquitectura.",
+          "why": "Menos trabajo, cero riesgo de tocar la lógica funcional del cliente, y no obliga a decidir todavía cómo conviven marketing y producto en un solo dominio.",
+          "recommended": true
+        },
+        {
+          "label": "Fusionar landing + cliente funcional en un solo sitio/deploy (ej. landing arriba, cliente real más abajo o detrás de un CTA).",
+          "why": "Un solo dominio para las dos cosas, pero es más trabajo y mezcla dos audiencias (visitante nuevo vs. alguien que ya sabe qué es esto) en una sola página.",
+          "recommended": false
+        }
+      ],
+      "status": "decided",
+      "decided_at": "2026-08-19T01:00:00.000000+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Solo restylear el cliente existente con el look cabinet, redeployado en el mismo dominio (backline.obscuromediaworks.com.ar)."
+      },
+      "executed_at": "2026-08-19T01:10:00.000000+00:00",
+      "execution_note": "Ejecutado en la misma sesión: client/src/style.css reescrito completo con los tokens tolex/cream/brass de design/README.md (antes genéricos violeta/azul), client/src/main.ts con header faceplate + botones footswitch (jewel), sin tocar IDs ni lógica. Verificado con `vite preview` local (incl. cambio de idioma, el jewel sobrevive el re-render porque data-i18n se movió a un span hijo) antes de deployar. Deployado a backline-client (Cloudflare Pages) y confirmado en vivo en backline.obscuromediaworks.com.ar. Commit 5632661, pusheado a main."
     }
   ]
 }
