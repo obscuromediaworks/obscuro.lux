@@ -1,6 +1,6 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-19T01:15:00Z",
+  "generated_at": "2026-08-20T00:00:00Z",
   "generated_by": "cierre de sesión de zapamooke 18/8-19/8 (guía de onboarding cerrada + tarea nueva de validación de VST + comentarios en tarea de gateway; resto de proyectos sin cambios de Asana esta sesión, timestamps previos siguen valiendo)",
   "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. Regla nueva 15/8: sin menciones directas a League of Legends/LoL en copy publico (revierte una decision anterior del 12/8), copy corregido y pusheado. zapamooke: R1-R5 + gateway minimo validados, nombre comercial BACKLINE decidido (el interno sigue Zapamooke), direccion visual + wordmark cerrados. Handshake de auth y audio real end-to-end (subida) RESUELTOS y verificados con hardware real -- Roi califico la latencia de \"tocable\". Deploy real con dominio propio (backline.obscuromediaworks.com.ar) + gateway en Fly.io, hablandose entre si. Bug de Keepalive encontrado y arreglado 18/8 (cortaba conexiones inactivas a los ~14s). Guia de onboarding (sala/sincro/BPM/VST) escrita y deployada 18/8, tarea de Asana cerrada. Cliente funcional restyleado 18/8 al mismo look tolex/cabinet de la landing (antes generico placeholder). Falta decoder + intervalos por BPM conectados al cliente + chat + decision de hosting definitiva del gateway + validar tecnicamente la opcion de VST via compartir pestaña.",
   "projects": {
@@ -77,20 +77,21 @@
     },
     "zapamooke": {
       "board": "ZAPAMOoKE!",
-      "total": 11,
-      "open": 7,
+      "total": 13,
+      "open": 9,
       "done": 4,
       "overdue": null,
       "highlights": [
+        "PANTALLA DE SALA REAL cableada a datos y deployada 20/8: reemplaza la vieja pantalla de debug plana. Barra de intervalo (BeatGrid real), roster con instrumento real y medidor de nivel por musico, badge de calidad medido, mi mezcla (vol/pan) por musico, mi estado con nivel de entrada real y mute que no corta el stream. Mockup de om-art aprobado sin cambios (design/sala-de-ensayo.html) antes de cablearlo.",
+        "LIMITER en el bus de audio compartido (decisions.json: zapamooke-shared-bus-clipping-fix) -- Roi reporto volumen bajo y cambio de sonido al cerrar pestanas con 2-3 sesiones simultaneas. Se agrego boost fijo x2.5 + DynamicsCompressorNode para evitar clipping al sumar varias voces boosteadas. Tambien se encontro y arreglo un leak real (sesiones de descarga huerfanas cuando un usuario se iba a mitad de intervalo).",
+        "REBRAND A BACKLINE aplicado tambien al cliente funcional (antes solo landing/mockups) -- titulo y textos visibles, verificado en el bundle publicado.",
         "R1 PASA, R3 ARREGLADO de raiz, R2 matizado (no bloquea), R4 pasa, R5 diferido a proposito. Tarea R2-R5 completed en Asana.",
-        "HANDSHAKE DE AUTH y AUDIO REAL END-TO-END (subida) RESUELTOS 15/8, con evidencia dura: un cliente real (client/) se conecta a un ninjamsrv real, y el encoder de R1 manda audio que llega byte-identico (firma Ogg real) a otro cliente. Validado ademas con HARDWARE REAL: Roi probo con guitarra + interfaz Focusrite, latencia calificada \"tocable\" -- primera confirmacion humana, no solo metrica automatica.",
-        "DEPLOY REAL con dominio propio 16-18/8: backline.obscuromediaworks.com.ar (cliente, Cloudflare Pages) + backline-gateway.fly.dev/backline-ninjam (gateway+ninjamsrv, Fly.io Sao Paulo), hablandose entre si tras arreglar un bug de red IPv4/IPv6. Costo real medido: USD 0,06/dia.",
-        "BUG DE KEEPALIVE encontrado y arreglado 18/8: el cliente nunca mandaba el 0xfd que exige NINJAM, asi que toda conexion inactiva se cortaba sola a los ~14s. Verificado con evidencia (90s sin cortarse), ya en produccion. Tarea de Asana completed.",
-        "GUIA DE ONBOARDING (sala/sincro/BPM/VST) escrita y deployada 18/8 -- aspiracional (describe el producto completo de la spec, no el prototipo de hoy), en docs/onboarding.md, publicada en la landing y en el propio cliente con link visible bilingue. Tarea de Asana completed; se abrio tarea nueva para validar tecnicamente la opcion de VST via compartir pestana (getDisplayMedia), que quedo marcada como no probada.",
-        "CLIENTE FUNCIONAL RESTYLEADO 18/8 al mismo look tolex/cabinet que ya tenia la landing de marketing (antes generico placeholder violeta/azul) -- decision explicita de Roi de restylear el cliente existente en vez de fusionar landing+cliente en un solo sitio (ver decisions.json).",
-        "Falta: decoder + intervalos alineados a BPM conectados al cliente real (R2/R3 siguen sin integrar), canal de chat, decision de hosting definitiva del gateway. Prioridad declarada por Roi: enfasis en performance/latencia real.",
-        "NOMBRE COMERCIAL CAMBIO A BACKLINE (15/8) -- el interno (repo/board/specs) sigue siendo Zapamooke, decision explicita de Roi. Direccion visual + wordmark final cerrados (textura de cuero negro desgastado). Tarea abierta: contratar disenador profesional para el logo de produccion.",
-        "NO listo para Fase 1 completa (dos ciudades, NINJAM real) -- falta cliente unico con R2/R3 integrados, decoder, chat, corrida con dos clientes reales.",
+        "HANDSHAKE DE AUTH y AUDIO REAL END-TO-END (subida+bajada) RESUELTOS, con evidencia dura. Validado ademas con HARDWARE REAL: Roi probo con guitarra + interfaz Focusrite, latencia calificada \"tocable\".",
+        "DEPLOY REAL con dominio propio: backline.obscuromediaworks.com.ar (cliente, Cloudflare Pages) + backline-gateway.fly.dev/backline-ninjam (gateway+ninjamsrv, Fly.io Sao Paulo). Costo real medido: USD 0,06/dia. Deploys ahora pasan por el agente om-deploy con aprobacion previa de Roi, no directo por Bash.",
+        "BUG DE KEEPALIVE arreglado 18/8, sin desconexiones confirmadas por Roi en la prueba del 20/8 con 2-3 pestanas.",
+        "GUIA DE ONBOARDING (sala/sincro/BPM/VST) escrita y deployada -- aspiracional. La opcion de VST via 'compartir pestana' (getDisplayMedia) sigue sin implementar Y sin decision de Roi sobre si construirla.",
+        "Falta: protocolo de chat (0xc0) sigue sin implementar, solo placeholder visual. Probar la pantalla nueva con DOS usuarios reales simultaneos (esta sesion no tenia Docker/ninjamsrv local). Decision de hosting definitiva del gateway.",
+        "NOMBRE COMERCIAL BACKLINE (interno sigue siendo Zapamooke). Tarea abierta: contratar disenador profesional para el logo de produccion.",
         "OBSCUROSTUDIO (producto hermano) sigue sin bootstrapear a proposito, esperando validacion tecnica completa."
       ]
     }

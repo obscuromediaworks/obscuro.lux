@@ -1,6 +1,6 @@
 {
   "$comment": "Decisiones que un agente no puede tomar solo (alcance, arquitectura, borrado/publicación de infra, clasificación ambigua). Las escribe un agente al correr la rutina de arranque de un proyecto (ver STUDIO.md #9); las resuelve Roi desde /modo-god o en el chat. Cada una tiene 2-4 opciones con una recomendación marcada -- la recomendación es una propuesta, no una ejecución.",
-  "generated_at": "2026-08-12T00:00:00Z",
+  "generated_at": "2026-08-20T00:00:00Z",
   "generated_by": "primera corrida de la rutina de arranque, sesión 2026-08-12",
   "decisions": [
     {
@@ -485,6 +485,34 @@
       },
       "executed_at": "2026-08-19T01:10:00.000000+00:00",
       "execution_note": "Ejecutado en la misma sesión: client/src/style.css reescrito completo con los tokens tolex/cream/brass de design/README.md (antes genéricos violeta/azul), client/src/main.ts con header faceplate + botones footswitch (jewel), sin tocar IDs ni lógica. Verificado con `vite preview` local (incl. cambio de idioma, el jewel sobrevive el re-render porque data-i18n se movió a un span hijo) antes de deployar. Deployado a backline-client (Cloudflare Pages) y confirmado en vivo en backline.obscuromediaworks.com.ar. Commit 5632661, pusheado a main."
+    },
+    {
+      "id": "zapamooke-shared-bus-clipping-fix",
+      "project": "zapamooke",
+      "asana_task_gid": "1217512483700918",
+      "due_on": "2026-08-20",
+      "question": "Varias voces remotas boosteadas (x2.5) sumandose sin limite en el bus compartido de descarga podian superar 0dBFS y clipear -- que hacer?",
+      "context": "Roi probo con 2-3 pestanas simultaneas y noto que el sonido 'cambiaba' al cerrar una sesion ajena. Se investigo: no era el leak de sesiones huerfanas (bug real encontrado y arreglado aparte), sino que sacar una voz de la suma cambia si el bus clipea. Dos opciones sobre la mesa.",
+      "options": [
+        {
+          "label": "Limiter (DynamicsCompressorNode) en el bus compartido de descarga.",
+          "why": "Evita clipping sin importar cuanta gente este sonando, y el volumen percibido no cambia al entrar/salir gente -- mas robusto.",
+          "recommended": true
+        },
+        {
+          "label": "Escalar PLAYBACK_GAIN segun downloadSessions.size.",
+          "why": "Mas simple, pero el volumen total puede notarse distinto al entrar/salir alguien -- no ataca el problema de raiz si igual se suman muchas voces.",
+          "recommended": false
+        }
+      ],
+      "status": "decided",
+      "decided_at": "2026-08-20T00:00:00Z",
+      "decision": {
+        "option_index": 0,
+        "label": "Limiter (DynamicsCompressorNode) en el bus compartido de descarga."
+      },
+      "executed_at": "2026-08-20T00:00:00Z",
+      "execution_note": "Implementado en client/src/main.ts (ensureDownloadAudioCtx): DynamicsCompressorNode entre downloadGainNode y destination, threshold -3dB, ratio 20:1, hard knee. Verificado con typecheck/test/build limpios y deployado a backline.obscuromediaworks.com.ar (commit 059cd46, confirmado con curl 200 + hash de bundle)."
     }
   ]
 }
