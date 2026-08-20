@@ -533,7 +533,14 @@
           "recommended": false
         }
       ],
-      "status": "pending"
+      "status": "decided",
+      "decided_at": "2026-08-20T23:30:00Z",
+      "decision": {
+        "option_index": 0,
+        "label": "Agregar 'Zapamooke/BACKLINE (Pages project backline-client)' a la entrada de autoMode.allow en C:\\Users\\ro1\\.claude\\settings.local.json, mismo patrón que los otros 4 proyectos ya cubiertos."
+      },
+      "executed_at": "2026-08-20T23:30:00Z",
+      "execution_note": "Roi editó settings.local.json a mano agregando la entrada. El clasificador igual bloqueó el reintento automático una vez más (no 100% determinístico), así que Roi terminó corriendo `npm run deploy` él mismo desde client/. Verificado desde afuera: backline.obscuromediaworks.com.ar responde 200 con headers COOP/COEP, deployment de producción activo (08365318) confirma que sirve el commit a50447e (compartir pantalla + chat NINJAM)."
     }
   ]
 }
