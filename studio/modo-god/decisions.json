@@ -1,6 +1,6 @@
 {
   "$comment": "Decisiones que un agente no puede tomar solo (alcance, arquitectura, borrado/publicación de infra, clasificación ambigua). Las escribe un agente al correr la rutina de arranque de un proyecto (ver STUDIO.md #9); las resuelve Roi desde /modo-god o en el chat. Cada una tiene 2-4 opciones con una recomendación marcada -- la recomendación es una propuesta, no una ejecución.",
-  "generated_at": "2026-08-20T00:00:00Z",
+  "generated_at": "2026-08-20T22:45:00Z",
   "generated_by": "primera corrida de la rutina de arranque, sesión 2026-08-12",
   "decisions": [
     {
@@ -541,6 +541,58 @@
       },
       "executed_at": "2026-08-20T23:30:00Z",
       "execution_note": "Roi editó settings.local.json a mano agregando la entrada. El clasificador igual bloqueó el reintento automático una vez más (no 100% determinístico), así que Roi terminó corriendo `npm run deploy` él mismo desde client/. Verificado desde afuera: backline.obscuromediaworks.com.ar responde 200 con headers COOP/COEP, deployment de producción activo (08365318) confirma que sirve el commit a50447e (compartir pantalla + chat NINJAM)."
+    },
+    {
+      "id": "zapamooke-room-identity-anonymous-users",
+      "project": "zapamooke",
+      "asana_task_gid": null,
+      "due_on": null,
+      "question": "La sala publica de BACKLINE solo acepta dos cuentas de prueba (myuser/mypass y booga/anotherpass), porque el ninjam_server.cfg de la imagen uzer/ninjamserver trae AnonymousUsers no. Hoy dos personas NO pueden entrar con su propio nombre. Como se resuelve la identidad de los musicos?",
+      "context": "Encontrado el 20/8/2026 midiendo con dos clientes reales (experimento R8): el primer intento entro con nombres propios y el servidor respondio 'invalid login/password'. El cliente muestra el error de forma clara y correcta, no es un bug del cliente. Pero significa que cualquiera que entre a backline.obscuromediaworks.com.ar no puede participar sin conocer credenciales de prueba. La spec (docs/spec-zapamooke.md) distingue 'zapada' (sala abierta, gratis, con reputacion) de 'ensayo' (sala privada, paga), asi que esto toca el modelo de producto, no solo la config del servidor.",
+      "options": [
+        {
+          "label": "Habilitar usuarios anonimos en el ninjamsrv (AnonymousUsers yes) para las salas abiertas, dejando el nombre libre y sin password.",
+          "why": "Es lo mas cercano a la 'zapada' de la spec: entrar y tocar sin fri ccion. Requiere rehacer la imagen de backline-ninjam (hoy el cfg viene de upstream y solo se le reescribe el Port) y decidir que pasa con nombres repetidos y moderacion, que la spec pide.",
+          "recommended": true
+        },
+        {
+          "label": "Mantener cuentas fijas y crear usuarios a mano por banda mientras sea prototipo.",
+          "why": "Cero trabajo de infra ahora y control total de quien entra, pero no escala ni permite mostrar el producto a nadie sin intervencion manual de Roi."
+        },
+        {
+          "label": "Poner autenticacion propia adelante (el gateway emite las credenciales NINJAM despues de validar al usuario).",
+          "why": "Es la forma correcta a futuro y encaja con las salas privadas pagas, pero es trabajo real de backend y hoy el gateway es un relay transparente a proposito (ver zapamooke-gateway-relay-vs-protocol)."
+        }
+      ],
+      "status": "open",
+      "decided_at": null,
+      "decision": null,
+      "executed_at": null,
+      "execution_note": null
+    },
+    {
+      "id": "zapamooke-gate-third-state",
+      "project": "zapamooke",
+      "asana_task_gid": null,
+      "due_on": null,
+      "question": "El portero tecnico tiene tres estados en la spec (pasa / advertencia / solo oyente). Hace falta un CUARTO estado de puerta cerrada, donde la conexion es tan mala que directamente no se entra?",
+      "context": "20/8/2026: al disenar el mockup del portero (design/portero-tecnico.html), el encargo pedia que el tercer estado fuera 'no da para entrar', pero docs/spec-zapamooke.md 3.1 es explicito en que el rojo significa rol distinto (solo oyente), no puerta cerrada. Se diseno siguiendo la spec y se dejo la discrepancia anotada en el propio mockup. Es una decision de producto: cambia que le pasa a alguien con una conexion mala de verdad.",
+      "options": [
+        {
+          "label": "Quedarse con los tres estados de la spec: nunca se cierra la puerta, la peor conexion entra como oyente.",
+          "why": "Coherente con la spec vigente y mas amable: el que tiene mala conexion igual participa escuchando, en vez de quedarse afuera. Es lo que ya esta disenado.",
+          "recommended": true
+        },
+        {
+          "label": "Agregar un cuarto estado de puerta cerrada por debajo de cierto umbral.",
+          "why": "Protege la sala de alguien cuya conexion arruina el ensayo de los demas, pero hay que definir el umbral y escribir un copy que no expulse gente sin explicarle como arreglarlo."
+        }
+      ],
+      "status": "open",
+      "decided_at": null,
+      "decision": null,
+      "executed_at": null,
+      "execution_note": null
     }
   ]
 }

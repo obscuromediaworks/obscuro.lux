@@ -360,3 +360,62 @@ commiteó, queda para quien lo esté armando.
 **Pendiente real tras esto:** cerrar en Asana la tarea `1217686483882843` y la parte de chat de
 `1217512483700918` — esta sesión no tuvo acceso a la herramienta MCP de Asana, así que el estado
 del board sigue sin actualizar a mano; hacerlo en la próxima sesión que sí la tenga disponible.
+
+## Sesión 20/8/2026 (noche) — intervalos NINJAM reales + metrónomo, medidos con dos clientes
+
+Lo que empezó como "verificar el build en vivo" terminó encontrando el problema de fondo del
+cliente. Se armó el experimento **R8** (`experiments/r8-two-clients-live/`): dos Chromium reales
+simultáneos contra el cliente deployado, atravesando el gateway y el `ninjamsrv` de Fly, midiendo
+latencia de audio real emparejando por **GUID de intervalo** con un hook de WebSocket inyectado
+antes de que cargue la app — el código del cliente no se toca, se miran los bytes que salen.
+
+**Hallazgo de fondo: la subida no estaba intervalizada.** El cliente abría UN solo intervalo NINJAM
+y mandaba todos los chunks bajo el mismo GUID sin cerrarlo nunca (79 chunks en 4 minutos, un GUID,
+`flags=0` siempre), o sea un stream continuo contra intervalos de 4 s del servidor. NINJAM es un
+protocolo de intervalos: cada uno tiene que viajar como unidad propia para que el receptor lo
+reproduzca alineado al compás siguiente. Como stream, los demás te escuchan fuera del compás y un
+cliente NINJAM de escritorio probablemente no puede tocar con nosotros.
+
+Roi lo mandó a arreglar y agregó el punto que lo completa: *"va de la mano con el metrónomo, sino es
+imposible"* — cortar en un límite que el músico no escucha le parte la frase en cualquier lado.
+Ambas cosas quedaron implementadas: límites contados en **samples** desde el BPM/BPI del servidor
+(no un timer), el chunk que cae a caballo del límite se parte, y —la parte que más fácil se pasa por
+alto— **cada intervalo es un Ogg Vorbis autocontenido** (`finalize()` + `configure()` por intervalo;
+sin eso, del segundo en adelante no se puede decodificar solo). El metrónomo se construye sobre el
+`AudioContext` de reproducción, así que no puede colarse en el encoder (contextos distintos, Web
+Audio no conecta nodos entre contextos), verificado además midiendo bytes subidos con el click
+prendido y apagado.
+
+**Verificación independiente sobre el build nuevo**, con control negativo: 25 intervalos, 24
+cerrados con el flag, media 4,000 s exacta contra la grilla de 4 s, todos relayados al otro cliente;
+el mismo verificador contra la traza anterior falla. El primer intervalo sale corto a propósito
+(~100 ms): engancha la fase de la grilla.
+
+**Latencia real de red, medida por primera vez con audio:** mediana ~40 ms por dirección. No es la
+latencia que siente el músico (NINJAM te hace escuchar al otro en el intervalo siguiente); dice que
+la red no agrega nada perceptible encima de ese modelo. Y los outliers de ~350-370 ms que R7 había
+dejado sin explicar quedaron acotados: se reprodujo uno (390 ms, 1 de 79), aislado, con el retraso
+apareciendo en el trayecto y no en el emisor — hipótesis fundada de retransmisión TCP, sin
+confirmar, sin impacto práctico.
+
+**Bug que estaba en producción:** el cliente traía `ws://localhost:8080` hardcodeado como gateway
+por defecto, así que nadie que entrara al sitio podía conectarse y el estado quedaba en
+"Conectando…" sin avisar que había fallado. Reemplazado por un combo de gateways por ubicación.
+También se agregó el panel de estado de conexión en vivo que pidió Roi ("apretás el botón y no hay
+ningún aviso"), reconexión automática con backoff, y el diagnóstico de "compartir pantalla": no era
+un bug — ventana compartida (Chrome no captura audio de ventanas) más REAPER en ASIO, que no pasa
+por el mixer de Windows.
+
+**om-art** entregó `design/ruteo-audio.html` (matriz de decisión + los 5 caminos de audio, con el
+diálogo de Chrome reconstruido y el camino ASIO marcado como cortado) y `design/portero-tecnico.html`
+(los 3 estados de la spec §3.1, con una discrepancia anotada: la spec dice "solo oyente", no "no
+entrás").
+
+**Decisiones abiertas que quedaron registradas en Modo God:** identidad de los músicos en la sala
+(hoy sólo entran `myuser` y `booga`, por `AnonymousUsers no`) y si el portero necesita un cuarto
+estado de puerta cerrada.
+
+**Asana sigue sin actualizar**, por segunda sesión consecutiva: el conector no estuvo disponible ni
+en la sesión principal ni en los agentes. Roi mandó la solicitud de aprobación. Se acumulan las
+tareas de chat (`1217686483882843`, parte de `1217512483700918`) y todo lo de esta sesión.
+
