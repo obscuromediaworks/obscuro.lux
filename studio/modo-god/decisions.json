@@ -513,6 +513,27 @@
       },
       "executed_at": "2026-08-20T00:00:00Z",
       "execution_note": "Implementado en client/src/main.ts (ensureDownloadAudioCtx): DynamicsCompressorNode entre downloadGainNode y destination, threshold -3dB, ratio 20:1, hard knee. Verificado con typecheck/test/build limpios y deployado a backline.obscuromediaworks.com.ar (commit 059cd46, confirmado con curl 200 + hash de bundle)."
+    },
+    {
+      "id": "zapamooke-deploy-permission-gap",
+      "project": "zapamooke",
+      "asana_task_gid": "1217689258733313",
+      "due_on": null,
+      "question": "El deploy de backline-client (compartir pantalla + chat NINJAM, 4 commits listos en main) se bloqueó dos veces por el clasificador de auto-mode local -- backline-client nunca se agregó a autoMode.allow cuando arrancó a deployar (12/8 solo cubrió obscuro-lux, Modo God, mobawarmup, don-atilio). Un agente no puede editarlo solo (el clasificador bloquea tocar su propio archivo de permisos). ¿Cómo se resuelve?",
+      "context": "20/8/2026: código verificado y listo (typecheck/test/build limpios, gateway/ sin cambios de código), pero `npm run deploy` salió bloqueado dos veces seguidas con 'Permission for this action was denied by the Claude Code auto mode classifier'. Ver reference_automode_classifier_wrangler en memoria para el detalle técnico completo.",
+      "options": [
+        {
+          "label": "Agregar 'Zapamooke/BACKLINE (Pages project backline-client)' a la entrada de autoMode.allow en C:\\Users\\ro1\\.claude\\settings.local.json, mismo patrón que los otros 4 proyectos ya cubiertos.",
+          "why": "Resuelve el bloqueo de forma permanente para todos los deploys futuros de este proyecto, no solo el de hoy. Roi ya dijo que lo va a hacer él mismo más tarde.",
+          "recommended": true
+        },
+        {
+          "label": "Aprobar el deploy a mano cada vez, sin tocar la config permanente.",
+          "why": "Sirve para un deploy puntual, pero el mismo bloqueo va a repetirse en cada deploy futuro de Zapamooke hasta que se agregue la regla.",
+          "recommended": false
+        }
+      ],
+      "status": "pending"
     }
   ]
 }
