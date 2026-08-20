@@ -300,3 +300,35 @@ OBSCUROSTUDIO **espera** a que R1 esté validado antes de bootstrapear su propio
    directo. No bloquea seguir construyendo — es una decisión de cuándo pagar el costo de meterlo.
 7. C2 de OBSCUROSTUDIO (FLAC en paralelo al Vorbis) sigue sin correrse — no es lo mismo que R1,
    queda pendiente cuando arranque ese trabajo puntual.
+
+## Deploy completo y pantalla de sala real (18–20/8/2026)
+
+**18/8: decoder + BPM + deploy real.** El cliente quedó completo de punta a punta: decoder Vorbis,
+alineación a intervalos BPM/BPI, bug de Keepalive (0xfd) encontrado y arreglado (conexiones
+inactivas se cortaban a los ~14s), guía de onboarding escrita y publicada, restyle al look
+"cabinet". Deploy real con dominio propio: `backline.obscuromediaworks.com.ar` (cliente, Cloudflare
+Pages) + `backline-gateway.fly.dev`/`backline-ninjam` (gateway+ninjamsrv, Fly.io São Paulo). Costo
+medido: USD 0,06/día.
+
+**20/8: de pantalla de debug a pantalla de producto, todo deployado.** Roi probó el cliente
+deployado y reportó volumen bajo + cambio de sonido al cerrar pestañas con 2-3 sesiones
+simultáneas. Se agregó boost fijo (`GainNode` ×2.5) y se encontró/arregló un leak real (sesiones de
+descarga huérfanas al irse un usuario a mitad de intervalo) — pero la causa del cambio de sonido
+era otra: varias voces boosteadas sumándose sin límite podían clipear. **Decisión de Roi: limiter
+(`DynamicsCompressorNode`) en el bus compartido**, no escalar la ganancia por cantidad de usuarios
+(ver `decisions.json`, id `zapamooke-shared-bus-clipping-fix`). Rebrand a BACKLINE aplicado también
+al cliente funcional (antes solo landing/mockups).
+
+om-art elaboró el mockup de la pantalla de sala real (`design/sala-de-ensayo.html`), aprobado sin
+cambios; om-dev lo cableó a datos reales, reemplazando la pantalla de debug plana original (que
+sigue existiendo colapsada para diagnóstico): barra de intervalo por `BeatGrid`, roster con
+instrumento real (`channelName` del protocolo) y medidor de nivel por músico (`AnalyserNode`
+individual), badge de calidad medido, mi mezcla (vol/pan) por músico local, mi estado con nivel de
+entrada real y mute que no corta el stream. Deploy final verificado desde afuera.
+
+**Pendiente explícito:** protocolo de chat (`0xc0`) sigue sin implementar, solo placeholder visual
+(tarea Asana `1217686483882843`). Nunca se probó la pantalla nueva con dos usuarios reales
+simultáneos — esta sesión no tenía Docker/ninjamsrv local (tarea `1217686484311368`). La opción
+"compartir pantalla" (`getDisplayMedia`) como input sigue sin decisión de Roi sobre si construirla
+(tarea `1217621633197322`). Deploys ahora pasan por el agente **om-deploy** con aprobación previa,
+no directo por Bash desde la sesión principal.
