@@ -332,3 +332,31 @@ simultáneos — esta sesión no tenía Docker/ninjamsrv local (tarea `121768648
 "compartir pantalla" (`getDisplayMedia`) como input sigue sin decisión de Roi sobre si construirla
 (tarea `1217621633197322`). Deploys ahora pasan por el agente **om-deploy** con aprobación previa,
 no directo por Bash desde la sesión principal.
+
+## Chat (`0xc0`) implementado end-to-end (20/8/2026)
+
+Resuelto lo pendiente de arriba: `client/src/ninjam/protocol.ts` ahora tiene
+`buildChatMessagePayload`/`parseChatMessage`, con el layout de bytes sacado del código fuente real
+de NINJAM (`mpb.h`/`mpb.cpp`, GPLv2) — 5 strings NUL-terminated (`parms[0..4]`), mismo tratamiento
+que ya se usó para los mensajes de audio. `main.ts` manda `MSG` público y renderiza los `MSG`
+entrantes en el panel lateral (antes placeholder visual "próximamente"); `PRIVMSG`/`TOPIC` se
+parsean pero no se envían ni se muestran todavía (no hay UI para eso); `JOIN`/`PART` no son
+comandos de chat en el protocolo real — ya se cubren con `Server Userinfo Change Notify` (`0x03`),
+no se duplicó esa lógica.
+
+**Esta sesión sí tenía Docker disponible** (se arrancó Docker Desktop a propósito): verificado con
+**dos clientes de navegador reales** (Playwright, dos contextos Chromium headless independientes,
+usuarios `myuser`/`booga` de `ninjam_server.cfg` — `AnonymousUsers no` bloquea usuarios arbitrarios)
+conectados a través del gateway real contra `ninjamsrv` real en Docker. Un mensaje mandado desde un
+cliente llegó al otro con el username correcto, en ambas direcciones. Detalle completo y limitaciones
+honestas (mismo localhost en los dos lados, no dos máquinas distintas; sin retest de idioma con
+mensajes en pantalla) en `client/README.md` §8. `npm run typecheck` y `npm run build` limpios.
+Commit `4c079f2`, pusheado a `main`.
+
+**Nota de higiene:** apareció un archivo nuevo sin trackear, `design/chat-panel.html` (mockup, no
+creado por esta sesión, probablemente de un agente om-art corriendo en paralelo) — no se tocó ni se
+commiteó, queda para quien lo esté armando.
+
+**Pendiente real tras esto:** cerrar en Asana la tarea `1217686483882843` y la parte de chat de
+`1217512483700918` — esta sesión no tuvo acceso a la herramienta MCP de Asana, así que el estado
+del board sigue sin actualizar a mano; hacerlo en la próxima sesión que sí la tenga disponible.
