@@ -593,6 +593,48 @@
       "decision": null,
       "executed_at": null,
       "execution_note": null
+    },
+    {
+      "id": "zapamooke-roster-layout-bug-priority",
+      "project": "zapamooke",
+      "asana_task_gid": "1217713159735978",
+      "due_on": null,
+      "question": "A ~1600x1000 el nombre del musico en el roster de la sala colapsa a 0px (invisible) -- las columnas fijas del grid mas el panel de chat superan el espacio disponible. Encontrado 20/8 armando el DM, reproducido tambien en main sin ese cambio (no lo causa la feature nueva, ya afecta el roster de produccion hoy). Fix estimado chico (ajuste de grid/breakpoint), pero compite con el resto del backlog de Fase 2.",
+      "context": "Reportado por om-dev en client/README.md S8.1. No se toco porque estaba fuera del alcance pedido (UI de DM). El bug es real en produccion a un ancho de ventana comun (laptop/desktop con ventana no maximizada).",
+      "options": [
+        {
+          "label": "Arreglarlo en la proxima sesion de dev antes de seguir con Fase 2, es chico y ya esta diagnosticado.",
+          "why": "Bug real en produccion, visible a un ancho de ventana comun -- afecta la usabilidad del roster hoy, no es cosmetico.",
+          "recommended": true
+        },
+        {
+          "label": "Dejarlo en el backlog y priorizar Fase 2 (login/lobby) primero.",
+          "why": "Si el ancho de ventana problematico es poco frecuente en la practica, puede esperar sin bloquear nada.",
+          "recommended": false
+        }
+      ],
+      "status": "open"
+    },
+    {
+      "id": "zapamooke-login-mockup-open-questions",
+      "project": "zapamooke",
+      "asana_task_gid": null,
+      "due_on": null,
+      "question": "om-art entrego los mockups de login/lobby de Fase 2 (design/login-registro.html, design/lobby.html) y dejo 4 preguntas de producto anotadas adentro que no le correspondia resolver: (1) que fallback ofrecer a quien no tiene/no quiere cuenta de Google, dado que la spec S7.1 cierra la autenticacion en Google-only sin dar alternativa visible; (2) donde van a vivir el contrato de sala y los terminos (linkeados en el login, sin pantalla propia todavia); (3) si el roster de instrumentos que faltan va en la card del lobby (necesita que el backend exponga esa data por sala); (4) confirmar la decision de NO mostrar reputacion en la card de zapada (om-art lo decidio a proposito por R15/R16, sin preguntar).",
+      "context": "Fase 2 recien se desbloqueo (R1 resuelto). Estas preguntas no bloquean seguir iterando el mockup visual, pero si bloquean pasar el login/lobby a implementacion real.",
+      "options": [
+        {
+          "label": "Roi las responde en el chat o en el propio mockup antes de que om-dev empiece a implementar login/lobby.",
+          "why": "Son decisiones de producto chicas pero necesarias antes de cablear a datos reales -- mejor resolverlas ahora que a mitad de implementacion.",
+          "recommended": true
+        },
+        {
+          "label": "Dejarlas abiertas y que om-dev implemente con los defaults que eligio om-art (sin fallback visible, sin mostrar instrumentos faltantes, sin reputacion), ajustando despues si hace falta.",
+          "why": "Mas rapido para tener algo andando, pero arriesga tener que rehacer UI si Roi no esta de acuerdo con algun default.",
+          "recommended": false
+        }
+      ],
+      "status": "open"
     }
   ]
 }
