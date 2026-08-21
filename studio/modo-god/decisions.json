@@ -564,11 +564,14 @@
           "why": "Es la forma correcta a futuro y encaja con las salas privadas pagas, pero es trabajo real de backend y hoy el gateway es un relay transparente a proposito (ver zapamooke-gateway-relay-vs-protocol)."
         }
       ],
-      "status": "open",
-      "decided_at": null,
-      "decision": null,
-      "executed_at": null,
-      "execution_note": null
+      "status": "decided",
+      "decided_at": "2026-08-20T23:22:18.288754+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Habilitar usuarios anonimos en el ninjamsrv (AnonymousUsers yes) para las salas abiertas, dejando el nombre libre y sin password."
+      },
+      "executed_at": "2026-08-21T00:12:00.000000+00:00",
+      "execution_note": "Implementado en gateway/Dockerfile.ninjam (commit 775707e) y redeployado a produccion (om-deploy, flyctl deploy --config fly.ninjam.toml --app backline-ninjam). Verificado desde afuera contra wss://backline-gateway.fly.dev/ real: un usuario arbitrario (anonymous:test123-xxxx, sin password) autentica y recibe display name '<nombre>@<ip>'. myuser/booga/administrator siguen andando igual. Convencion NINJAM real: el username se manda como 'anonymous:<nombre>', el cliente ya lo soporta via el campo message del Auth Reply -- falta UI (el campo de usuario del cliente sigue hardcodeado a 'myuser', sin concepto de anonimo), pendiente para quien toque el login del cliente despues."
     },
     {
       "id": "zapamooke-gate-third-state",
@@ -588,9 +591,12 @@
           "why": "Protege la sala de alguien cuya conexion arruina el ensayo de los demas, pero hay que definir el umbral y escribir un copy que no expulse gente sin explicarle como arreglarlo."
         }
       ],
-      "status": "open",
-      "decided_at": null,
-      "decision": null,
+      "status": "decided",
+      "decided_at": "2026-08-20T23:22:51.305715+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Quedarse con los tres estados de la spec: nunca se cierra la puerta, la peor conexion entra como oyente."
+      },
       "executed_at": null,
       "execution_note": null
     },
@@ -613,7 +619,12 @@
           "recommended": false
         }
       ],
-      "status": "open"
+      "status": "decided",
+      "decided_at": "2026-08-20T23:23:09.642485+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Arreglarlo en la proxima sesion de dev antes de seguir con Fase 2, es chico y ya esta diagnosticado."
+      }
     },
     {
       "id": "zapamooke-login-mockup-open-questions",
@@ -634,7 +645,18 @@
           "recommended": false
         }
       ],
-      "status": "open"
+      "status": "decided",
+      "decided_at": "2026-08-20T23:23:47.593054+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Roi las responde en el chat o en el propio mockup antes de que om-dev empiece a implementar login/lobby.",
+        "answers": {
+          "fallback_sin_google": "Sumar un segundo metodo de login (magic link por email), no solo un link de soporte. Reabre antes de lo previsto la nota de la spec S7.1/R12 (\"identidad propia para poder sumar otro metodo sin migrar\", pensada para mas adelante, no para el lanzamiento).",
+          "terminos_y_contrato_de_sala": "Modal inline en la propia pantalla de login, no una pagina aparte.",
+          "instrumentos_faltantes_en_lobby": "Priorizarlo ya en la primera version del lobby -- requiere que el backend (todavia no existe, es parte de Fase 2) exponga esa data por sala.",
+          "reputacion_en_card_de_zapada": "Confirmado: NO se muestra, como propuso om-art (R15/R16)."
+        }
+      }
     }
   ]
 }
