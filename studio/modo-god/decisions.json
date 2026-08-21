@@ -624,7 +624,8 @@
       "decision": {
         "option_index": 0,
         "label": "Arreglarlo en la proxima sesion de dev antes de seguir con Fase 2, es chico y ya esta diagnosticado."
-      }
+      },
+      "execution_note": "Ejecutado 20/8 noche: causa real era .wrap con max-width:720px fijo (colapsaba en CUALQUIER ancho >860px, no solo 1600px). Fix con media query, verificado en 7 anchos, deployado y verificado en produccion (commit 41b3aa7)."
     },
     {
       "id": "zapamooke-login-mockup-open-questions",
@@ -656,7 +657,8 @@
           "instrumentos_faltantes_en_lobby": "Priorizarlo ya en la primera version del lobby -- requiere que el backend (todavia no existe, es parte de Fase 2) exponga esa data por sala.",
           "reputacion_en_card_de_zapada": "Confirmado: NO se muestra, como propuso om-art (R15/R16)."
         }
-      }
+      },
+      "execution_note": "Las 4 respuestas de Roi aplicadas: magic link se adelanta al lanzamiento (spec S7.1), terminos en modal inline (implementado y verificado en design/login-registro.html), instrumentos faltantes SI se prioriza (tarea de backend creada, bloqueada por modelo de datos), reputacion NO se muestra en el lobby (confirmado)."
     }
   ]
 }
