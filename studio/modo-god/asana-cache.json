@@ -1,8 +1,8 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-20T22:45:00Z",
-  "generated_by": "cierre de sesión de zapamooke 20/8 tarde (compartir pantalla + chat NINJAM implementados y cerrados en Asana, tarea nueva de deploy pendiente; resto de proyectos sin cambios de Asana esta sesión, timestamps previos siguen valiendo)",
-  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. Regla nueva 15/8: sin menciones directas a League of Legends/LoL en copy publico (revierte una decision anterior del 12/8), copy corregido y pusheado. zapamooke: R1-R5 + gateway minimo validados, nombre comercial BACKLINE decidido (el interno sigue Zapamooke), direccion visual + wordmark cerrados. Handshake de auth y audio real end-to-end (subida) RESUELTOS y verificados con hardware real -- Roi califico la latencia de \"tocable\". Deploy real con dominio propio (backline.obscuromediaworks.com.ar) + gateway en Fly.io, hablandose entre si. Bug de Keepalive encontrado y arreglado 18/8 (cortaba conexiones inactivas a los ~14s). Guia de onboarding (sala/sincro/BPM/VST) escrita y deployada 18/8, tarea de Asana cerrada. Cliente funcional restyleado 18/8 al mismo look tolex/cabinet de la landing (antes generico placeholder). Falta decoder + intervalos por BPM conectados al cliente + chat + decision de hosting definitiva del gateway + validar tecnicamente la opcion de VST via compartir pestaña.",
+  "generated_at": "2026-08-21T03:10:00Z",
+  "generated_by": "cierre de sesión de zapamooke 20-21/8 (Fase 2: 4 mockups al cliente + backend cuentas/salas + cableado cliente↔backend, 3 tareas nuevas completed + 1 backlog + 1 comentario; resto de proyectos sin cambios de Asana esta sesión, timestamps previos siguen valiendo)",
+  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. Regla nueva 15/8: sin menciones directas a League of Legends/LoL en copy publico (revierte una decision anterior del 12/8), copy corregido y pusheado. zapamooke: R1-R5 + gateway + chat NINJAM (publico y DM) resueltos, deploy real en backline.obscuromediaworks.com.ar + Fly.io. Fase 2 arranco de verdad 20-21/8: los 4 mockups de diseno (portero tecnico, reglas/cupos, calendario, perfil) implementados en client/ como UI navegable, backend nuevo server/ (Cloudflare Worker + D1) con magic link + salas/cupos + calendario (18/18 tests), y cliente cableado a ese backend real. Nada de lo nuevo esta deployado todavia. Falta: pantalla de lobby, Google OAuth (credenciales de Roi), proveedor de email real, decidir reasignacion de host de sala. Ver el bloque \"zapamooke\" mas abajo para el detalle completo.",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
@@ -77,27 +77,24 @@
     },
     "zapamooke": {
       "board": "ZAPAMOoKE!",
-      "total": 27,
-      "open": 9,
-      "done": 18,
+      "total": 31,
+      "open": 10,
+      "done": 21,
       "overdue": null,
       "highlights": [
-        "Cierre de sesion 20/8 noche -> 21/8 madrugada: Roi respondio las 10 decisiones pendientes de Modo God de una sola vez. Las accionables ya estan ejecutadas y verificadas.",
-        "USUARIOS ANONIMOS habilitados en backline-ninjam (Fly.io), YA EN PRODUCCION -- verificado con handshake real contra wss://backline-gateway.fly.dev/. La config vivia en DOS lugares (Dockerfile.ninjam produccion + package.json dev local), se arreglaron los dos. AnonymousUsers yes solo no alcanza, hace falta el prefijo anonymous:<nombre> en el username.",
-        "BUG DE LAYOUT DEL ROSTER arreglado y deployado. Causa real: .wrap con max-width:720px fijo, colapsaba en CUALQUIER ancho >860px (no solo el 1600px reportado). Verificado en 7 anchos.",
-        "LOGIN CON MAGIC LINK + MODAL DE TERMINOS implementado y verificado (30 asserts Playwright) pero como mockup interactivo en design/login-registro.html, NO en client/ -- no hay router ni backend de cuentas todavia. Decision de producto: magic link se adelanta al lanzamiento (spec S7.1 ya no dice \"mucho mas tarde\").",
-        "WHATSAPP BUSINESS API para avisos de calendario: tarea nueva, Roi decidio adelantarla (la spec la tenia \"en observacion\", condicionada a metricas de push/correo primero).",
-        "FASE 2 DESGLOSADA EN 4 PIEZAS DE DISENO, las 4 entregadas por om-art con una segunda ronda aplicando las respuestas de Roi: proceso del chequeo tecnico (boton cancelar -> estado sin validar, nunca reprobado), roles/moderacion/cupos por instrumento (fila de espera FIFO automatica), calendario de ensayos (proponer otro horario = mini-votacion 2-3 opciones, esto AMPLIA el limite original de la spec), perfil/cuenta (4 estados de reputacion incl. restringido, cualitativo, sin numeros). Archivos: design/portero-tecnico-proceso.html, panel-reglas-sala.html, calendario-ensayos.html, perfil-cuenta.html.",
-        "PENDIENTE ABIERTO: backend minimo para exponer instrumentos faltantes por sala en el lobby -- bloqueado por definir el modelo de datos de sala/banda (Fase 2 recien arranca, no hay backend de cuentas todavia).",
-        "PENDIENTE ABIERTO: implementar los 4 mockups de Fase 2 (login, chequeo tecnico, roles, calendario, perfil) en client/ real -- hoy son referencia visual, no codigo de producto.",
-        "TRAMPA DE INFRA ENCONTRADA: autoMode.allow es por HERRAMIENTA, no por proyecto. backline-client ya tenia wrangler autorizado, pero el deploy del ninjamsrv usa flyctl -- herramienta distinta, sin entrada propia, bloqueada por el clasificador. Se agrego una segunda entrada. Mientras el JSON quedo invalido (coma faltante al agregarla), TODO autoMode.allow broke, incluido wrangler que ya andaba. Ver reference_automode_classifier_wrangler en memoria -- regla general para proyectos nuevos.",
-        "PENDIENTE ABIERTO: el tercer estado del portero tecnico -- la spec dice solo oyente, no no entras. Decidido: quedarse con los 3 estados de la spec.",
-        "SIN VERIFICAR POR UN HUMANO: probar la pantalla de sala real con dos usuarios simultaneos mirando la UI (tarea 1217686484311368, sigue abierta). El metronomo nunca lo escucho nadie. Interoperabilidad con un cliente NINJAM de escritorio real.",
-        "R1 PASA, R3 ARREGLADO de raiz, R2 matizado (no bloquea), R4 pasa, R5 diferido a proposito. Chat NINJAM publico y DM resueltos end-to-end.",
-        "Infra: backline.obscuromediaworks.com.ar (cliente, Cloudflare Pages) + backline-gateway.fly.dev/backline-ninjam (Fly.io Sao Paulo). Costo real medido: USD 0,06/dia, sin cambios.",
+        "FASE 2 ARRANCO DE VERDAD 20-21/8: los 4 mockups de diseno (portero tecnico, reglas/cupos, calendario, perfil) implementados en client/ como UI navegable (router liviano por hash, no habia ninguno antes), backend nuevo server/ (Cloudflare Worker + D1, separado del gateway de Fly.io) con magic link + salas/cupos + calendario, y cliente cableado al backend real (login #/login funcional). Hecho con dos om-dev en paralelo + un tercer pase de cableado, dos cortes por limite de sesion en el medio recuperados sin perder trabajo (ver feedback_agente_corte_sesion_recuperar en memoria).",
+        "BACKEND: 18/18 tests verdes contra wrangler dev --local real (D1 local, sin mocks). Google OAuth armado pero bloqueado con 501 explicito -- falta que Roi cree credenciales en Google Cloud Console. Magic link real pero sin proveedor de email -- el link se devuelve en la respuesta HTTP con TODO explicito.",
+        "GAP DE PRODUCTO SIN RESOLVER A PROPOSITO (nueva tarea de backlog, 1217703515754303): si el unico host de una sala se va, nadie puede confirmar eventos de calendario. No hay mockup ni spec que lo defina, necesita decision de Roi antes de codear.",
+        "PENDIENTE: pantalla de LOBBY con instrumentos faltantes por sala -- el backend ya lo soporta (rooms.js expone cupos), pero la pantalla en si no se construyo (tarea 1217700733676287, comentario agregado 20/8).",
+        "PENDIENTE: roles/moderacion/codigo de conducta siguen mock en el cliente -- no hay esos endpoints en el backend todavia.",
+        "WHATSAPP BUSINESS API para avisos de calendario: sigue sin arrancar, ahora si tiene backend de calendario del que depender (antes no existia ningun backend).",
+        "TRAMPA DE INFRA (de sesiones previas, sigue valiendo): autoMode.allow es por HERRAMIENTA, no por proyecto -- cada CLI nueva (wrangler, flyctl) necesita su propia entrada.",
+        "R1-R5 + gateway + chat NINJAM (publico y DM) resueltos de sesiones previas, sin cambios esta sesion.",
+        "Infra sin cambios: backline.obscuromediaworks.com.ar (cliente) + backline-gateway.fly.dev/backline-ninjam (Fly.io Sao Paulo). El backend nuevo (server/) NO esta deployado todavia -- nada de lo de hoy se publico.",
+        "SIN VERIFICAR POR UN HUMANO: probar la pantalla de sala real con dos usuarios simultaneos (tarea 1217686484311368, sigue abierta, sin cambios).",
         "OBSCUROSTUDIO (producto hermano) sigue sin bootstrapear a proposito."
       ],
-      "note": "Contadores del 20/8 a la tarde; el trabajo de la noche del 20/8 NO esta reflejado en el board (conector de Asana no disponible)."
+      "note": "Contadores y highlights al cierre de la sesion del 20-21/8/2026 (Fase 2: mockups + backend + cableado)."
     }
   }
 }
