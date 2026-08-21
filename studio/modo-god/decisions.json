@@ -1,6 +1,6 @@
 {
   "$comment": "Decisiones que un agente no puede tomar solo (alcance, arquitectura, borrado/publicación de infra, clasificación ambigua). Las escribe un agente al correr la rutina de arranque de un proyecto (ver STUDIO.md #9); las resuelve Roi desde /modo-god o en el chat. Cada una tiene 2-4 opciones con una recomendación marcada -- la recomendación es una propuesta, no una ejecución.",
-  "generated_at": "2026-08-20T22:45:00Z",
+  "generated_at": "2026-08-21T13:58:51.189484Z",
   "generated_by": "primera corrida de la rutina de arranque, sesión 2026-08-12",
   "decisions": [
     {
@@ -679,7 +679,12 @@
           "recommended": false
         }
       ],
-      "status": "pending"
+      "status": "decided",
+      "decided_at": "2026-08-21T13:14:01.538195+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Alcance mínimo: solo lo que ya está en D1 (salas + usuarios), sin moderación ni estado en vivo del gateway."
+      }
     },
     {
       "id": "zapamooke-google-oauth-e2e-pending",
@@ -700,7 +705,44 @@
           "recommended": false
         }
       ],
-      "status": "pending"
+      "status": "decided",
+      "decided_at": "2026-08-21T13:14:19.031197+00:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Roi completa el login de Google a mano desde backline.obscuromediaworks.com.ar y confirma."
+      }
+    },
+    {
+      "id": "zapamooke-lobby-to-real-ninjam-room-mapping",
+      "project": "zapamooke",
+      "asana_task_gid": "1217686484311368",
+      "due_on": null,
+      "question": "El lobby (#/lobby) deja elegir/crear una sala real en D1 (nombre, tipo, BPM, cupos, roster), pero \"Entrar\" te lleva siempre a la MISMA sala NINJAM fija (client/src/main.ts se conecta siempre al mismo gateway/ninjamsrv, hoy backline-gateway.fly.dev -> backline-ninjam en Fly, un solo proceso). Confirmado leyendo codigo, no sospecha: gateway/src/server.ts es un relay transparente 1:1 por conexion hacia UN host:puerto fijo (env NINJAM_HOST/NINJAM_PORT), sin concepto de \"sala\" -- y NINJAM como protocolo no soporta multiples salas logicas dentro de un mismo proceso ninjamsrv (confirmado tambien por el propio diseno de la spec, seccion 10, tabla room_instances(room_id, container_id, host, port, started_at, ended_at) -- ya prevista como infraestructura efimera POR SALA, nunca construida). Elegir sala en el lobby hoy es cosmetico: cualquiera termina en el mismo audio compartido sin importar que sala eligio. Como se cierra esa brecha?",
+      "context": "Investigado por om-dev 21/8/2026 a partir de un hallazgo de om-test (dos usuarios reales probando la pantalla de sala, tarea Asana 1217686484311368). No es un parametro que el protocolo ya soporte y falte pasar: requiere que cada sala tenga su propio proceso ninjamsrv (o un pool de ellos), lo cual es trabajo de infraestructura real (provisioning dinamico via Fly Machines API, o un pool estatico), no un cambio de codigo chico en el cliente. Alcance estimado: la opcion recomendada (pool estatico) es un dia de trabajo enfocado; el provisioning dinamico completo (arranca al primer musico, se apaga al ultimo, como dice la spec S7.4) es varios dias e incluye decisiones de costo/ops nuevas (Fly Machines API, limites de maquinas simultaneas, billing).",
+      "options": [
+        {
+          "label": "Pool estatico chico de ninjamsrv (ej. 3-5 procesos ya corriendo en Fly, mismo Dockerfile.ninjam de hoy), y el gateway/servidor asigna cada room.id de D1 a una instancia por hash/round-robin, guardando el mapeo. El cliente sigue viendo 'una sala eligio, a esa sala entra' -- ahora es real, aunque el pool sea compartido entre varias salas de D1 si hay mas salas que instancias.",
+          "why": "Cierra la brecha real (elegir sala en el lobby SI cambia a que audio NINJAM entras) sin construir provisioning dinamico todavia. Honesto con lo que hay: documentar el limite (N salas simultaneas como maximo, colision si se pasa) en vez de prometer escala infinita. Un dia de trabajo, no varios.",
+          "recommended": true
+        },
+        {
+          "label": "Provisioning dinamico completo (Fly Machines API): arranca un ninjamsrv nuevo por sala al primer musico que entra, lo apaga cuando el ultimo se va, guarda host/port real en una tabla room_instances nueva en D1 -- exactamente el diseno que ya preve la spec S7.4/S10.",
+          "why": "Es la arquitectura correcta y la que ya esta documentada como destino -- pero es infraestructura nueva real (API de Fly, ciclo de vida de maquinas, limites de concurrencia, costo por maquina activa) que no se resuelve en una sesion.",
+          "recommended": false
+        },
+        {
+          "label": "No tocar el mapeo todavia: dejar UNA sola sala NINJAM real (la actual) y que el lobby sea honesto al respecto -- ocultar/deshabilitar 'crear sala' o mostrar aviso de que todas las salas comparten el mismo audio por ahora.",
+          "why": "Cero trabajo de infra, resuelve la mentira de la UI (no promete algo que no existe) sin construir nada nuevo -- pero no resuelve el problema de fondo que motivo la tarea (bandas distintas necesitan salas de audio separadas).",
+          "recommended": false
+        }
+      ],
+      "status": "decided",
+      "decided_at": "2026-08-21T00:00:00-03:00",
+      "decision": {
+        "option_index": 0,
+        "label": "Pool estatico chico de ninjamsrv (ej. 3-5 procesos ya corriendo en Fly, mismo Dockerfile.ninjam de hoy), y el gateway/servidor asigna cada room.id de D1 a una instancia por hash/round-robin, guardando el mapeo. El cliente sigue viendo 'una sala eligio, a esa sala entra' -- ahora es real, aunque el pool sea compartido entre varias salas de D1 si hay mas salas que instancias."
+      },
+      "execution_note": "Confirmado por Roi en el chat de la sesión principal, ejecutado por om-dev 21/8/2026 -- código y verificación local, deploy real a Fly PENDIENTE (ver abajo). `gateway/src/server.ts` ahora es room-aware: cada conexión WS con `?room=<id>` hashea el id (FNV-1a, `hashRoomId()`) contra un pool de `ninjamsrv` (`NINJAM_POOL` env, formato `host:port,host:port`) y abre su leg TCP contra la instancia que le toca -- misma sala siempre a la misma instancia, sin tabla nueva que mantener. Sin `room` (flujo legado de conectar directo sin pasar por el lobby) sigue yendo a pool[0], igual que hoy. `client/src/main.ts` ya manda `?room=` con la sala activa del lobby (`demo-room.ts`'s `getActiveRoomId()`, misma clave que `views/lobby.ts` ya escribía). Detalle completo y punto de mapeo justificado en `gateway/README.md` sección 'Room pool routing'. Verificado: `gateway/test/relay-room-pool.test.mjs` (hash determinístico + ruteo real contra mocks, en `npm test`), typecheck limpio en `client/` y `gateway/`, y `experiments/r10-room-pool-isolation` -- dos contenedores `ninjamsrv` REALES locales (mismo `Dockerfile.ninjam` que corre en Fly, puertos 2049/2051), gateway real, 4 sesiones NINJAM reales (2 por sala), mensaje de chat real (`0xc0`) que confirma aislamiento total entre salas + funcionamiento interno de cada una (6/6 checks OK, sin reintentos). PENDIENTE, a propósito, no ejecutado por esta sesión: crear las N-1 instancias nuevas de `ninjamsrv` en Fly (infra que factura de forma continua -- `studio/roles/deploy.md` reglas duras #1/#3 piden el OK explícito en el momento de crearla, no solo la decisión de arquitectura ya aprobada). Costo proyectado documentado en `DEPLOY.md`/`gateway/README.md`: hoy USD 0,06/día (1 instancia); pool de 3 (punto de partida sugerido) ≈USD 0,12/día; pool de 5 ≈USD 0,18/día. Próximo paso: Roi confirma tamaño de pool, se crean los Fly apps, se setea `NINJAM_POOL` en `backline-gateway`, se redeploya, y se repite una verificación equivalente a R10 contra producción real."
     }
   ]
 }
