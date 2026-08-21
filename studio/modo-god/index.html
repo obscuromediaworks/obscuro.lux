@@ -42,9 +42,45 @@
     padding:9px 16px;cursor:pointer;white-space:nowrap}
   #sync-btn:hover{background:var(--gold);color:var(--ink-900)}
   #sync-btn:disabled{opacity:.5;cursor:default;background:transparent;color:var(--gold)}
+  .activity-toolbar{display:flex;justify-content:flex-end;margin-bottom:14px}
+  #activity-refresh-btn{flex:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;background:transparent;color:var(--gold);border:1px solid var(--gold-dim);
+    padding:9px 16px;cursor:pointer;white-space:nowrap}
+  #activity-refresh-btn:hover{background:var(--gold);color:var(--ink-900)}
+  #activity-refresh-btn:disabled{opacity:.5;cursor:default;background:transparent;color:var(--gold)}
 
   h2{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
      color:var(--gold);font-weight:400;margin:48px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+
+  .tabs{display:flex;gap:26px;margin:48px 0 20px;border-bottom:1px solid var(--line)}
+  .tab-btn{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:#8a8175;background:transparent;border:none;border-bottom:2px solid transparent;
+    padding:0 0 10px;margin:0;cursor:pointer;display:flex;align-items:center;gap:8px}
+  .tab-btn:hover{color:var(--cream)}
+  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .tab-panel[hidden]{display:none}
+  .activity-dot{width:7px;height:7px;border-radius:50%;background:var(--rec);display:inline-block;
+    box-shadow:0 0 0 0 rgba(255,31,62,.6);animation:activity-pulse 1.6s infinite}
+  .activity-dot[hidden]{display:none}
+  @keyframes activity-pulse{
+    0%{box-shadow:0 0 0 0 rgba(255,31,62,.55)}
+    70%{box-shadow:0 0 0 7px rgba(255,31,62,0)}
+    100%{box-shadow:0 0 0 0 rgba(255,31,62,0)}}
+
+  .activity-session{background:var(--ink-700);border:1px solid var(--line);padding:16px 18px;margin-bottom:14px}
+  .activity-session-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;
+    font-family:var(--font-mono);font-size:11px;color:#8a8175}
+  .activity-session-top .who{color:var(--cream);font-size:12px}
+  .activity-session-top .where{color:#6f675d}
+  .activity-live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+  .activity-live-dot.idle{background:#6f675d}
+  .activity-log{display:flex;flex-direction:column;gap:7px;font-family:var(--font-mono);
+    font-size:11.5px;line-height:1.5;max-height:360px;overflow-y:auto}
+  .activity-line{display:flex;gap:9px}
+  .activity-line .t{color:#6f675d;flex:none;white-space:nowrap;font-size:10.5px;padding-top:1px}
+  .activity-line.kind-dice .x{color:var(--cream)}
+  .activity-line.kind-tool .x{color:var(--gold-dim)}
+  .activity-line.kind-result .x{color:#8a8175}
 
   .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
   .card{background:var(--ink-700);border:1px solid var(--line);padding:20px 22px 18px;
@@ -179,7 +215,7 @@ const $ = (s) => document.querySelector(s);
 // El backend (consola local vs Worker público) declara qué puede hacer en snapshot.capabilities.
 // Local: decide=true (POST /api/decide), sync=false (ya es en vivo, no necesita botón).
 // Worker público: decide=false (nadie resuelve decisiones sin contexto), sync=true (botón).
-let CAPS = { decide: false, sync: false, qa: false, publish: false };
+let CAPS = { decide: false, sync: false, qa: false, publish: false, activity: false };
 let SNAP = null; // último snapshot renderizado, para que el modal de GDD busque por slug
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c => (
   {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -375,8 +411,23 @@ function render(s){
   const other = s.projects.filter(p => p.kind !== "game");
 
   $("#app").innerHTML = `
-    <h2>Juegos</h2>
-    <div class="grid">${games.map(card).join("")}</div>
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" type="button" data-tab="juegos" role="tab" aria-selected="true">Juegos</button>
+      <button class="tab-btn" type="button" data-tab="actividad" role="tab" aria-selected="false">Actividad
+        <span id="activity-dot" class="activity-dot" hidden title="hay agentes trabajando ahora"></span>
+      </button>
+    </div>
+    <div class="tab-panel" id="panel-juegos" role="tabpanel">
+      <div class="grid">${games.map(card).join("")}</div>
+    </div>
+    <div class="tab-panel" id="panel-actividad" role="tabpanel" hidden>
+      <div class="activity-toolbar" style="${CAPS.activity ? "" : "display:none"}">
+        <button id="activity-refresh-btn" type="button">↻ Refresh</button>
+      </div>
+      <div id="activity-content" class="empty">${CAPS.activity
+        ? "Cargando actividad…"
+        : "Esta vista lee sesiones de Claude Code del disco local — solo existe en la consola local (<code>python studio/modo-god/modo-god.py</code>), no en este espejo público."}</div>
+    </div>
     <h2>Estudio y clientes</h2>
     <div class="grid">${other.map(card).join("")}</div>
     <h2>GDD</h2>
@@ -438,11 +489,91 @@ async function copyTrigger(btn){
   setTimeout(() => { btn.textContent = original; btn.classList.remove("done"); }, 1500);
 }
 
+// ── Actividad: log en vivo de agentes de Claude Code corriendo en esta máquina ──────────────
+// Fuente: GET /api/activity (ver studio/modo-god/activity.py) -- solo existe en la consola local.
+// Sin polling: un solo fetch automático al abrir la pestaña; después el usuario refresca a mano
+// con el botón "Refresh". No hay setInterval corriendo de fondo.
+function activityLine(l){
+  const t = l.ts ? new Date(l.ts).toLocaleTimeString("es-AR", {hour:"2-digit",minute:"2-digit",second:"2-digit"}) : "";
+  const prefix = l.kind === "tool" ? "→ " : l.kind === "result" ? "· " : "";
+  return `<div class="activity-line kind-${esc(l.kind)}">
+    <span class="t">${esc(t)}</span>
+    <span class="x">${esc(prefix)}${esc(l.text)}</span>
+  </div>`;
+}
+
+function activitySession(s){
+  const who = s.project || s.name || s.cwd || s.session_id.slice(0, 8);
+  const where = s.project && s.cwd ? s.cwd : "";
+  const status = s.live ? "trabajando ahora" : `última línea hace ${Math.round(s.age_s)}s`;
+  const lines = (s.lines && s.lines.length)
+    ? s.lines.map(activityLine).join("")
+    : `<div class="activity-line"><span class="x" style="color:#6f675d">sin líneas legibles todavía</span></div>`;
+  return `
+  <article class="activity-session">
+    <div class="activity-session-top">
+      <span class="activity-live-dot ${s.live ? "" : "idle"}"></span>
+      <span class="who">${esc(who)}</span>
+      <span class="where">${esc(where)}</span>
+      <span style="margin-left:auto">${esc(status)}</span>
+    </div>
+    <div class="activity-log">${lines}</div>
+  </article>`;
+}
+
+function renderActivity(data){
+  const el = $("#activity-content");
+  if (!el) return;
+  if (!data || data.ok === false) {
+    el.className = "empty";
+    el.innerHTML = "No pude leer la actividad: " + esc((data && data.error) || "error desconocido");
+    return;
+  }
+  if (!data.sessions || !data.sessions.length) {
+    el.className = "empty";
+    el.textContent = "No hay agentes de Claude Code corriendo en esta máquina ahora mismo.";
+    return;
+  }
+  el.className = "";
+  el.innerHTML = data.sessions.map(activitySession).join("");
+}
+
+async function fetchActivity(){
+  const btn = $("#activity-refresh-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Actualizando…"; }
+  try {
+    const r = await fetch("api/activity", {cache: "no-store"});
+    const data = await r.json();
+    renderActivity(data);
+    const dot = $("#activity-dot");
+    if (dot) dot.hidden = !data.active;
+  } catch (err) {
+    renderActivity({ok: false, error: err.message});
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "↻ Refresh"; }
+  }
+}
+function switchTab(tab){
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    const active = b.getAttribute("data-tab") === tab;
+    b.classList.toggle("active", active);
+    b.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  const juegos = $("#panel-juegos"), act = $("#panel-actividad");
+  if (juegos) juegos.hidden = tab !== "juegos";
+  if (act) act.hidden = tab !== "actividad";
+  if (tab === "actividad" && CAPS.activity) {
+    fetchActivity(); // único fetch automático al abrir la pestaña; el resto es manual (botón Refresh)
+  }
+}
+
 $("#app").addEventListener("click", (e) => {
   const pick = e.target.closest("[data-decide]");
   const other = e.target.closest("[data-decide-other]");
   const gdd = e.target.closest("[data-gdd]");
   const copy = e.target.closest(".session-copy");
+  const tabBtn = e.target.closest(".tab-btn");
+  const activityRefresh = e.target.closest("#activity-refresh-btn");
   if (pick) {
     sendDecision(pick.getAttribute("data-decide"), Number(pick.getAttribute("data-idx")), null, pick);
   } else if (other) {
@@ -453,6 +584,10 @@ $("#app").addEventListener("click", (e) => {
     openGdd(gdd.getAttribute("data-gdd"));
   } else if (copy) {
     copyTrigger(copy);
+  } else if (tabBtn) {
+    switchTab(tabBtn.getAttribute("data-tab"));
+  } else if (activityRefresh) {
+    fetchActivity();
   }
 });
 

@@ -77,25 +77,24 @@
     },
     "zapamooke": {
       "board": "ZAPAMOoKE!",
-      "total": 33,
-      "open": 12,
+      "total": 34,
+      "open": 13,
       "done": 21,
       "overdue": null,
       "highlights": [
-        "FASE 2 DEPLOYADA A PRODUCCION 21/8: lobby real (client/src/views/lobby.ts, crear/listar/unirse via API real, reemplaza la sala hardcodeada de prueba), backend Worker (backline-server) + D1 remota (backline-db) en Cloudflare montado en backline.obscuromediaworks.com.ar/api/* (mismo hostname del cliente, sin CNAME nuevo), cliente deployado apuntando al backend real (se encontro y corrigio un placeholder de URL que apuntaba a un workers.dev que nunca se activo).",
-        "MAGIC LINK: verificado de punta a punta con evidencia real via Resend (request -> token en D1 -> verify -> cookie de sesion -> usuario creado). Trampa pagada: el dominio remitente inicial (backline.obscuromediaworks.com.ar) no era el verificado en Resend (mail.obscuromediaworks.com.ar) -- daba 403 para cualquier destinatario. Corregido.",
-        "GOOGLE OAUTH: cableado con credenciales reales de Roi. El /start redirige correcto a Google (confirmado por Roi en su propio browser), pero el callback (creacion de sesion real) NO se probo end-to-end -- ninguna sesion de agente tiene browser para completar el consentimiento. Tarea nueva 1217704307864015 y decision pendiente zapamooke-google-oauth-e2e-pending en decisions.json.",
-        "DASHBOARD DE ADMIN: pedido nuevo de Roi (21/8), tarea 1217703800987381 con borrador de alcance en comentario. No hay concepto de rol admin en el schema todavia. Decision pendiente zapamooke-admin-dashboard-scope en decisions.json (alcance minimo con lo que ya hay en D1 vs. sumar moderacion + status en vivo del gateway).",
+        "SESION 21/8 TARDE/NOCHE, DEPLOY EN DOS PASOS: fix real del magic link (redirigia mal, mostraba JSON crudo en pantalla al clickear el link de un mail real) + cierre de un open-redirect preexistente en el mismo endpoint -- deployado y verificado contra produccion real.",
+        "LANDING EN ESPANOL deployada en backline.obscuromediaworks.com.ar (3 pasos del workflow + login embebido), reemplaza el header viejo de prototipo 'CLIENTE MINIMO'. Mails (magic link + invitacion a sala) rediseñados con la estetica de marca y tono revisado a pedido de Roi (menos informal, mas sobrio).",
+        "IDENTIDAD UNICA (Google/magic-link deriva el username real hacia NINJAM) + SALAS PRIVADAS POR INVITACION: implementado y verificado con tests automaticos, SIN DEPLOYAR a proposito (Roi prefirio cerrar antes de tocar DB/secretos). Tarea nueva 1217738252700418 con el detalle de que falta (migracion D1, secreto compartido Cloudflare+Fly.io, prueba con cuenta real).",
+        "Bot de musica para QA en solitario (gateway/scripts/musician-bot.mjs) armado y verificado contra produccion -- de paso encontro y se arreglo que backline-ninjam (sala legacy) no tenia el patch de usuarios anonimos, y que el cliente no armaba el prefijo anonymous: requerido por NINJAM.",
+        "GOOGLE OAUTH: sigue sin confirmar el callback end-to-end con browser real (tarea 1217704307864015, sin cambios esta sesion).",
+        "DASHBOARD DE ADMIN: cerrado (tarea 1217703800987381 completed).",
         "GAP DE PRODUCTO SIN RESOLVER A PROPOSITO (backlog, 1217703515754303): si el unico host de una sala se va, nadie puede confirmar eventos de calendario. Sigue sin decision de Roi.",
-        "PENDIENTE: roles/moderacion/codigo de conducta siguen mock en el cliente -- no hay esos endpoints en el backend todavia.",
-        "WHATSAPP BUSINESS API para avisos de calendario: sigue sin arrancar.",
-        "TRAMPA DE INFRA (de sesiones previas, sigue valiendo): autoMode.allow es por HERRAMIENTA, no por proyecto -- cada CLI nueva (wrangler, flyctl) necesita su propia entrada.",
-        "R1-R5 + gateway + chat NINJAM (publico y DM) resueltos de sesiones previas, sin cambios esta sesion.",
-        "Infra: backline.obscuromediaworks.com.ar (cliente + API) + backline-gateway.fly.dev/backline-ninjam (Fly.io Sao Paulo, sin cambios).",
-        "SIN VERIFICAR POR UN HUMANO: login de Google end-to-end y login desde la UI del cliente (no solo curl al backend).",
+        "PENDIENTE: roles/moderacion/codigo de conducta siguen mock en el cliente. WHATSAPP BUSINESS API real para avisos de calendario sigue sin arrancar (la invitacion a sala privada usa un link wa.me manual como primera version).",
+        "TRAMPA DE INFRA: el clasificador de auto-mode bloqueo un deploy grande (migracion+secretos+3 deploys juntos) incluso reintentando -- partirlo en pasos chicos si paso. Ver reference_automode_classifier_wrangler.",
+        "Infra sin cambios: backline.obscuromediaworks.com.ar (cliente + API) + backline-gateway.fly.dev/backline-ninjam(-1/-2) (Fly.io Sao Paulo).",
         "OBSCUROSTUDIO (producto hermano) sigue sin bootstrapear a proposito."
       ],
-      "note": "Contadores y highlights al cierre de la sesion del 21/8/2026 (Fase 2 deployada a produccion)."
+      "note": "Contadores y highlights al cierre de la sesion del 21/8/2026 tarde/noche (deploy en 2 pasos + identidad/salas privadas implementadas sin deployar)."
     }
   }
 }

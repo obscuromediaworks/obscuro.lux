@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
+import activity
 import collect
 import publish_board
 import qa_board
@@ -37,6 +38,8 @@ class Handler(SimpleHTTPRequestHandler):
         path = self.path.split("?")[0].rstrip("/")
         if path in ("/api/snapshot", "api/snapshot"):
             return self.serve_snapshot()
+        if path in ("/api/activity", "api/activity"):
+            return self.serve_activity()
         if path in ("/qa", "qa"):
             return self.serve_qa()
         if path in ("/publish", "publish"):
@@ -115,6 +118,23 @@ class Handler(SimpleHTTPRequestHandler):
             body = json.dumps({"ok": False, "error": str(e)}, ensure_ascii=False).encode("utf-8")
             code = 400
 
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def serve_activity(self):
+        # Actividad en vivo de agentes de Claude Code -- ver activity.py para de dónde sale.
+        # Solo existe en la consola LOCAL: lee ~/.claude en el disco de esta máquina, no algo que
+        # el Worker público pueda servir.
+        try:
+            body = json.dumps(activity.build_activity(), ensure_ascii=False).encode("utf-8")
+            code = 200
+        except Exception as e:
+            body = json.dumps({"ok": False, "error": str(e)}, ensure_ascii=False).encode("utf-8")
+            code = 500
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))

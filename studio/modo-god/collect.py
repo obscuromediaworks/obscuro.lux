@@ -164,7 +164,9 @@ def build_snapshot():
         # publish_board.py). El Worker público no tiene nada de eso -- ver _worker.js: el tablero
         # de QA y el de Publish son exclusivos de la consola local, a propósito (STUDIO.md §8: el
         # espejo público nunca escribe, y menos todavía dispara un post real hacia afuera).
-        "capabilities": {"decide": True, "sync": False, "qa": True, "publish": True},
+        # activity: también exclusivo de la consola local -- GET /api/activity lee ~/.claude en
+        # el disco de esta máquina (ver activity.py), el Worker público no tiene acceso a eso.
+        "capabilities": {"decide": True, "sync": False, "qa": True, "publish": True, "activity": True},
     }
 
 

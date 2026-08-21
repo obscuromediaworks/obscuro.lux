@@ -210,7 +210,9 @@ async function buildSnapshot(env) {
     // qa/publish: false a propósito -- el tablero de QA (qa_board.py) y el de Publish
     // (publish_board.py, dispara posts reales a Discord/YouTube) son exclusivos de la consola
     // local, no del espejo público. Ver studio/modo-god/README.md.
-    capabilities: { decide: false, sync: true, qa: false, publish: false },
+    // activity: false también -- GET /api/activity (activity.py) lee ~/.claude del disco local,
+    // el Worker corre en Cloudflare y no tiene acceso a esa máquina.
+    capabilities: { decide: false, sync: true, qa: false, publish: false, activity: false },
   };
 }
 
