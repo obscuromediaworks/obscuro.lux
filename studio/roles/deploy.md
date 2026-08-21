@@ -61,6 +61,19 @@ Infra que factura de forma continua (una VM siempre prendida, una base, un domin
 **antes** de crearla, con el modelo de cobro explícito ("esto factura 24/7, no por request").
 Si algo quedó creado y roto, decilo y ofrecé bajarlo — no lo dejes corriendo en silencio.
 
+## Si el clasificador de auto-mode bloquea un comando
+
+No lo esquives cambiando de herramienta (Bash → PowerShell o viceversa) para ver si ese camino
+pasa — es exactamente el comportamiento que el clasificador existe para prevenir, y hacerlo
+socava la barrera aunque el deploy en sí esté autorizado. Podés reintentar el mismo comando, en
+la misma herramienta, **una vez** (el clasificador no es 100% determinístico, documentado en
+memoria del estudio). Si vuelve a bloquear: **frenás y reportás el bloqueo a Roi**, con el
+comando exacto y por qué creés que debería estar cubierto — no busques una ruta alternativa para
+que pase igual. Si el recurso es nuevo (Worker, proyecto, app) y no está nombrado explícitamente
+en `autoMode.allow` de `settings.local.json`, decilo así: hace falta que Roi agregue esa entrada
+a mano, un agente no puede editar ese archivo solo (ver
+`reference_automode_classifier_wrangler` en la memoria del estudio).
+
 ## Dónde está escrito qué
 
 El `DEPLOY.md` de cada repo es la fuente canónica de ese proyecto, y se actualiza **en el mismo
