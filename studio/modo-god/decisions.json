@@ -659,6 +659,48 @@
         }
       },
       "execution_note": "Las 4 respuestas de Roi aplicadas: magic link se adelanta al lanzamiento (spec S7.1), terminos en modal inline (implementado y verificado en design/login-registro.html), instrumentos faltantes SI se prioriza (tarea de backend creada, bloqueada por modelo de datos), reputacion NO se muestra en el lobby (confirmado)."
+    },
+    {
+      "id": "zapamooke-admin-dashboard-scope",
+      "project": "zapamooke",
+      "asana_task_gid": "1217703800987381",
+      "due_on": null,
+      "question": "Roi pidió un dashboard de admin para Zapamooke (21/8). No existe hoy ningún concepto de rol admin en el schema -- ¿qué alcance tiene?",
+      "context": "Con lo que ya hay en D1 (server/) se puede armar sin trabajo nuevo de backend: salas activas (GET /rooms) y lista de usuarios. Pero moderación/reportes no tiene tabla ni endpoints, y el estado en vivo del gateway/ninjam (quién está conectado ahora a una sala) vive en memoria del proceso de Fly.io, no en D1 -- verlo requeriría un endpoint de status nuevo en el gateway. Borrador completo en el comentario de la tarea de Asana.",
+      "options": [
+        {
+          "label": "Alcance mínimo: solo lo que ya está en D1 (salas + usuarios), sin moderación ni estado en vivo del gateway.",
+          "why": "No requiere tocar el gateway ni diseñar un modelo de reportes todavía -- se puede construir ya con lo que existe, y se amplía después si hace falta.",
+          "recommended": true
+        },
+        {
+          "label": "Alcance completo desde el arranque: sumar tabla de reportes/moderación + endpoint de status en el gateway para ver conexiones en vivo.",
+          "why": "Da una herramienta más útil de entrada, pero es var proyectos de infra nuevos (rol admin + reportes + status del gateway) antes de saber si Roi realmente los va a usar.",
+          "recommended": false
+        }
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "zapamooke-google-oauth-e2e-pending",
+      "project": "zapamooke",
+      "asana_task_gid": "1217704307864015",
+      "due_on": null,
+      "question": "Fase 2 de Zapamooke ya está deployada a producción (21/8) con magic link verificado de punta a punta. Google OAuth quedó solo parcialmente verificado -- ¿lo prueba Roi manualmente o se espera a que una sesión con browser lo confirme?",
+      "context": "El /start ya redirige correcto a Google (confirmado por Roi en su propio browser), pero ninguna sesión de agente tiene tooling de browser para completar el consentimiento real y confirmar que /callback crea sesión. No es una decisión de arquitectura, es una acción pendiente que solo un humano (o una sesión con browser real) puede ejecutar.",
+      "options": [
+        {
+          "label": "Roi completa el login de Google a mano desde backline.obscuromediaworks.com.ar y confirma.",
+          "why": "Es el camino más directo -- ya tiene el browser y la cuenta a mano.",
+          "recommended": true
+        },
+        {
+          "label": "Pedir a una próxima sesión que use Claude Browser / Chrome MCP para automatizar el click-through.",
+          "why": "Sirve si Roi no tiene tiempo, pero requiere una sesión nueva armada para eso y sigue necesitando una cuenta de Google real con consentimiento.",
+          "recommended": false
+        }
+      ],
+      "status": "pending"
     }
   ]
 }

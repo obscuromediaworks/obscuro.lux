@@ -1,8 +1,8 @@
 {
   "$comment": "Caché de Asana para el Modo God. collect.py NO la genera: el conector de Asana es MCP, no HTTP, así que la escribe un agente de Claude. Para refrescarla: get_projects (da los conteos de una) + get_tasks del board si querés las vencidas. Cuenta FREE: nunca search_tasks.",
-  "generated_at": "2026-08-21T03:10:00Z",
-  "generated_by": "cierre de sesión de zapamooke 20-21/8 (Fase 2: 4 mockups al cliente + backend cuentas/salas + cableado cliente↔backend, 3 tareas nuevas completed + 1 backlog + 1 comentario; resto de proyectos sin cambios de Asana esta sesión, timestamps previos siguen valiendo)",
-  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. Regla nueva 15/8: sin menciones directas a League of Legends/LoL en copy publico (revierte una decision anterior del 12/8), copy corregido y pusheado. zapamooke: R1-R5 + gateway + chat NINJAM (publico y DM) resueltos, deploy real en backline.obscuromediaworks.com.ar + Fly.io. Fase 2 arranco de verdad 20-21/8: los 4 mockups de diseno (portero tecnico, reglas/cupos, calendario, perfil) implementados en client/ como UI navegable, backend nuevo server/ (Cloudflare Worker + D1) con magic link + salas/cupos + calendario (18/18 tests), y cliente cableado a ese backend real. Nada de lo nuevo esta deployado todavia. Falta: pantalla de lobby, Google OAuth (credenciales de Roi), proveedor de email real, decidir reasignacion de host de sala. Ver el bloque \"zapamooke\" mas abajo para el detalle completo.",
+  "generated_at": "2026-08-21T04:10:00Z",
+  "generated_by": "cierre de sesión de zapamooke 21/8 (Fase 2 DEPLOYADA a produccion: lobby real + backend en Cloudflare + magic link con Resend verificado + Google OAuth parcial, 1 tarea nueva creada, 1 comentario, notas de tarea paraguas actualizadas; resto de proyectos sin cambios de Asana esta sesión, timestamps previos siguen valiendo)",
+  "note": "moba-warmup: lanzamiento del 14/8 COMPLETO -- itch publica, trailer con musica en X/YouTube/YT Shorts/TikTok, mini-QA 19/19. Quedan 11 tareas abiertas, todas post-lanzamiento o polish, ninguna bloqueante. Regla nueva 15/8: sin menciones directas a League of Legends/LoL en copy publico (revierte una decision anterior del 12/8), copy corregido y pusheado. zapamooke: R1-R5 + gateway + chat NINJAM (publico y DM) resueltos, deploy real en backline.obscuromediaworks.com.ar + Fly.io. Fase 2 DEPLOYADA A PRODUCCION 21/8: lobby real (crear/listar/unirse salas), backend Worker+D1 en Cloudflare montado en backline.obscuromediaworks.com.ar/api/*, magic link con Resend verificado de punta a punta con evidencia real, Google OAuth cableado con credenciales reales (redirect confirmado por Roi, callback aun sin probar end-to-end con browser), cliente deployado apuntando al backend real. Falta: confirmar login de Google end-to-end, dashboard de admin (pedido nuevo de Roi, alcance sin definir, decision pendiente en decisions.json), roles/moderacion reales, decidir reasignacion de host de sala. Ver el bloque \"zapamooke\" mas abajo para el detalle completo.",
   "projects": {
     "moba-warmup": {
       "board": "MOBA Warmup — Launch v1 (14 ago)",
@@ -77,24 +77,25 @@
     },
     "zapamooke": {
       "board": "ZAPAMOoKE!",
-      "total": 31,
-      "open": 10,
+      "total": 33,
+      "open": 12,
       "done": 21,
       "overdue": null,
       "highlights": [
-        "FASE 2 ARRANCO DE VERDAD 20-21/8: los 4 mockups de diseno (portero tecnico, reglas/cupos, calendario, perfil) implementados en client/ como UI navegable (router liviano por hash, no habia ninguno antes), backend nuevo server/ (Cloudflare Worker + D1, separado del gateway de Fly.io) con magic link + salas/cupos + calendario, y cliente cableado al backend real (login #/login funcional). Hecho con dos om-dev en paralelo + un tercer pase de cableado, dos cortes por limite de sesion en el medio recuperados sin perder trabajo (ver feedback_agente_corte_sesion_recuperar en memoria).",
-        "BACKEND: 18/18 tests verdes contra wrangler dev --local real (D1 local, sin mocks). Google OAuth armado pero bloqueado con 501 explicito -- falta que Roi cree credenciales en Google Cloud Console. Magic link real pero sin proveedor de email -- el link se devuelve en la respuesta HTTP con TODO explicito.",
-        "GAP DE PRODUCTO SIN RESOLVER A PROPOSITO (nueva tarea de backlog, 1217703515754303): si el unico host de una sala se va, nadie puede confirmar eventos de calendario. No hay mockup ni spec que lo defina, necesita decision de Roi antes de codear.",
-        "PENDIENTE: pantalla de LOBBY con instrumentos faltantes por sala -- el backend ya lo soporta (rooms.js expone cupos), pero la pantalla en si no se construyo (tarea 1217700733676287, comentario agregado 20/8).",
+        "FASE 2 DEPLOYADA A PRODUCCION 21/8: lobby real (client/src/views/lobby.ts, crear/listar/unirse via API real, reemplaza la sala hardcodeada de prueba), backend Worker (backline-server) + D1 remota (backline-db) en Cloudflare montado en backline.obscuromediaworks.com.ar/api/* (mismo hostname del cliente, sin CNAME nuevo), cliente deployado apuntando al backend real (se encontro y corrigio un placeholder de URL que apuntaba a un workers.dev que nunca se activo).",
+        "MAGIC LINK: verificado de punta a punta con evidencia real via Resend (request -> token en D1 -> verify -> cookie de sesion -> usuario creado). Trampa pagada: el dominio remitente inicial (backline.obscuromediaworks.com.ar) no era el verificado en Resend (mail.obscuromediaworks.com.ar) -- daba 403 para cualquier destinatario. Corregido.",
+        "GOOGLE OAUTH: cableado con credenciales reales de Roi. El /start redirige correcto a Google (confirmado por Roi en su propio browser), pero el callback (creacion de sesion real) NO se probo end-to-end -- ninguna sesion de agente tiene browser para completar el consentimiento. Tarea nueva 1217704307864015 y decision pendiente zapamooke-google-oauth-e2e-pending en decisions.json.",
+        "DASHBOARD DE ADMIN: pedido nuevo de Roi (21/8), tarea 1217703800987381 con borrador de alcance en comentario. No hay concepto de rol admin en el schema todavia. Decision pendiente zapamooke-admin-dashboard-scope en decisions.json (alcance minimo con lo que ya hay en D1 vs. sumar moderacion + status en vivo del gateway).",
+        "GAP DE PRODUCTO SIN RESOLVER A PROPOSITO (backlog, 1217703515754303): si el unico host de una sala se va, nadie puede confirmar eventos de calendario. Sigue sin decision de Roi.",
         "PENDIENTE: roles/moderacion/codigo de conducta siguen mock en el cliente -- no hay esos endpoints en el backend todavia.",
-        "WHATSAPP BUSINESS API para avisos de calendario: sigue sin arrancar, ahora si tiene backend de calendario del que depender (antes no existia ningun backend).",
+        "WHATSAPP BUSINESS API para avisos de calendario: sigue sin arrancar.",
         "TRAMPA DE INFRA (de sesiones previas, sigue valiendo): autoMode.allow es por HERRAMIENTA, no por proyecto -- cada CLI nueva (wrangler, flyctl) necesita su propia entrada.",
         "R1-R5 + gateway + chat NINJAM (publico y DM) resueltos de sesiones previas, sin cambios esta sesion.",
-        "Infra sin cambios: backline.obscuromediaworks.com.ar (cliente) + backline-gateway.fly.dev/backline-ninjam (Fly.io Sao Paulo). El backend nuevo (server/) NO esta deployado todavia -- nada de lo de hoy se publico.",
-        "SIN VERIFICAR POR UN HUMANO: probar la pantalla de sala real con dos usuarios simultaneos (tarea 1217686484311368, sigue abierta, sin cambios).",
+        "Infra: backline.obscuromediaworks.com.ar (cliente + API) + backline-gateway.fly.dev/backline-ninjam (Fly.io Sao Paulo, sin cambios).",
+        "SIN VERIFICAR POR UN HUMANO: login de Google end-to-end y login desde la UI del cliente (no solo curl al backend).",
         "OBSCUROSTUDIO (producto hermano) sigue sin bootstrapear a proposito."
       ],
-      "note": "Contadores y highlights al cierre de la sesion del 20-21/8/2026 (Fase 2: mockups + backend + cableado)."
+      "note": "Contadores y highlights al cierre de la sesion del 21/8/2026 (Fase 2 deployada a produccion)."
     }
   }
 }
