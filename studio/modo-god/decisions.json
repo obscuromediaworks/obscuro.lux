@@ -1,772 +1,802 @@
 {
-  "$comment": "Decisiones que un agente no puede tomar solo (alcance, arquitectura, borrado/publicación de infra, clasificación ambigua). Las escribe un agente al correr la rutina de arranque de un proyecto (ver STUDIO.md #9); las resuelve Roi desde /modo-god o en el chat. Cada una tiene 2-4 opciones con una recomendación marcada -- la recomendación es una propuesta, no una ejecución.",
-  "generated_at": "2026-08-21T13:58:51.189484Z",
-  "generated_by": "primera corrida de la rutina de arranque, sesión 2026-08-12",
-  "decisions": [
+ "$comment": "Decisiones que un agente no puede tomar solo (alcance, arquitectura, borrado/publicación de infra, clasificación ambigua). Las escribe un agente al correr la rutina de arranque de un proyecto (ver STUDIO.md #9); las resuelve Roi desde /modo-god o en el chat. Cada una tiene 2-4 opciones con una recomendación marcada -- la recomendación es una propuesta, no una ejecución.",
+ "generated_at": "2026-08-21T13:58:51.189484Z",
+ "generated_by": "primera corrida de la rutina de arranque, sesión 2026-08-12",
+ "decisions": [
+  {
+   "id": "worker-git-integration-policy",
+   "project": "obscuro-lux",
+   "asana_task_gid": "1217424785615725",
+   "due_on": "2026-08-15",
+   "question": "¿Dejar el deploy automático del Worker en cada push a main, o volver a deploy explícito?",
+   "context": "Verificado el 12/8: cada push a main dispara un build y deploy en ~60s. Hoy es seguro porque el build lee wrangler.toml y sirve deploy/. Pero la constitución del estudio dice que el deploy es 'un acto explícito, nunca parte de la rutina de cierre' -- el auto-deploy contradice eso: cualquier push (incluso uno de código, sin intención de publicar) sale al dominio.",
+   "options": [
     {
-      "id": "worker-git-integration-policy",
-      "project": "obscuro-lux",
-      "asana_task_gid": "1217424785615725",
-      "due_on": "2026-08-15",
-      "question": "¿Dejar el deploy automático del Worker en cada push a main, o volver a deploy explícito?",
-      "context": "Verificado el 12/8: cada push a main dispara un build y deploy en ~60s. Hoy es seguro porque el build lee wrangler.toml y sirve deploy/. Pero la constitución del estudio dice que el deploy es 'un acto explícito, nunca parte de la rutina de cierre' -- el auto-deploy contradice eso: cualquier push (incluso uno de código, sin intención de publicar) sale al dominio.",
-      "options": [
-        {
-          "label": "Desconectar la integración de Git. Deploy solo con npm run deploy, cuando Roi dice 'deployá'.",
-          "why": "Alinea la infra con la regla que ya existe. El incidente del 12/8 (12h de sitio caído) salió de justamente esta clase de sorpresa.",
-          "recommended": true
-        },
-        {
-          "label": "Dejarlo como está (deploy continuo).",
-          "why": "Menos pasos manuales, y ya está blindada la trampa de la raíz. Pero un push apurado sigue pudiendo publicar algo a medio hacer.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-12T22:39:29.370448+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Desconectar la integración de Git. Deploy solo con npm run deploy, cuando Roi dice 'deployá'."
-      },
-      "executed_at": "2026-08-13T00:00:00Z",
-      "execution_note": "Confirmado en DEPLOY.md: sin deploys nuevos en el historial de versiones entre el 26/6 y el 13/8 pese a varios pushes a main."
+     "label": "Desconectar la integración de Git. Deploy solo con npm run deploy, cuando Roi dice 'deployá'.",
+     "why": "Alinea la infra con la regla que ya existe. El incidente del 12/8 (12h de sitio caído) salió de justamente esta clase de sorpresa.",
+     "recommended": true
     },
     {
-      "id": "delete-orphan-pages-project",
-      "project": "obscuro-lux",
-      "asana_task_gid": "1217441533808055",
-      "due_on": "2026-08-15",
-      "question": "¿Borrar el proyecto de Cloudflare Pages 'obscuro-mediaworks' (huérfano)?",
-      "context": "Se creó el 12/8 en un intento de deploy paralelo que se descartó. No tiene dominios atados, no sirve nada. Es una acción de borrado en infraestructura compartida (Cloudflare) -- un agente no la ejecuta sin tu confirmación explícita, aunque parezca inocua.",
-      "options": [
-        {
-          "label": "Borrarlo desde Workers & Pages.",
-          "why": "No tiene dominios, no lo referencia nada. Cero costo de dejarlo, pero también cero motivo para conservarlo.",
-          "recommended": true
-        },
-        {
-          "label": "Dejarlo.",
-          "why": "No estorba. Si en algún momento se quiere retomar ese intento de deploy paralelo, ya está creado.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-12T22:39:44.120510+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Borrarlo desde Workers & Pages."
-      },
-      "executed_at": "2026-08-13T03:02:00Z",
-      "execution_note": "Verificado con `npx wrangler pages project list`: ya no existe. Quedan solo modo-god y mobawarmup."
-    },
-    {
-      "id": "publish-modo-god-mirror",
-      "project": "obscuro-lux",
-      "asana_task_gid": "1217424900173805",
-      "due_on": null,
-      "question": "¿Se publica el espejo público de Modo God, y dónde?",
-      "context": "Hoy corre solo local (localhost:5080, en vivo). El espejo público expone rutas locales, nombres de tareas y fechas de lanzamiento -- no debería salir a internet sin Cloudflare Access (policy de un solo email) delante, y eso todavía no está armado.",
-      "options": [
-        {
-          "label": "No publicarlo por ahora. Consola local alcanza para decidir.",
-          "why": "Cero superficie expuesta hasta que valga la pena el trabajo de Access.",
-          "recommended": true
-        },
-        {
-          "label": "Publicar en subdominio dedicado (modogod.obscuromediaworks.com.ar) detrás de Cloudflare Access.",
-          "why": "Sirve para chequear el estudio desde el celular. Requiere el setup de Access primero (ver studio/modo-god/README.md).",
-          "recommended": false
-        },
-        {
-          "label": "Publicar en obscuromediaworks.com.ar/modo-god vía Worker proxy.",
-          "why": "Mismo dominio que el sitio, pero necesita un Worker adicional con esa ruta -- más piezas que el subdominio.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-12T22:40:01.949982+00:00",
-      "decision": {
-        "option_index": 1,
-        "label": "Publicar en subdominio dedicado (modogod.obscuromediaworks.com.ar) detrás de Cloudflare Access."
-      },
-      "executed_at": "2026-08-13T00:00:00Z",
-      "execution_note": "Publicado en god.obscuromediaworks.com.ar (Cloudflare Pages 'modo-god'). Pivot: Basic Auth propia en vez de Cloudflare Access (Zero Trust ahora pide tarjeta hasta en el tier free). Verificado 13/8: responde 401 sin credenciales."
-    },
-    {
-      "id": "lux-subdomain-scope",
-      "project": "obscuro-lux",
-      "asana_task_gid": "1217424695772173",
-      "due_on": null,
-      "question": "¿Qué sirve lux.obscuromediaworks.com.ar?",
-      "context": "Hoy el subdominio LUX sirve exactamente el mismo bundle que el apex (mismo Worker, mismo build). LUX ya vive como sección dentro del sitio (/#/lux).",
-      "options": [
-        {
-          "label": "Redirigir lux. → obscuromediaworks.com.ar/#/lux.",
-          "why": "Elimina la duplicación de dominio sin dejar de tener la ruta. Un solo lugar para mantener.",
-          "recommended": true
-        },
-        {
-          "label": "Dejarlo como está (mismo bundle en los dos hosts).",
-          "why": "Cero trabajo, pero dos dominios sirviendo lo mismo sin motivo claro.",
-          "recommended": false
-        },
-        {
-          "label": "Landing propia para LUX (copy y tema distintos al apex).",
-          "why": "Solo tiene sentido si LUX necesita presentarse distinto al resto del estudio a gente que no pasó por el sitio principal.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-12T22:40:14.274393+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Redirigir lux. → obscuromediaworks.com.ar/#/lux."
-      }
-    },
-    {
-      "id": "classify-ecoplastik",
-      "project": null,
-      "asana_task_gid": "1217426052335208",
-      "due_on": null,
-      "question": "ECOPLASTIK (board de Asana, 27 tareas, 0 completadas, sin repo ni memoria): ¿cliente activo, archivado, o fuera del sistema?",
-      "context": "No hay repo, memoria, ni ninguna tarea marcada como hecha -- no hay señal de que haya arrancado trabajo real. Esto no lo puede inferir un agente: solo vos sabés si ECOPLASTIK es un cliente real en curso.",
-      "options": [
-        {
-          "label": "Fuera del sistema (no es un proyecto activo del estudio hoy).",
-          "why": "Es el default más seguro si no hay contexto de que haya arrancado.",
-          "recommended": true
-        },
-        {
-          "label": "Cliente activo -- agregarlo al registry con su repo cuando exista.",
-          "why": "Si en verdad hay trabajo en curso que no quedó documentado.",
-          "recommended": false
-        },
-        {
-          "label": "Archivar el board directamente.",
-          "why": "Si quedó de una propuesta que no avanzó y no hace falta ni conservarlo como referencia.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-12T22:40:34.490927+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Fuera del sistema (no es un proyecto activo del estudio hoy)."
-      }
-    },
-    {
-      "id": "classify-loose-repos",
-      "project": null,
-      "asana_task_gid": "1217442885049193",
-      "due_on": null,
-      "question": "¿Qué hacer con los repos sueltos de G:\\Github (bony_00, bony_lite, bony_tale.v0.1.0, WwiseMVJ2)?",
-      "context": "Ninguno está en registry.json. bony_00 no tiene git inicializado; WwiseMVJ2 no tiene remote (parece sandbox local). Despaché a om-dev a investigar último commit / contenido de cada uno antes de que decidas -- hallazgos (12/8): bony_00: sin .git, proyecto Unity 'Huesitos_0.1v' (~11,3 GB en disco), sin README. bony_lite: SI tiene .git + remote (github.com/obscuromediaworks/bony_lite), 11 commits en 2 ramas (main + bony_webgl), último commit 2025-10-29 'Add Epic Toon FX', ~15,2 GB en disco, working tree con cambios sin commitear (assets de Wwise regenerados), sin README. bony_tale.v0.1.0: SI tiene .git + remote (github.com/obscuromediaworks/bony_tale.v0.1.0), 3 commits en main, último 2025-11-20 'Deleted Tarodev Controller', ~9,4 GB en disco, working tree con cambios sin commitear (Addressables Windows borrado / Web agregado, trabajo a medio terminar), sin README. Los tres 'bony_*' son el mismo proyecto Unity (dog game 'Huesitos') en distintas etapas/iteraciones, con Wwise integrado. WwiseMVJ2: SI tiene .git pero remote vacío (confirmado sin remote), 1 solo commit 'Initial commit' 2024-08-29, contenido = solo .gitattributes (repo prácticamente vacío, ~0 en disco), working tree limpio. Confirma que es un cascarón de sandbox, no un proyecto con trabajo real adentro.",
-      "options": [
-        {
-          "label": "Archivar bony_00, bony_lite y bony_tale.v0.1.0 como prototipos abandonados: son la misma iteración de un dog game ('Huesitos') sin actividad desde hace 3-9 meses, sin README ni dossier, ~36 GB combinados en disco. Antes de archivar, salvar el trabajo sin commitear de bony_lite y bony_tale (Wwise/Addressables) en un commit final por si hace falta retomarlos.",
-          "why": "No hay señal de trabajo activo (último commit real hace meses, nada en registry ni en memoria) y ocupan espacio en disco significativo sin aportar hoy. Archivar preserva el historial en GitHub sin que sigan generando ruido en `G:\\Github`.",
-          "recommended": true
-        },
-        {
-          "label": "Sumar WwiseMVJ2 al registry.json como sandbox interno sin remote (kind: 'sandbox', sin Asana ni dossier de juego) en vez de dejarlo huérfano.",
-          "why": "Es liviano (prácticamente vacío) y confirmado como sandbox de pruebas de Wwise -- registrarlo cuesta poco y saca la ambigüedad de si es 'proyecto perdido' o 'herramienta a mano'.",
-          "recommended": false
-        },
-        {
-          "label": "Retomar 'Huesitos' como proyecto activo: consolidar bony_00/bony_lite/bony_tale.v0.1.0 en un solo repo, escribir dossier y sumarlo a registry.json.",
-          "why": "Solo tiene sentido si Roi todavía quiere ese juego en el roadmap -- son ~36 GB y meses sin tocarse, así que asumir esto sin confirmación sería adivinar alcance.",
-          "recommended": false
-        },
-        {
-          "label": "Borrar directamente bony_00 (sin git, sin remote donde recuperarlo) y dejar bony_lite/bony_tale.v0.1.0 solo en GitHub (borrar la copia local).",
-          "why": "bony_00 es la única de las tres sin red de seguridad en un remote -- borrarla es irreversible. Las otras dos ya están en GitHub, así que borrar la copia local libera ~24 GB sin perder el historial.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-12T22:40:49.936154+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Archivar bony_00, bony_lite y bony_tale.v0.1.0 como prototipos abandonados: son la misma iteración de un dog game ('Huesitos') sin actividad desde hace 3-9 meses, sin README ni dossier, ~36 GB combinados en disco. Antes de archivar, salvar el trabajo sin commitear de bony_lite y bony_tale (Wwise/Addressables) en un commit final por si hace falta retomarlos."
-      },
-      "executed_at": "2026-08-13T03:06:00Z",
-      "execution_note": "bony_lite y bony_tale.v0.1.0: rescate commiteado y pusheado, ambos archivados en GitHub. bony_00 no tiene .git ni remote -- la decisión no contempló ese caso. Ver decisión nueva 'bony-00-no-remote'."
-    },
-    {
-      "id": "bony-00-no-remote",
-      "project": null,
-      "asana_task_gid": "1217442885049193",
-      "due_on": null,
-      "question": "bony_00 no tiene `.git` ni remote -- no se puede \"archivar\" en GitHub como a bony_lite/bony_tale.v0.1.0. ¿Qué hacer?",
-      "context": "Confirmado 13/8: bony_00 (~11,3 GB, proyecto Unity 'Huesitos_0.1v', sin README) nunca se inicializó como repo git. La decisión 'classify-loose-repos' asumía que los tres bony_* podían archivarse igual y no contempló este caso -- descubierto recién al ejecutar. Borrarlo fue explícitamente descartado en esa decisión (bony_00 es la única de las tres sin red de seguridad en un remote).",
-      "options": [
-        {
-          "label": "Dejarlo como está: local, sin git, fuera del registry. Ya cumple el espíritu de 'archivado' por omisión -- no aparece en ningún tablero ni se toca.",
-          "why": "Cero trabajo y cero riesgo. El costo es que sigue ocupando ~11,3 GB en G:\\Github sin ningún historial versionado detrás.",
-          "recommended": true
-        },
-        {
-          "label": "Crear un repo GitHub nuevo (obscuromediaworks/bony_00), pushear el estado actual y archivarlo ahí -- mismo tratamiento que sus hermanos.",
-          "why": "Consistencia con bony_lite/bony_tale y preserva el contenido con historial real, pero implica subir ~11,3 GB de assets Unity a un repo nuevo solo para archivarlo -- trabajo real por consistencia, no por necesidad.",
-          "recommended": false
-        },
-        {
-          "label": "Borrarlo directamente.",
-          "why": "Libera los 11,3 GB, pero es irreversible y esa opción ya se descartó explícitamente en la decisión original por falta de red de seguridad.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-13T16:48:23.522456+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Dejarlo como está: local, sin git, fuera del registry. Ya cumple el espíritu de 'archivado' por omisión -- no aparece en ningún tablero ni se toca."
-      }
-    },
-    {
-      "id": "archive-moba-v0-board",
-      "project": "moba-warmup",
-      "asana_task_gid": "1217424482395808",
-      "due_on": null,
-      "question": "¿Archivar el board histórico 'MOBA Warmup — v0' (17 tareas incompletas)?",
-      "context": "El board activo es 'Launch v1' (gid 1217136324673914). El v0 (gid 1215263538370822) es el board original del proyecto, con más de 100 tareas -- la enorme mayoría completadas. Decidir cuáles de las 17 abiertas siguen vigentes requiere revisarlas una por una: no se puede archivar en bloque sin perder algo que todavía importa.",
-      "options": [
-        {
-          "label": "Migrar las 17 al board activo una por una (revisar cada una: sigue vigente, ya se resolvió en otro lado, o quedó obsoleta) y recién ahí archivar v0.",
-          "why": "Es lo único seguro dado que son 17 ítems variados, no un lote homogéneo.",
-          "recommended": true
-        },
-        {
-          "label": "Archivar v0 completo sin revisar.",
-          "why": "Más rápido, pero arriesga perder algo real de las 17 abiertas.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-12T22:41:00.965614+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Migrar las 17 al board activo una por una (revisar cada una: sigue vigente, ya se resolvió en otro lado, o quedó obsoleta) y recién ahí archivar v0."
-      },
-      "executed_at": "2026-08-13T03:06:00Z",
-      "execution_note": "Las 17 revisadas una por una: 12 migradas a Launch v1 con prefijo [Backlog v2] (ideas v2+, no bloquean v1), 3 migradas tal cual por seguir vigentes (assets 3D pendientes, música de Javi, SFX ChampSelect Advisor), 2 cerradas por obsoletas/superadas. El board quedó en 0 abiertas. Falta el archivado en sí desde la UI de Asana -- el conector no expone un método para archivar proyectos."
-    },
-    {
-      "id": "deploy-bundle-pipeline",
-      "project": "obscuro-lux",
-      "asana_task_gid": "1217424900123597",
-      "due_on": null,
-      "question": "No hay forma reproducible de regenerar deploy/index.html desde Claude Code — ¿construimos un pipeline propio?",
-      "context": "om-dev investigó (12/8, ver DEPLOY.md): deploy/index.html es un bundle self-decompressing (manifest __bundler/manifest, blobs gzip+base64 por UUID) que arma site.html + los .jsx + assets/ en el navegador. El helper que lo genera (super_inline_html, mencionado en README) no está en el repo -- parece vivir del lado de Claude Design, no del Code CLI. Hoy, si se toca site.html o un .jsx, deploy/index.html NO se actualiza solo: hay que regenerarlo a mano en una sesión de Design, o reconstruirlo bajando el bundle en vivo del Worker (lo que se hizo el 26/6, commit ea4282e). Mientras tanto el sitio funciona, pero cualquier cambio de código queda desincronizado del deploy hasta ese paso manual.",
-      "options": [
-        {
-          "label": "Construir un pipeline propio (ej. reimplementar el build con esbuild + gzip) que un agente de Code pueda correr solo, sin depender de la sesión de Design.",
-          "why": "Saca la dependencia del helper de Design; cualquier agente puede regenerar el deploy. Es trabajo real de build tooling, no un fix de una línea.",
-          "recommended": true
-        },
-        {
-          "label": "Dejarlo como está: seguir regenerando a mano desde Design cuando haga falta.",
-          "why": "Cero trabajo ahora, pero el riesgo de quedar sin nadie que sepa correr ese helper sigue latente.",
-          "recommended": false
-        },
-        {
-          "label": "Cambiar de formato: servir site.html + los .jsx + assets/ tal cual (deploy multi-archivo), sin el bundle self-contained.",
-          "why": "Mencionado en el README como alternativa. Simplifica el pipeline pero cambia cómo se sirve el sitio hoy -- no es un cambio chico.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-12T22:41:14.651362+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Construir un pipeline propio (ej. reimplementar el build con esbuild + gzip) que un agente de Code pueda correr solo, sin depender de la sesión de Design."
-      }
-    },
-    {
-      "id": "qa-skill-future",
-      "project": null,
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "El tablero de QA (antes `~/.claude/skills/qa/qa-board.py` standalone) ahora vive dentro de Modo God (`/qa?project=<slug>`, resuelto por registry.json). ¿Qué pasa con el script standalone?",
-      "context": "13/8: migrado. El skill `qa` (`~/.claude/skills/qa/SKILL.md`) ahora abre la consola de Modo God (localhost:5080/qa) en vez de levantar su propio server con `--repo`, para todo proyecto en registry.json -- que hoy es prácticamente todos. El script viejo (`qa-board.py`) quedó intacto como fallback para repos que todavía no están registrados. No hay ningún repo del estudio hoy en esa situación (los 7 de registry.json ya resuelven), así que en la práctica el fallback no se usa -- pero borrarlo es una decisión de alcance de una herramienta a nivel usuario (`~/.claude/skills/`), no del repo, y afecta cómo arranca el skill en cualquier máquina donde Roi lo tenga instalado.",
-      "options": [
-        {
-          "label": "Dejarlo como fallback permanente: si un repo nuevo no está en registry.json todavía, el skill usa el script standalone hasta que se registre. Cero mantenimiento extra -- es código que ya funciona y no estorba.",
-          "why": "No cuesta nada mantenerlo (no se toca salvo que aparezca un bug), y cubre el hueco de 'proyecto nuevo antes de estar en el registry' sin fricción.",
-          "recommended": true
-        },
-        {
-          "label": "Deprecarlo formalmente: borrar qa-board.py y actualizar SKILL.md para que registrar el proyecto en registry.json sea un paso obligatorio antes de poder correr QA.",
-          "why": "Una sola fuente de verdad del tablero (menos superficie para que diverjan). El costo es forzar un paso de registro antes de la primera pasada de QA de un proyecto nuevo, que hoy es opcional.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-14T00:59:27.345887+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Dejarlo como fallback permanente: si un repo nuevo no está en registry.json todavía, el skill usa el script standalone hasta que se registre. Cero mantenimiento extra -- es código que ya funciona y no estorba."
-      },
-      "execution_note": "Sin trabajo que ejecutar: la decisión es dejar el código existente tal cual está."
-    },
-    {
-      "id": "qa-board-palette-per-project",
-      "project": null,
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "El tablero de QA embebido (`qa_board.py`) heredó la paleta Hextech (LoL 2016) tal cual del script original -- pensada para MOBA Warmup. Ahora que el mismo tablero sirve a cualquier proyecto del registry (LE2, SkateGang, Weedgang, etc.), ¿se generaliza a un tema neutro o por-proyecto, o se deja fija?",
-      "context": "13/8, durante la migración a Modo God: no toqué la paleta -- 'no cambiarla sin necesidad' era la instrucción explícita, y hoy es el único proyecto con docs/qa/items.json (MOBA Warmup) así que no hay conflicto real todavía. Pero en cuanto otro juego arme su primer docs/qa/items.json, va a ver el tablero con colores de MOBA Warmup encima del suyo -- lo mismo que STUDIO.md §6 dice que no hay que hacer al revés (aplicar tokens del estudio a un juego).",
-      "options": [
-        {
-          "label": "Dejarla fija en Hextech por ahora. Se revisita cuando un segundo proyecto realmente tenga una pasada de QA que correr.",
-          "why": "Cero trabajo hasta que el problema sea real -- hoy sigue siendo cosmético y sin usuario afectado.",
-          "recommended": true
-        },
-        {
-          "label": "Tema neutro (paleta de Modo God: dorado/crema sobre negro) para todos, sin identidad de juego.",
-          "why": "Consistente con que QA es una herramienta del estudio, no del juego -- pero pierde la señal visual de 'esto es MOBA Warmup' que hoy da la paleta LoL.",
-          "recommended": false
-        },
-        {
-          "label": "Tema por proyecto (un campo `theme` en registry.json o en items.json que elige la paleta).",
-          "why": "Lo más prolijo a largo plazo, pero es trabajo real de diseño+código por cada juego que sume su identidad -- no se justifica todavía con un solo proyecto activo.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-14T00:59:45.537341+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Dejarla fija en Hextech por ahora. Se revisita cuando un segundo proyecto realmente tenga una pasada de QA que correr."
-      },
-      "execution_note": "Sin trabajo que ejecutar: la decisión es dejar la paleta tal cual está."
-    },
-    {
-      "id": "moba-launch-eve-qa-gap",
-      "project": "moba-warmup",
-      "asana_task_gid": "1216540339869285",
-      "due_on": "2026-08-14",
-      "question": "ADCKite y Loading (núcleo, no beta) tienen grabación y GIFs listos para el lanzamiento de mañana, pero la mini-QA formal de esos dos modos (mini-qa-checklist.md secciones 2 y 3, K1-K11 / F1-F8) nunca se corrió. ¿Se corre esa pasada antes de lanzar, o se lanza asumiendo el riesgo?",
-      "context": "om-qa confirmó 13/8 (docs/recording-log.md): LastHit sí tiene mini-QA cerrada (pasada del 13/7, 2 fixes aplicados). ADCKite/Loading solo tuvieron una tanda mucho más liviana sobre el build final (AK1-AK2, L1 -- 3 ítems, no los 19 de la checklist original). No es lo mismo: la checklist original cubre casos como windup del bot, kite-cancel, dodge, VFX de silence (ADCKite) y piso de hexágonos / caída / salida limpia (Loading). Nadie puede decidir por Roi si ese riesgo es aceptable a horas del lanzamiento.",
-      "options": [
-        {
-          "label": "Correr la pasada completa (K1-K11 + F1-F8) desde el tablero web de QA (skill qa) antes de lanzar mañana.",
-          "why": "Es lo que la constitución del estudio pide (QA no se improvisa, §5) -- cierra el hueco real antes de que lo vea el público.",
-          "recommended": true
-        },
-        {
-          "label": "Lanzar igual, asumiendo la deuda a propósito: son modos ya jugados extensamente en sesiones previas (ver commits 'Loading:' y 'ADCKite' en el git log), el riesgo es de regresión puntual, no de que el modo no funcione.",
-          "why": "El tiempo entre hoy y el lanzamiento es corto y hay otras tareas de marketing/infra compitiendo por él -- es una decisión de prioridad, no solo de QA.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-14T13:15:00-03:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Correr la pasada completa (K1-K11 + F1-F8) desde el tablero web de QA (skill qa) antes de lanzar mañana."
-      },
-      "executed_at": "2026-08-14T13:10:35-03:00",
-      "execution_note": "Pasada completa corrida por Roi sobre el build 5fe3a48 (equivalente al HEAD b99306a, sin diffs de código entre ambos). Resultado: 19/19 OK, cero fallas. Detalle en docs/qa/runs/5fe3a48.json y en MOBAWarmup/docs/recording-log.md. Hallazgo colateral en F2: el código apaga el auto-attack en Loading a propósito -- el GDD (sección 08, prosa) quedó desalineado, no el código; abrir tarea de docs si hace falta corregirlo."
-    },
-    {
-      "id": "zapamooke-gateway-relay-vs-protocol",
-      "project": "zapamooke",
-      "asana_task_gid": "1217512483700918",
-      "due_on": null,
-      "question": "El gateway de ZAPAMOoKE! (BACKLINE) hoy es un relay transparente WebSocket<->TCP: el frontend termina hablando NINJAM directo a través de él. La spec (§2.3) dice textual que el frontend NUNCA debería hablar NINJAM -- debería hablar un protocolo propio (JSON de control + binario de audio) sobre WebSocket. ¿Se sigue construyendo sobre el relay transparente, o se para a meter el protocolo propio antes de seguir?",
-      "context": "Verificado 15/8 por om-dev: `gateway/src/server.ts` reenvía bytes 1:1 sin traducir el protocolo NINJAM. Funciona bien para validar riesgos técnicos (R1-R4 ya lo usan así) y es la vía más rápida para probar el criterio de salida de Fase 1 (dos ciudades, NINJAM real). El problema no es hoy: es que cuanto más cliente se construya asumiendo bytes NINJAM crudos (auth handshake, canal de chat, audio), más caro sale después insertar el protocolo propio en el medio sin reescribir el cliente entero. La spec dice que el protocolo propio es lo que habilita la Fase 3 (moneda, reputación, moderación) -- no es un detalle de implementación descartable.",
-      "options": [
-        {
-          "label": "Seguir construyendo sobre el relay transparente para cerrar la validación de Fase 1 (auth + chat + audio + prueba de dos ciudades), y recién ahí evaluar meter el protocolo propio antes de construir Fase 2.",
-          "why": "Es la vía más rápida para saber si el producto entero es viable (Fase 1 sigue siendo la prueba que decide eso). El costo de reescribir se paga una sola vez, después de la validación, no antes de saber si vale la pena.",
-          "recommended": true
-        },
-        {
-          "label": "Parar la construcción del cliente y meter el protocolo propio (JSON control + binario audio) en el gateway ANTES de seguir con auth/chat/audio, siguiendo la spec al pie de la letra.",
-          "why": "Evita cualquier retrabajo futuro y respeta la arquitectura documentada desde el día uno -- pero agrega una capa de diseño/implementación antes de tener ninguna evidencia de que el resto del producto funciona, y retrasa la prueba de Fase 1.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-15T22:44:08.971670+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Seguir construyendo sobre el relay transparente para cerrar la validación de Fase 1 (auth + chat + audio + prueba de dos ciudades), y recién ahí evaluar meter el protocolo propio antes de construir Fase 2."
-      }
-    },
-    {
-      "id": "zapamooke-client-custom-domain",
-      "project": "zapamooke",
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "El cliente mínimo de BACKLINE ya deploya a `https://backline-client.pages.dev/` (proyecto Cloudflare Pages creado 15/8). ¿Se ata un dominio custom, y cuál subdominio de `obscuromediaworks.com.ar`?",
-      "context": "Infraestructura lista (client/wrangler.toml, DEPLOY.md), pero sin dominio atado a propósito: es un acto separado que requiere el OK explícito de Roi (STUDIO.md §7), y encima había una pregunta abierta en memoria sobre qué subdominio usar dado el nombre comercial nuevo (BACKLINE, decidido 15/8) vs. el slug interno (zapamooke). Hoy sirve solo en la URL default de pages.dev, que nadie conoce.",
-      "options": [
-        {
-          "label": "No atar dominio todavía. El cliente sigue siendo el prototipo mínimo (sin R2/R3/audio real integrado), no vale la pena gastar un subdominio de marca hasta que el producto tenga algo más que mostrar.",
-          "why": "Evita fijar un subdominio (`backline.` vs algo con `zapamooke`) antes de tener claro si BACKLINE es el nombre final de cara al público en todos los contextos, o solo del wordmark/logo.",
-          "recommended": true
-        },
-        {
-          "label": "Atar `backline.obscuromediaworks.com.ar` ahora, siguiendo la decisión de marca del 15/8.",
-          "why": "Consistente con que Roi ya cerró el nombre comercial. Pero publica un subdominio de marca para un cliente que hoy es feo a propósito y no tiene integración de audio real -- podría generar expectativa prematura si alguien lo encuentra.",
-          "recommended": false
-        },
-        {
-          "label": "Atar un subdominio interno/de staging (ej. `zapamooke-test.obscuromediaworks.com.ar`) para pruebas del equipo, y dejar `backline.` para el lanzamiento real.",
-          "why": "Separa 'URL que el equipo prueba con más comodidad que un hash de pages.dev' de 'lanzamiento real con la marca pública' -- pero es una capa de infraestructura extra que hoy no hace falta (pages.dev ya funciona para que Roi pruebe).",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-16T03:38:04.798272+00:00",
-      "decision": {
-        "option_index": 1,
-        "label": "Atar `backline.obscuromediaworks.com.ar` ahora, siguiendo la decisión de marca del 15/8."
-      },
-      "execution_note": "Ejecutado 16/8/2026: dominio backline.obscuromediaworks.com.ar agregado al proyecto Cloudflare Pages backline-client via API (POST /pages/projects/{name}/domains, zona ya en la misma cuenta). Confirmado por Roi en el chat antes de ejecutar (el auto-mode classifier bloqueo el comando inicial de wrangler por ser accion de infra publica). CORRECCION al note anterior: el registro DNS NO se resolvio solo por estar en la misma zona -- quedo en pending con 'CNAME record not set' y lo tuvo que crear Roi a mano en el dashboard (backline CNAME -> backline-client.pages.dev, proxied), porque el token OAuth de wrangler lee la zona pero no puede editar DNS (haria falta un API Token con scope Zone:DNS:Edit). VERIFICADO 16/8/2026 desde afuera: https://backline.obscuromediaworks.com.ar/ responde HTTP 200 con TLS valido y con los headers COOP/COEP (require-corp / same-origin) intactos, sirviendo el mismo bundle que backline-client.pages.dev."
-    },
-    {
-      "id": "zapamooke-gateway-hosting",
-      "project": "zapamooke",
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "El gateway (`gateway/`, relay WS<->TCP hacia `ninjamsrv`) no está deployado en ningún lado -- ¿Cloudflare Workers vía `cloudflare:sockets`, o un host aparte tipo Fly.io?",
-      "context": "Verificado 15/8 por om-dev al armar el deploy de client/: el gateway mantiene un socket TCP persistente por sesión, una forma de runtime distinta al request/response de Workers/Pages que usa el resto del estudio. `cloudflare:sockets` existe pero no está evaluado para esta carga (límites de duración/CPU de Workers pensados para requests cortos, no relays de sesión larga). Fly.io ya no tiene el bloqueo de tarjeta que lo frenaba antes (ver dossier zapamooke.md, nota de hosting del 15/8), pero es infraestructura fuera de la cuenta de Cloudflare del estudio, con su propio costo/ops.",
-      "options": [
-        {
-          "label": "No decidir todavía -- seguir probando local (docker + npm start) hasta que el cliente integre audio real de punta a punta y haga falta una corrida con latencia real de internet.",
-          "why": "Nadie más que Roi está probando esto hoy; local ya alcanza. Evita comprometerse a una plataforma antes de que el gateway haga algo más que relay de bytes (falta chat, audio real, sesión/auth).",
-          "recommended": true
-        },
-        {
-          "label": "Investigar `cloudflare:sockets` primero (mismo proveedor que el resto del estudio, un solo panel de facturación/DNS).",
-          "why": "Mantiene todo en una cuenta. Riesgo: si los límites de Workers no bancan una sesión de zapada de 20+ minutos con el socket abierto, es trabajo de investigación que no llega a ningún lado.",
-          "recommended": false
-        },
-        {
-          "label": "Deployar directo a Fly.io (proceso Node tal cual, sin reescritura).",
-          "why": "Camino más directo técnicamente -- es el mismo `gateway/` que ya corre local. Costo: sale de la cuenta de Cloudflare, nueva superficie de infraestructura a mantener (otro login, otro billing, otro dominio/URL a asegurar).",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-16T03:39:08.488699+00:00",
-      "decision": {
-        "option_index": 2,
-        "label": "Deployar directo a Fly.io (proceso Node tal cual, sin reescritura)."
-      }
-    },
-    {
-      "id": "zapamooke-client-restyle-vs-merge",
-      "project": "zapamooke",
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "El cliente funcional (backline.obscuromediaworks.com.ar) usaba estilos genéricos de placeholder mientras la landing de marketing (backline-landing.pages.dev) ya tenía el look tolex/cabinet validado. Al pedir Roi \"incorporar el cliente mínimo\" a ese look, ¿se restylea solo el cliente existente, o se fusiona con la landing de marketing en un solo sitio/deploy?",
-      "context": "18/8/2026: ambigüedad real entre dos lecturas de \"incorporemos el cliente mínimo acá\" -- (a) aplicarle el sistema visual de la landing al cliente funcional que ya existe, dejando los dos deploys separados, o (b) combinar landing (hero/proof/status) + cliente real en un mismo sitio. Preguntado a Roi en el chat, no vía dashboard -- se resuelve y ejecuta en la misma sesión, se registra acá para que quede en el historial de decisiones del proyecto.",
-      "options": [
-        {
-          "label": "Solo restylear el cliente existente con el look cabinet, redeployado en el mismo dominio (backline.obscuromediaworks.com.ar). La landing de marketing queda separada, sin cambios de arquitectura.",
-          "why": "Menos trabajo, cero riesgo de tocar la lógica funcional del cliente, y no obliga a decidir todavía cómo conviven marketing y producto en un solo dominio.",
-          "recommended": true
-        },
-        {
-          "label": "Fusionar landing + cliente funcional en un solo sitio/deploy (ej. landing arriba, cliente real más abajo o detrás de un CTA).",
-          "why": "Un solo dominio para las dos cosas, pero es más trabajo y mezcla dos audiencias (visitante nuevo vs. alguien que ya sabe qué es esto) en una sola página.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-19T01:00:00.000000+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Solo restylear el cliente existente con el look cabinet, redeployado en el mismo dominio (backline.obscuromediaworks.com.ar)."
-      },
-      "executed_at": "2026-08-19T01:10:00.000000+00:00",
-      "execution_note": "Ejecutado en la misma sesión: client/src/style.css reescrito completo con los tokens tolex/cream/brass de design/README.md (antes genéricos violeta/azul), client/src/main.ts con header faceplate + botones footswitch (jewel), sin tocar IDs ni lógica. Verificado con `vite preview` local (incl. cambio de idioma, el jewel sobrevive el re-render porque data-i18n se movió a un span hijo) antes de deployar. Deployado a backline-client (Cloudflare Pages) y confirmado en vivo en backline.obscuromediaworks.com.ar. Commit 5632661, pusheado a main."
-    },
-    {
-      "id": "zapamooke-shared-bus-clipping-fix",
-      "project": "zapamooke",
-      "asana_task_gid": "1217512483700918",
-      "due_on": "2026-08-20",
-      "question": "Varias voces remotas boosteadas (x2.5) sumandose sin limite en el bus compartido de descarga podian superar 0dBFS y clipear -- que hacer?",
-      "context": "Roi probo con 2-3 pestanas simultaneas y noto que el sonido 'cambiaba' al cerrar una sesion ajena. Se investigo: no era el leak de sesiones huerfanas (bug real encontrado y arreglado aparte), sino que sacar una voz de la suma cambia si el bus clipea. Dos opciones sobre la mesa.",
-      "options": [
-        {
-          "label": "Limiter (DynamicsCompressorNode) en el bus compartido de descarga.",
-          "why": "Evita clipping sin importar cuanta gente este sonando, y el volumen percibido no cambia al entrar/salir gente -- mas robusto.",
-          "recommended": true
-        },
-        {
-          "label": "Escalar PLAYBACK_GAIN segun downloadSessions.size.",
-          "why": "Mas simple, pero el volumen total puede notarse distinto al entrar/salir alguien -- no ataca el problema de raiz si igual se suman muchas voces.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-20T00:00:00Z",
-      "decision": {
-        "option_index": 0,
-        "label": "Limiter (DynamicsCompressorNode) en el bus compartido de descarga."
-      },
-      "executed_at": "2026-08-20T00:00:00Z",
-      "execution_note": "Implementado en client/src/main.ts (ensureDownloadAudioCtx): DynamicsCompressorNode entre downloadGainNode y destination, threshold -3dB, ratio 20:1, hard knee. Verificado con typecheck/test/build limpios y deployado a backline.obscuromediaworks.com.ar (commit 059cd46, confirmado con curl 200 + hash de bundle)."
-    },
-    {
-      "id": "zapamooke-deploy-permission-gap",
-      "project": "zapamooke",
-      "asana_task_gid": "1217689258733313",
-      "due_on": null,
-      "question": "El deploy de backline-client (compartir pantalla + chat NINJAM, 4 commits listos en main) se bloqueó dos veces por el clasificador de auto-mode local -- backline-client nunca se agregó a autoMode.allow cuando arrancó a deployar (12/8 solo cubrió obscuro-lux, Modo God, mobawarmup, don-atilio). Un agente no puede editarlo solo (el clasificador bloquea tocar su propio archivo de permisos). ¿Cómo se resuelve?",
-      "context": "20/8/2026: código verificado y listo (typecheck/test/build limpios, gateway/ sin cambios de código), pero `npm run deploy` salió bloqueado dos veces seguidas con 'Permission for this action was denied by the Claude Code auto mode classifier'. Ver reference_automode_classifier_wrangler en memoria para el detalle técnico completo.",
-      "options": [
-        {
-          "label": "Agregar 'Zapamooke/BACKLINE (Pages project backline-client)' a la entrada de autoMode.allow en C:\\Users\\ro1\\.claude\\settings.local.json, mismo patrón que los otros 4 proyectos ya cubiertos.",
-          "why": "Resuelve el bloqueo de forma permanente para todos los deploys futuros de este proyecto, no solo el de hoy. Roi ya dijo que lo va a hacer él mismo más tarde.",
-          "recommended": true
-        },
-        {
-          "label": "Aprobar el deploy a mano cada vez, sin tocar la config permanente.",
-          "why": "Sirve para un deploy puntual, pero el mismo bloqueo va a repetirse en cada deploy futuro de Zapamooke hasta que se agregue la regla.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-20T23:30:00Z",
-      "decision": {
-        "option_index": 0,
-        "label": "Agregar 'Zapamooke/BACKLINE (Pages project backline-client)' a la entrada de autoMode.allow en C:\\Users\\ro1\\.claude\\settings.local.json, mismo patrón que los otros 4 proyectos ya cubiertos."
-      },
-      "executed_at": "2026-08-20T23:30:00Z",
-      "execution_note": "Roi editó settings.local.json a mano agregando la entrada. El clasificador igual bloqueó el reintento automático una vez más (no 100% determinístico), así que Roi terminó corriendo `npm run deploy` él mismo desde client/. Verificado desde afuera: backline.obscuromediaworks.com.ar responde 200 con headers COOP/COEP, deployment de producción activo (08365318) confirma que sirve el commit a50447e (compartir pantalla + chat NINJAM)."
-    },
-    {
-      "id": "zapamooke-room-identity-anonymous-users",
-      "project": "zapamooke",
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "La sala publica de BACKLINE solo acepta dos cuentas de prueba (myuser/mypass y booga/anotherpass), porque el ninjam_server.cfg de la imagen uzer/ninjamserver trae AnonymousUsers no. Hoy dos personas NO pueden entrar con su propio nombre. Como se resuelve la identidad de los musicos?",
-      "context": "Encontrado el 20/8/2026 midiendo con dos clientes reales (experimento R8): el primer intento entro con nombres propios y el servidor respondio 'invalid login/password'. El cliente muestra el error de forma clara y correcta, no es un bug del cliente. Pero significa que cualquiera que entre a backline.obscuromediaworks.com.ar no puede participar sin conocer credenciales de prueba. La spec (docs/spec-zapamooke.md) distingue 'zapada' (sala abierta, gratis, con reputacion) de 'ensayo' (sala privada, paga), asi que esto toca el modelo de producto, no solo la config del servidor.",
-      "options": [
-        {
-          "label": "Habilitar usuarios anonimos en el ninjamsrv (AnonymousUsers yes) para las salas abiertas, dejando el nombre libre y sin password.",
-          "why": "Es lo mas cercano a la 'zapada' de la spec: entrar y tocar sin fri ccion. Requiere rehacer la imagen de backline-ninjam (hoy el cfg viene de upstream y solo se le reescribe el Port) y decidir que pasa con nombres repetidos y moderacion, que la spec pide.",
-          "recommended": true
-        },
-        {
-          "label": "Mantener cuentas fijas y crear usuarios a mano por banda mientras sea prototipo.",
-          "why": "Cero trabajo de infra ahora y control total de quien entra, pero no escala ni permite mostrar el producto a nadie sin intervencion manual de Roi."
-        },
-        {
-          "label": "Poner autenticacion propia adelante (el gateway emite las credenciales NINJAM despues de validar al usuario).",
-          "why": "Es la forma correcta a futuro y encaja con las salas privadas pagas, pero es trabajo real de backend y hoy el gateway es un relay transparente a proposito (ver zapamooke-gateway-relay-vs-protocol)."
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-20T23:22:18.288754+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Habilitar usuarios anonimos en el ninjamsrv (AnonymousUsers yes) para las salas abiertas, dejando el nombre libre y sin password."
-      },
-      "executed_at": "2026-08-21T00:12:00.000000+00:00",
-      "execution_note": "Implementado en gateway/Dockerfile.ninjam (commit 775707e) y redeployado a produccion (om-deploy, flyctl deploy --config fly.ninjam.toml --app backline-ninjam). Verificado desde afuera contra wss://backline-gateway.fly.dev/ real: un usuario arbitrario (anonymous:test123-xxxx, sin password) autentica y recibe display name '<nombre>@<ip>'. myuser/booga/administrator siguen andando igual. Convencion NINJAM real: el username se manda como 'anonymous:<nombre>', el cliente ya lo soporta via el campo message del Auth Reply -- falta UI (el campo de usuario del cliente sigue hardcodeado a 'myuser', sin concepto de anonimo), pendiente para quien toque el login del cliente despues. RE-VERIFICADO 21/8/2026 tarde-noche (om-deploy): backline-ninjam habia quedado con la imagen del 16/8 (sin el patch), pese a que este execution_note decia lo contrario -- flyctl apps list mostraba deploy de hace 16h+, sin AnonymousUsers yes en el cfg corriendo. Redeployado de nuevo (mismo comando) y reverificado con evidencia real: musician-bot.mjs contra wss://backline-gateway.fly.dev (sala legacy, sin ?room=) con --username \"anonymous:qatest\" da RESULT: PASS (auth OK, 3 intervalos de audio subidos, chat TOPIC recibido). Las tres instancias del pool (backline-ninjam/-1/-2) confirmadas con la misma imagen/patch. Hallazgo nuevo, fuera de este alcance: client/ no arma el username con el prefijo 'anonymous:' en ningun lado -- un usuario real sin cuenta registrada hoy tambien recibiria 'invalid login/password' desde la UI real, pendiente de om-dev."
-    },
-    {
-      "id": "zapamooke-gate-third-state",
-      "project": "zapamooke",
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "El portero tecnico tiene tres estados en la spec (pasa / advertencia / solo oyente). Hace falta un CUARTO estado de puerta cerrada, donde la conexion es tan mala que directamente no se entra?",
-      "context": "20/8/2026: al disenar el mockup del portero (design/portero-tecnico.html), el encargo pedia que el tercer estado fuera 'no da para entrar', pero docs/spec-zapamooke.md 3.1 es explicito en que el rojo significa rol distinto (solo oyente), no puerta cerrada. Se diseno siguiendo la spec y se dejo la discrepancia anotada en el propio mockup. Es una decision de producto: cambia que le pasa a alguien con una conexion mala de verdad.",
-      "options": [
-        {
-          "label": "Quedarse con los tres estados de la spec: nunca se cierra la puerta, la peor conexion entra como oyente.",
-          "why": "Coherente con la spec vigente y mas amable: el que tiene mala conexion igual participa escuchando, en vez de quedarse afuera. Es lo que ya esta disenado.",
-          "recommended": true
-        },
-        {
-          "label": "Agregar un cuarto estado de puerta cerrada por debajo de cierto umbral.",
-          "why": "Protege la sala de alguien cuya conexion arruina el ensayo de los demas, pero hay que definir el umbral y escribir un copy que no expulse gente sin explicarle como arreglarlo."
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-20T23:22:51.305715+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Quedarse con los tres estados de la spec: nunca se cierra la puerta, la peor conexion entra como oyente."
-      },
-      "executed_at": null,
-      "execution_note": null
-    },
-    {
-      "id": "zapamooke-roster-layout-bug-priority",
-      "project": "zapamooke",
-      "asana_task_gid": "1217713159735978",
-      "due_on": null,
-      "question": "A ~1600x1000 el nombre del musico en el roster de la sala colapsa a 0px (invisible) -- las columnas fijas del grid mas el panel de chat superan el espacio disponible. Encontrado 20/8 armando el DM, reproducido tambien en main sin ese cambio (no lo causa la feature nueva, ya afecta el roster de produccion hoy). Fix estimado chico (ajuste de grid/breakpoint), pero compite con el resto del backlog de Fase 2.",
-      "context": "Reportado por om-dev en client/README.md S8.1. No se toco porque estaba fuera del alcance pedido (UI de DM). El bug es real en produccion a un ancho de ventana comun (laptop/desktop con ventana no maximizada).",
-      "options": [
-        {
-          "label": "Arreglarlo en la proxima sesion de dev antes de seguir con Fase 2, es chico y ya esta diagnosticado.",
-          "why": "Bug real en produccion, visible a un ancho de ventana comun -- afecta la usabilidad del roster hoy, no es cosmetico.",
-          "recommended": true
-        },
-        {
-          "label": "Dejarlo en el backlog y priorizar Fase 2 (login/lobby) primero.",
-          "why": "Si el ancho de ventana problematico es poco frecuente en la practica, puede esperar sin bloquear nada.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-20T23:23:09.642485+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Arreglarlo en la proxima sesion de dev antes de seguir con Fase 2, es chico y ya esta diagnosticado."
-      },
-      "execution_note": "Ejecutado 20/8 noche: causa real era .wrap con max-width:720px fijo (colapsaba en CUALQUIER ancho >860px, no solo 1600px). Fix con media query, verificado en 7 anchos, deployado y verificado en produccion (commit 41b3aa7)."
-    },
-    {
-      "id": "zapamooke-login-mockup-open-questions",
-      "project": "zapamooke",
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "om-art entrego los mockups de login/lobby de Fase 2 (design/login-registro.html, design/lobby.html) y dejo 4 preguntas de producto anotadas adentro que no le correspondia resolver: (1) que fallback ofrecer a quien no tiene/no quiere cuenta de Google, dado que la spec S7.1 cierra la autenticacion en Google-only sin dar alternativa visible; (2) donde van a vivir el contrato de sala y los terminos (linkeados en el login, sin pantalla propia todavia); (3) si el roster de instrumentos que faltan va en la card del lobby (necesita que el backend exponga esa data por sala); (4) confirmar la decision de NO mostrar reputacion en la card de zapada (om-art lo decidio a proposito por R15/R16, sin preguntar).",
-      "context": "Fase 2 recien se desbloqueo (R1 resuelto). Estas preguntas no bloquean seguir iterando el mockup visual, pero si bloquean pasar el login/lobby a implementacion real.",
-      "options": [
-        {
-          "label": "Roi las responde en el chat o en el propio mockup antes de que om-dev empiece a implementar login/lobby.",
-          "why": "Son decisiones de producto chicas pero necesarias antes de cablear a datos reales -- mejor resolverlas ahora que a mitad de implementacion.",
-          "recommended": true
-        },
-        {
-          "label": "Dejarlas abiertas y que om-dev implemente con los defaults que eligio om-art (sin fallback visible, sin mostrar instrumentos faltantes, sin reputacion), ajustando despues si hace falta.",
-          "why": "Mas rapido para tener algo andando, pero arriesga tener que rehacer UI si Roi no esta de acuerdo con algun default.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-20T23:23:47.593054+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Roi las responde en el chat o en el propio mockup antes de que om-dev empiece a implementar login/lobby.",
-        "answers": {
-          "fallback_sin_google": "Sumar un segundo metodo de login (magic link por email), no solo un link de soporte. Reabre antes de lo previsto la nota de la spec S7.1/R12 (\"identidad propia para poder sumar otro metodo sin migrar\", pensada para mas adelante, no para el lanzamiento).",
-          "terminos_y_contrato_de_sala": "Modal inline en la propia pantalla de login, no una pagina aparte.",
-          "instrumentos_faltantes_en_lobby": "Priorizarlo ya en la primera version del lobby -- requiere que el backend (todavia no existe, es parte de Fase 2) exponga esa data por sala.",
-          "reputacion_en_card_de_zapada": "Confirmado: NO se muestra, como propuso om-art (R15/R16)."
-        }
-      },
-      "execution_note": "Las 4 respuestas de Roi aplicadas: magic link se adelanta al lanzamiento (spec S7.1), terminos en modal inline (implementado y verificado en design/login-registro.html), instrumentos faltantes SI se prioriza (tarea de backend creada, bloqueada por modelo de datos), reputacion NO se muestra en el lobby (confirmado)."
-    },
-    {
-      "id": "zapamooke-admin-dashboard-scope",
-      "project": "zapamooke",
-      "asana_task_gid": "1217703800987381",
-      "due_on": null,
-      "question": "Roi pidió un dashboard de admin para Zapamooke (21/8). No existe hoy ningún concepto de rol admin en el schema -- ¿qué alcance tiene?",
-      "context": "Con lo que ya hay en D1 (server/) se puede armar sin trabajo nuevo de backend: salas activas (GET /rooms) y lista de usuarios. Pero moderación/reportes no tiene tabla ni endpoints, y el estado en vivo del gateway/ninjam (quién está conectado ahora a una sala) vive en memoria del proceso de Fly.io, no en D1 -- verlo requeriría un endpoint de status nuevo en el gateway. Borrador completo en el comentario de la tarea de Asana.",
-      "options": [
-        {
-          "label": "Alcance mínimo: solo lo que ya está en D1 (salas + usuarios), sin moderación ni estado en vivo del gateway.",
-          "why": "No requiere tocar el gateway ni diseñar un modelo de reportes todavía -- se puede construir ya con lo que existe, y se amplía después si hace falta.",
-          "recommended": true
-        },
-        {
-          "label": "Alcance completo desde el arranque: sumar tabla de reportes/moderación + endpoint de status en el gateway para ver conexiones en vivo.",
-          "why": "Da una herramienta más útil de entrada, pero es var proyectos de infra nuevos (rol admin + reportes + status del gateway) antes de saber si Roi realmente los va a usar.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-21T13:14:01.538195+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Alcance mínimo: solo lo que ya está en D1 (salas + usuarios), sin moderación ni estado en vivo del gateway."
-      }
-    },
-    {
-      "id": "zapamooke-google-oauth-e2e-pending",
-      "project": "zapamooke",
-      "asana_task_gid": "1217704307864015",
-      "due_on": null,
-      "question": "Fase 2 de Zapamooke ya está deployada a producción (21/8) con magic link verificado de punta a punta. Google OAuth quedó solo parcialmente verificado -- ¿lo prueba Roi manualmente o se espera a que una sesión con browser lo confirme?",
-      "context": "El /start ya redirige correcto a Google (confirmado por Roi en su propio browser), pero ninguna sesión de agente tiene tooling de browser para completar el consentimiento real y confirmar que /callback crea sesión. No es una decisión de arquitectura, es una acción pendiente que solo un humano (o una sesión con browser real) puede ejecutar.",
-      "options": [
-        {
-          "label": "Roi completa el login de Google a mano desde backline.obscuromediaworks.com.ar y confirma.",
-          "why": "Es el camino más directo -- ya tiene el browser y la cuenta a mano.",
-          "recommended": true
-        },
-        {
-          "label": "Pedir a una próxima sesión que use Claude Browser / Chrome MCP para automatizar el click-through.",
-          "why": "Sirve si Roi no tiene tiempo, pero requiere una sesión nueva armada para eso y sigue necesitando una cuenta de Google real con consentimiento.",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-21T13:14:19.031197+00:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Roi completa el login de Google a mano desde backline.obscuromediaworks.com.ar y confirma."
-      }
-    },
-    {
-      "id": "zapamooke-lobby-to-real-ninjam-room-mapping",
-      "project": "zapamooke",
-      "asana_task_gid": "1217686484311368",
-      "due_on": null,
-      "question": "El lobby (#/lobby) deja elegir/crear una sala real en D1 (nombre, tipo, BPM, cupos, roster), pero \"Entrar\" te lleva siempre a la MISMA sala NINJAM fija (client/src/main.ts se conecta siempre al mismo gateway/ninjamsrv, hoy backline-gateway.fly.dev -> backline-ninjam en Fly, un solo proceso). Confirmado leyendo codigo, no sospecha: gateway/src/server.ts es un relay transparente 1:1 por conexion hacia UN host:puerto fijo (env NINJAM_HOST/NINJAM_PORT), sin concepto de \"sala\" -- y NINJAM como protocolo no soporta multiples salas logicas dentro de un mismo proceso ninjamsrv (confirmado tambien por el propio diseno de la spec, seccion 10, tabla room_instances(room_id, container_id, host, port, started_at, ended_at) -- ya prevista como infraestructura efimera POR SALA, nunca construida). Elegir sala en el lobby hoy es cosmetico: cualquiera termina en el mismo audio compartido sin importar que sala eligio. Como se cierra esa brecha?",
-      "context": "Investigado por om-dev 21/8/2026 a partir de un hallazgo de om-test (dos usuarios reales probando la pantalla de sala, tarea Asana 1217686484311368). No es un parametro que el protocolo ya soporte y falte pasar: requiere que cada sala tenga su propio proceso ninjamsrv (o un pool de ellos), lo cual es trabajo de infraestructura real (provisioning dinamico via Fly Machines API, o un pool estatico), no un cambio de codigo chico en el cliente. Alcance estimado: la opcion recomendada (pool estatico) es un dia de trabajo enfocado; el provisioning dinamico completo (arranca al primer musico, se apaga al ultimo, como dice la spec S7.4) es varios dias e incluye decisiones de costo/ops nuevas (Fly Machines API, limites de maquinas simultaneas, billing).",
-      "options": [
-        {
-          "label": "Pool estatico chico de ninjamsrv (ej. 3-5 procesos ya corriendo en Fly, mismo Dockerfile.ninjam de hoy), y el gateway/servidor asigna cada room.id de D1 a una instancia por hash/round-robin, guardando el mapeo. El cliente sigue viendo 'una sala eligio, a esa sala entra' -- ahora es real, aunque el pool sea compartido entre varias salas de D1 si hay mas salas que instancias.",
-          "why": "Cierra la brecha real (elegir sala en el lobby SI cambia a que audio NINJAM entras) sin construir provisioning dinamico todavia. Honesto con lo que hay: documentar el limite (N salas simultaneas como maximo, colision si se pasa) en vez de prometer escala infinita. Un dia de trabajo, no varios.",
-          "recommended": true
-        },
-        {
-          "label": "Provisioning dinamico completo (Fly Machines API): arranca un ninjamsrv nuevo por sala al primer musico que entra, lo apaga cuando el ultimo se va, guarda host/port real en una tabla room_instances nueva en D1 -- exactamente el diseno que ya preve la spec S7.4/S10.",
-          "why": "Es la arquitectura correcta y la que ya esta documentada como destino -- pero es infraestructura nueva real (API de Fly, ciclo de vida de maquinas, limites de concurrencia, costo por maquina activa) que no se resuelve en una sesion.",
-          "recommended": false
-        },
-        {
-          "label": "No tocar el mapeo todavia: dejar UNA sola sala NINJAM real (la actual) y que el lobby sea honesto al respecto -- ocultar/deshabilitar 'crear sala' o mostrar aviso de que todas las salas comparten el mismo audio por ahora.",
-          "why": "Cero trabajo de infra, resuelve la mentira de la UI (no promete algo que no existe) sin construir nada nuevo -- pero no resuelve el problema de fondo que motivo la tarea (bandas distintas necesitan salas de audio separadas).",
-          "recommended": false
-        }
-      ],
-      "status": "decided",
-      "decided_at": "2026-08-21T00:00:00-03:00",
-      "decision": {
-        "option_index": 0,
-        "label": "Pool estatico chico de ninjamsrv (ej. 3-5 procesos ya corriendo en Fly, mismo Dockerfile.ninjam de hoy), y el gateway/servidor asigna cada room.id de D1 a una instancia por hash/round-robin, guardando el mapeo. El cliente sigue viendo 'una sala eligio, a esa sala entra' -- ahora es real, aunque el pool sea compartido entre varias salas de D1 si hay mas salas que instancias."
-      },
-      "execution_note": "Confirmado por Roi en el chat de la sesión principal, ejecutado por om-dev 21/8/2026 -- código y verificación local, deploy real a Fly PENDIENTE (ver abajo). `gateway/src/server.ts` ahora es room-aware: cada conexión WS con `?room=<id>` hashea el id (FNV-1a, `hashRoomId()`) contra un pool de `ninjamsrv` (`NINJAM_POOL` env, formato `host:port,host:port`) y abre su leg TCP contra la instancia que le toca -- misma sala siempre a la misma instancia, sin tabla nueva que mantener. Sin `room` (flujo legado de conectar directo sin pasar por el lobby) sigue yendo a pool[0], igual que hoy. `client/src/main.ts` ya manda `?room=` con la sala activa del lobby (`demo-room.ts`'s `getActiveRoomId()`, misma clave que `views/lobby.ts` ya escribía). Detalle completo y punto de mapeo justificado en `gateway/README.md` sección 'Room pool routing'. Verificado: `gateway/test/relay-room-pool.test.mjs` (hash determinístico + ruteo real contra mocks, en `npm test`), typecheck limpio en `client/` y `gateway/`, y `experiments/r10-room-pool-isolation` -- dos contenedores `ninjamsrv` REALES locales (mismo `Dockerfile.ninjam` que corre en Fly, puertos 2049/2051), gateway real, 4 sesiones NINJAM reales (2 por sala), mensaje de chat real (`0xc0`) que confirma aislamiento total entre salas + funcionamiento interno de cada una (6/6 checks OK, sin reintentos). PENDIENTE, a propósito, no ejecutado por esta sesión: crear las N-1 instancias nuevas de `ninjamsrv` en Fly (infra que factura de forma continua -- `studio/roles/deploy.md` reglas duras #1/#3 piden el OK explícito en el momento de crearla, no solo la decisión de arquitectura ya aprobada). Costo proyectado documentado en `DEPLOY.md`/`gateway/README.md`: hoy USD 0,06/día (1 instancia); pool de 3 (punto de partida sugerido) ≈USD 0,12/día; pool de 5 ≈USD 0,18/día. Próximo paso: Roi confirma tamaño de pool, se crean los Fly apps, se setea `NINJAM_POOL` en `backline-gateway`, se redeploya, y se repite una verificación equivalente a R10 contra producción real.\n\nActualización 21/8/2026 (om-deploy): Roi confirmó explícitamente en el chat de la sesión principal (AskUserQuestion) pool de 3 instancias y 'Sí, crear y deployar ahora'. Se prepararon `gateway/fly.ninjam-1.toml` y `gateway/fly.ninjam-2.toml` (mismo patrón que `fly.ninjam.toml`, mismo `Dockerfile.ninjam`), pero `flyctl apps create backline-ninjam-1` quedó BLOQUEADO por el clasificador de auto-mode dos veces seguidas (mismo comando, misma herramienta Bash, sin cambiar de vía, siguiendo `studio/roles/deploy.md` sección 'Si el clasificador de auto-mode bloquea un comando'). Causa: `backline-ninjam-1`/`backline-ninjam-2` son apps nuevas, no están nombradas en `autoMode.allow` de `C:\\Users\\ro1\\.claude\\settings.local.json` (esa entrada solo cubre `backline-gateway` y `backline-ninjam`, las dos ya existentes). Nada se creó en Fly todavía -- `flyctl apps list` sigue mostrando únicamente esas dos apps. Falta: que Roi agregue `backline-ninjam-1`/`backline-ninjam-2` a `autoMode.allow` (o corra él mismo `flyctl apps create` para esas dos), después de lo cual el resto del plan (deploy de las 2 imágenes nuevas, `NINJAM_POOL` en `backline-gateway`, redeploy, verificación R10 contra producción real) queda listo para ejecutarse.\n\nActualización 21/8/2026 (tarde, om-deploy) -- TODAVÍA NO RESUELTA, avance parcial. Roi agregó `backline-ninjam-1`/`backline-ninjam-2` a `autoMode.allow`. `flyctl apps create` para las dos corrió sin bloqueo (confirma que la causa del bloqueo anterior era exactamente esa ausencia). `flyctl deploy --config fly.ninjam-1.toml --app backline-ninjam-1` corrió sin bloqueo y quedó DEPLOYADO (`flyctl apps list`: `deployed`, 2 máquinas en `gru`). `flyctl deploy --config fly.ninjam-2.toml --app backline-ninjam-2` quedó BLOQUEADO por el clasificador dos veces seguidas, mismo comando/herramienta -- esta vez el nombre SÍ está en `autoMode.allow` (es literalmente el mismo comando que para ninjam-1, que pasó), así que parece el patrón 'bloqueo no 100% determinístico' ya documentado para otros deploys de este proyecto, no una causa nueva. Estado real de plataforma: `backline-ninjam-2` existe como app vacía (`pending`, sin imagen, sin máquinas, sin costo agregado); `backline-ninjam-1` sí está corriendo y ya factura (~USD 0,03/día, mismo patrón que `backline-ninjam`). `NINJAM_POOL` SIN setear todavía en `backline-gateway` -- el tráfico real sigue yendo 100% al pool de 1 de siempre, nada de esto afecta producción todavía. Detalle completo en `Zapamooke/DEPLOY.md`, sección 'Reintento del 21/8/2026 (tarde, om-deploy)'. Falta: reintentar el deploy de ninjam-2 (o que Roi lo corra a mano), setear `NINJAM_POOL` en `backline-gateway` y redeployarlo, y repetir la verificación R10 contra producción real -- esta decisión sigue en `decided`/ejecución parcial, NO cerrar como resuelta hasta que el pool de 3 esté completo y verificado en producción.\n\nCierre 21/8/2026 (tarde/noche, om-deploy) -- RESUELTA de punta a punta. Continuacion directa de la corrida anterior, mismo alcance ya aprobado por Roi, sin decision nueva. flyctl deploy --config fly.ninjam-2.toml --app backline-ninjam-2 corrio limpio en el primer intento (el bloqueo anterior era el patron no-determinista ya documentado, no una causa nueva). NINJAM_POOL seteado en gateway/fly.toml (backline-ninjam-1.internal:2049,backline-ninjam-2.internal:2049) y backline-gateway redeployado. Verificacion real contra produccion (no local): experiments/r10-room-pool-isolation/src/room-pool-isolation-prod.mjs conecta directo a wss://backline-gateway.fly.dev/ con room ids elegidos via hashRoomId() real para caer en pool[1] y pool[2] -- 6/6 assertions OK (autenticacion real anonima contra ninjamsrv real, chat interno de cada sala llega a su otro miembro, ninguna sala recibe rastro de la otra). Cruzado con flyctl logs de las 3 instancias: backline-ninjam-1 muestra Accepted user: roomA-musician1/2@127.0.0.x, backline-ninjam-2 muestra roomB-musician1/2, backline-ninjam (pool[0], la original) no muestra ningun rastro de ninguna de las dos salas de prueba -- confirma tres procesos ninjamsrv reales y separados. Costo real confirmado con flyctl scale show (misma forma que backline-ninjam en las 3 apps, ~USD 0,03/dia cada una): total ~USD 0,12/dia (~3,60/mes) con gateway incluido, igual a lo proyectado. Estado final de plataforma (flyctl apps list): backline-gateway, backline-ninjam, backline-ninjam-1, backline-ninjam-2 todas deployed. NINJAM_POOL en uso real: el trafico de produccion ahora se reparte entre las 3 instancias segun hash de room.id. Detalle completo en Zapamooke/DEPLOY.md seccion \"Reintento del 21/8/2026 (tarde/noche, om-deploy) -- CERRADO\" y gateway/README.md. Pendiente, fuera de esta tarea: UI del cliente sin concepto de anonimo (campo de usuario hardcodea myuser), techo real de N=3 salas simultaneas sin colision de hash."
-    },
-    {
-      "id": "zapamooke-identity-sso-e2e-pending",
-      "project": "zapamooke",
-      "asana_task_gid": null,
-      "due_on": null,
-      "question": "El deploy de identidad NINJAM real (SSO por cuenta + salas por invitacion, commits 4ed8448/3f7a2a2/1047fe8) ya esta publicado y el mecanismo de token compartido esta verificado tecnicamente contra el gateway real -- pero nadie completo el camino humano real (login -> crear/entrar a una sala -> conectar) en el cliente de produccion. Lo prueba Roi a mano, o se automatiza con un browser real?",
-      "context": "21-22/8/2026, om-deploy. Migracion 0002_room_invites aplicada a D1 remota, NINJAM_IDENTITY_SECRET seteado igual en Cloudflare (wrangler secret) y Fly (flyctl secrets), server/gateway/client deployados. Se verifico el mecanismo criptografico firmando un token a mano con el secreto real y conectandolo directo al gateway de produccion (wss://backline-gateway.fly.dev): Auth Reply success=1, username derivado correctamente del uid, el gateway rechaza sin token (4001) -- confirma que el riesgo central del deploy (que el secreto no coincida entre los dos lados) esta resuelto. Lo que NO se probo es el flujo real desde el cliente con una cuenta logueada de verdad: el camino habitual para esto (insertar un token de magic-link de prueba en D1 remota con wrangler d1 execute) quedo BLOQUEADO por el clasificador de auto-mode dos veces seguidas, mismo comando, misma herramienta -- siguiendo `studio/roles/deploy.md` se freno ahi en vez de buscar una via alternativa. Mismo patron que `zapamooke-google-oauth-e2e-pending` (ya resuelta asi): un login real necesita un browser real.",
-      "options": [
-        {
-          "label": "Roi entra a https://backline.obscuromediaworks.com.ar/, se loguea (magic link o Google), crea o entra a una sala, y confirma que conecta.",
-          "why": "Es el camino mas directo -- ya tiene el browser y la cuenta a mano, y es el mismo patron que ya se uso para cerrar zapamooke-google-oauth-e2e-pending.",
-          "recommended": true
-        },
-        {
-          "label": "Autorizar el comando de D1 bloqueado (INSERT de prueba en auth_tokens contra backline-db --remote) para que una proxima sesion complete el flujo automatico sin login humano.",
-          "why": "Permite verificacion automatica de punta a punta sin depender de que Roi este disponible, pero requiere decidir si ese tipo de escritura directa a la D1 de produccion debe quedar permitida para el agente."
-        },
-        {
-          "label": "Pedir a una proxima sesion que use Claude Browser / Chrome MCP para automatizar el click-through del login real.",
-          "why": "Sirve si Roi no tiene tiempo, pero sigue necesitando una cuenta real con consentimiento (magic link real o Google) y una sesion armada para eso."
-        }
-      ],
-      "status": "open"
+     "label": "Dejarlo como está (deploy continuo).",
+     "why": "Menos pasos manuales, y ya está blindada la trampa de la raíz. Pero un push apurado sigue pudiendo publicar algo a medio hacer.",
+     "recommended": false
     }
-  ]
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-12T22:39:29.370448+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Desconectar la integración de Git. Deploy solo con npm run deploy, cuando Roi dice 'deployá'."
+   },
+   "executed_at": "2026-08-13T00:00:00Z",
+   "execution_note": "Confirmado en DEPLOY.md: sin deploys nuevos en el historial de versiones entre el 26/6 y el 13/8 pese a varios pushes a main."
+  },
+  {
+   "id": "delete-orphan-pages-project",
+   "project": "obscuro-lux",
+   "asana_task_gid": "1217441533808055",
+   "due_on": "2026-08-15",
+   "question": "¿Borrar el proyecto de Cloudflare Pages 'obscuro-mediaworks' (huérfano)?",
+   "context": "Se creó el 12/8 en un intento de deploy paralelo que se descartó. No tiene dominios atados, no sirve nada. Es una acción de borrado en infraestructura compartida (Cloudflare) -- un agente no la ejecuta sin tu confirmación explícita, aunque parezca inocua.",
+   "options": [
+    {
+     "label": "Borrarlo desde Workers & Pages.",
+     "why": "No tiene dominios, no lo referencia nada. Cero costo de dejarlo, pero también cero motivo para conservarlo.",
+     "recommended": true
+    },
+    {
+     "label": "Dejarlo.",
+     "why": "No estorba. Si en algún momento se quiere retomar ese intento de deploy paralelo, ya está creado.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-12T22:39:44.120510+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Borrarlo desde Workers & Pages."
+   },
+   "executed_at": "2026-08-13T03:02:00Z",
+   "execution_note": "Verificado con `npx wrangler pages project list`: ya no existe. Quedan solo modo-god y mobawarmup."
+  },
+  {
+   "id": "publish-modo-god-mirror",
+   "project": "obscuro-lux",
+   "asana_task_gid": "1217424900173805",
+   "due_on": null,
+   "question": "¿Se publica el espejo público de Modo God, y dónde?",
+   "context": "Hoy corre solo local (localhost:5080, en vivo). El espejo público expone rutas locales, nombres de tareas y fechas de lanzamiento -- no debería salir a internet sin Cloudflare Access (policy de un solo email) delante, y eso todavía no está armado.",
+   "options": [
+    {
+     "label": "No publicarlo por ahora. Consola local alcanza para decidir.",
+     "why": "Cero superficie expuesta hasta que valga la pena el trabajo de Access.",
+     "recommended": true
+    },
+    {
+     "label": "Publicar en subdominio dedicado (modogod.obscuromediaworks.com.ar) detrás de Cloudflare Access.",
+     "why": "Sirve para chequear el estudio desde el celular. Requiere el setup de Access primero (ver studio/modo-god/README.md).",
+     "recommended": false
+    },
+    {
+     "label": "Publicar en obscuromediaworks.com.ar/modo-god vía Worker proxy.",
+     "why": "Mismo dominio que el sitio, pero necesita un Worker adicional con esa ruta -- más piezas que el subdominio.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-12T22:40:01.949982+00:00",
+   "decision": {
+    "option_index": 1,
+    "label": "Publicar en subdominio dedicado (modogod.obscuromediaworks.com.ar) detrás de Cloudflare Access."
+   },
+   "executed_at": "2026-08-13T00:00:00Z",
+   "execution_note": "Publicado en god.obscuromediaworks.com.ar (Cloudflare Pages 'modo-god'). Pivot: Basic Auth propia en vez de Cloudflare Access (Zero Trust ahora pide tarjeta hasta en el tier free). Verificado 13/8: responde 401 sin credenciales."
+  },
+  {
+   "id": "lux-subdomain-scope",
+   "project": "obscuro-lux",
+   "asana_task_gid": "1217424695772173",
+   "due_on": null,
+   "question": "¿Qué sirve lux.obscuromediaworks.com.ar?",
+   "context": "Hoy el subdominio LUX sirve exactamente el mismo bundle que el apex (mismo Worker, mismo build). LUX ya vive como sección dentro del sitio (/#/lux).",
+   "options": [
+    {
+     "label": "Redirigir lux. → obscuromediaworks.com.ar/#/lux.",
+     "why": "Elimina la duplicación de dominio sin dejar de tener la ruta. Un solo lugar para mantener.",
+     "recommended": true
+    },
+    {
+     "label": "Dejarlo como está (mismo bundle en los dos hosts).",
+     "why": "Cero trabajo, pero dos dominios sirviendo lo mismo sin motivo claro.",
+     "recommended": false
+    },
+    {
+     "label": "Landing propia para LUX (copy y tema distintos al apex).",
+     "why": "Solo tiene sentido si LUX necesita presentarse distinto al resto del estudio a gente que no pasó por el sitio principal.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-12T22:40:14.274393+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Redirigir lux. → obscuromediaworks.com.ar/#/lux."
+   }
+  },
+  {
+   "id": "classify-ecoplastik",
+   "project": null,
+   "asana_task_gid": "1217426052335208",
+   "due_on": null,
+   "question": "ECOPLASTIK (board de Asana, 27 tareas, 0 completadas, sin repo ni memoria): ¿cliente activo, archivado, o fuera del sistema?",
+   "context": "No hay repo, memoria, ni ninguna tarea marcada como hecha -- no hay señal de que haya arrancado trabajo real. Esto no lo puede inferir un agente: solo vos sabés si ECOPLASTIK es un cliente real en curso.",
+   "options": [
+    {
+     "label": "Fuera del sistema (no es un proyecto activo del estudio hoy).",
+     "why": "Es el default más seguro si no hay contexto de que haya arrancado.",
+     "recommended": true
+    },
+    {
+     "label": "Cliente activo -- agregarlo al registry con su repo cuando exista.",
+     "why": "Si en verdad hay trabajo en curso que no quedó documentado.",
+     "recommended": false
+    },
+    {
+     "label": "Archivar el board directamente.",
+     "why": "Si quedó de una propuesta que no avanzó y no hace falta ni conservarlo como referencia.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-12T22:40:34.490927+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Fuera del sistema (no es un proyecto activo del estudio hoy)."
+   }
+  },
+  {
+   "id": "classify-loose-repos",
+   "project": null,
+   "asana_task_gid": "1217442885049193",
+   "due_on": null,
+   "question": "¿Qué hacer con los repos sueltos de G:\\Github (bony_00, bony_lite, bony_tale.v0.1.0, WwiseMVJ2)?",
+   "context": "Ninguno está en registry.json. bony_00 no tiene git inicializado; WwiseMVJ2 no tiene remote (parece sandbox local). Despaché a om-dev a investigar último commit / contenido de cada uno antes de que decidas -- hallazgos (12/8): bony_00: sin .git, proyecto Unity 'Huesitos_0.1v' (~11,3 GB en disco), sin README. bony_lite: SI tiene .git + remote (github.com/obscuromediaworks/bony_lite), 11 commits en 2 ramas (main + bony_webgl), último commit 2025-10-29 'Add Epic Toon FX', ~15,2 GB en disco, working tree con cambios sin commitear (assets de Wwise regenerados), sin README. bony_tale.v0.1.0: SI tiene .git + remote (github.com/obscuromediaworks/bony_tale.v0.1.0), 3 commits en main, último 2025-11-20 'Deleted Tarodev Controller', ~9,4 GB en disco, working tree con cambios sin commitear (Addressables Windows borrado / Web agregado, trabajo a medio terminar), sin README. Los tres 'bony_*' son el mismo proyecto Unity (dog game 'Huesitos') en distintas etapas/iteraciones, con Wwise integrado. WwiseMVJ2: SI tiene .git pero remote vacío (confirmado sin remote), 1 solo commit 'Initial commit' 2024-08-29, contenido = solo .gitattributes (repo prácticamente vacío, ~0 en disco), working tree limpio. Confirma que es un cascarón de sandbox, no un proyecto con trabajo real adentro.",
+   "options": [
+    {
+     "label": "Archivar bony_00, bony_lite y bony_tale.v0.1.0 como prototipos abandonados: son la misma iteración de un dog game ('Huesitos') sin actividad desde hace 3-9 meses, sin README ni dossier, ~36 GB combinados en disco. Antes de archivar, salvar el trabajo sin commitear de bony_lite y bony_tale (Wwise/Addressables) en un commit final por si hace falta retomarlos.",
+     "why": "No hay señal de trabajo activo (último commit real hace meses, nada en registry ni en memoria) y ocupan espacio en disco significativo sin aportar hoy. Archivar preserva el historial en GitHub sin que sigan generando ruido en `G:\\Github`.",
+     "recommended": true
+    },
+    {
+     "label": "Sumar WwiseMVJ2 al registry.json como sandbox interno sin remote (kind: 'sandbox', sin Asana ni dossier de juego) en vez de dejarlo huérfano.",
+     "why": "Es liviano (prácticamente vacío) y confirmado como sandbox de pruebas de Wwise -- registrarlo cuesta poco y saca la ambigüedad de si es 'proyecto perdido' o 'herramienta a mano'.",
+     "recommended": false
+    },
+    {
+     "label": "Retomar 'Huesitos' como proyecto activo: consolidar bony_00/bony_lite/bony_tale.v0.1.0 en un solo repo, escribir dossier y sumarlo a registry.json.",
+     "why": "Solo tiene sentido si Roi todavía quiere ese juego en el roadmap -- son ~36 GB y meses sin tocarse, así que asumir esto sin confirmación sería adivinar alcance.",
+     "recommended": false
+    },
+    {
+     "label": "Borrar directamente bony_00 (sin git, sin remote donde recuperarlo) y dejar bony_lite/bony_tale.v0.1.0 solo en GitHub (borrar la copia local).",
+     "why": "bony_00 es la única de las tres sin red de seguridad en un remote -- borrarla es irreversible. Las otras dos ya están en GitHub, así que borrar la copia local libera ~24 GB sin perder el historial.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-12T22:40:49.936154+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Archivar bony_00, bony_lite y bony_tale.v0.1.0 como prototipos abandonados: son la misma iteración de un dog game ('Huesitos') sin actividad desde hace 3-9 meses, sin README ni dossier, ~36 GB combinados en disco. Antes de archivar, salvar el trabajo sin commitear de bony_lite y bony_tale (Wwise/Addressables) en un commit final por si hace falta retomarlos."
+   },
+   "executed_at": "2026-08-13T03:06:00Z",
+   "execution_note": "bony_lite y bony_tale.v0.1.0: rescate commiteado y pusheado, ambos archivados en GitHub. bony_00 no tiene .git ni remote -- la decisión no contempló ese caso. Ver decisión nueva 'bony-00-no-remote'."
+  },
+  {
+   "id": "bony-00-no-remote",
+   "project": null,
+   "asana_task_gid": "1217442885049193",
+   "due_on": null,
+   "question": "bony_00 no tiene `.git` ni remote -- no se puede \"archivar\" en GitHub como a bony_lite/bony_tale.v0.1.0. ¿Qué hacer?",
+   "context": "Confirmado 13/8: bony_00 (~11,3 GB, proyecto Unity 'Huesitos_0.1v', sin README) nunca se inicializó como repo git. La decisión 'classify-loose-repos' asumía que los tres bony_* podían archivarse igual y no contempló este caso -- descubierto recién al ejecutar. Borrarlo fue explícitamente descartado en esa decisión (bony_00 es la única de las tres sin red de seguridad en un remote).",
+   "options": [
+    {
+     "label": "Dejarlo como está: local, sin git, fuera del registry. Ya cumple el espíritu de 'archivado' por omisión -- no aparece en ningún tablero ni se toca.",
+     "why": "Cero trabajo y cero riesgo. El costo es que sigue ocupando ~11,3 GB en G:\\Github sin ningún historial versionado detrás.",
+     "recommended": true
+    },
+    {
+     "label": "Crear un repo GitHub nuevo (obscuromediaworks/bony_00), pushear el estado actual y archivarlo ahí -- mismo tratamiento que sus hermanos.",
+     "why": "Consistencia con bony_lite/bony_tale y preserva el contenido con historial real, pero implica subir ~11,3 GB de assets Unity a un repo nuevo solo para archivarlo -- trabajo real por consistencia, no por necesidad.",
+     "recommended": false
+    },
+    {
+     "label": "Borrarlo directamente.",
+     "why": "Libera los 11,3 GB, pero es irreversible y esa opción ya se descartó explícitamente en la decisión original por falta de red de seguridad.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-13T16:48:23.522456+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Dejarlo como está: local, sin git, fuera del registry. Ya cumple el espíritu de 'archivado' por omisión -- no aparece en ningún tablero ni se toca."
+   }
+  },
+  {
+   "id": "archive-moba-v0-board",
+   "project": "moba-warmup",
+   "asana_task_gid": "1217424482395808",
+   "due_on": null,
+   "question": "¿Archivar el board histórico 'MOBA Warmup — v0' (17 tareas incompletas)?",
+   "context": "El board activo es 'Launch v1' (gid 1217136324673914). El v0 (gid 1215263538370822) es el board original del proyecto, con más de 100 tareas -- la enorme mayoría completadas. Decidir cuáles de las 17 abiertas siguen vigentes requiere revisarlas una por una: no se puede archivar en bloque sin perder algo que todavía importa.",
+   "options": [
+    {
+     "label": "Migrar las 17 al board activo una por una (revisar cada una: sigue vigente, ya se resolvió en otro lado, o quedó obsoleta) y recién ahí archivar v0.",
+     "why": "Es lo único seguro dado que son 17 ítems variados, no un lote homogéneo.",
+     "recommended": true
+    },
+    {
+     "label": "Archivar v0 completo sin revisar.",
+     "why": "Más rápido, pero arriesga perder algo real de las 17 abiertas.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-12T22:41:00.965614+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Migrar las 17 al board activo una por una (revisar cada una: sigue vigente, ya se resolvió en otro lado, o quedó obsoleta) y recién ahí archivar v0."
+   },
+   "executed_at": "2026-08-13T03:06:00Z",
+   "execution_note": "Las 17 revisadas una por una: 12 migradas a Launch v1 con prefijo [Backlog v2] (ideas v2+, no bloquean v1), 3 migradas tal cual por seguir vigentes (assets 3D pendientes, música de Javi, SFX ChampSelect Advisor), 2 cerradas por obsoletas/superadas. El board quedó en 0 abiertas. Falta el archivado en sí desde la UI de Asana -- el conector no expone un método para archivar proyectos."
+  },
+  {
+   "id": "deploy-bundle-pipeline",
+   "project": "obscuro-lux",
+   "asana_task_gid": "1217424900123597",
+   "due_on": null,
+   "question": "No hay forma reproducible de regenerar deploy/index.html desde Claude Code — ¿construimos un pipeline propio?",
+   "context": "om-dev investigó (12/8, ver DEPLOY.md): deploy/index.html es un bundle self-decompressing (manifest __bundler/manifest, blobs gzip+base64 por UUID) que arma site.html + los .jsx + assets/ en el navegador. El helper que lo genera (super_inline_html, mencionado en README) no está en el repo -- parece vivir del lado de Claude Design, no del Code CLI. Hoy, si se toca site.html o un .jsx, deploy/index.html NO se actualiza solo: hay que regenerarlo a mano en una sesión de Design, o reconstruirlo bajando el bundle en vivo del Worker (lo que se hizo el 26/6, commit ea4282e). Mientras tanto el sitio funciona, pero cualquier cambio de código queda desincronizado del deploy hasta ese paso manual.",
+   "options": [
+    {
+     "label": "Construir un pipeline propio (ej. reimplementar el build con esbuild + gzip) que un agente de Code pueda correr solo, sin depender de la sesión de Design.",
+     "why": "Saca la dependencia del helper de Design; cualquier agente puede regenerar el deploy. Es trabajo real de build tooling, no un fix de una línea.",
+     "recommended": true
+    },
+    {
+     "label": "Dejarlo como está: seguir regenerando a mano desde Design cuando haga falta.",
+     "why": "Cero trabajo ahora, pero el riesgo de quedar sin nadie que sepa correr ese helper sigue latente.",
+     "recommended": false
+    },
+    {
+     "label": "Cambiar de formato: servir site.html + los .jsx + assets/ tal cual (deploy multi-archivo), sin el bundle self-contained.",
+     "why": "Mencionado en el README como alternativa. Simplifica el pipeline pero cambia cómo se sirve el sitio hoy -- no es un cambio chico.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-12T22:41:14.651362+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Construir un pipeline propio (ej. reimplementar el build con esbuild + gzip) que un agente de Code pueda correr solo, sin depender de la sesión de Design."
+   }
+  },
+  {
+   "id": "qa-skill-future",
+   "project": null,
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "El tablero de QA (antes `~/.claude/skills/qa/qa-board.py` standalone) ahora vive dentro de Modo God (`/qa?project=<slug>`, resuelto por registry.json). ¿Qué pasa con el script standalone?",
+   "context": "13/8: migrado. El skill `qa` (`~/.claude/skills/qa/SKILL.md`) ahora abre la consola de Modo God (localhost:5080/qa) en vez de levantar su propio server con `--repo`, para todo proyecto en registry.json -- que hoy es prácticamente todos. El script viejo (`qa-board.py`) quedó intacto como fallback para repos que todavía no están registrados. No hay ningún repo del estudio hoy en esa situación (los 7 de registry.json ya resuelven), así que en la práctica el fallback no se usa -- pero borrarlo es una decisión de alcance de una herramienta a nivel usuario (`~/.claude/skills/`), no del repo, y afecta cómo arranca el skill en cualquier máquina donde Roi lo tenga instalado.",
+   "options": [
+    {
+     "label": "Dejarlo como fallback permanente: si un repo nuevo no está en registry.json todavía, el skill usa el script standalone hasta que se registre. Cero mantenimiento extra -- es código que ya funciona y no estorba.",
+     "why": "No cuesta nada mantenerlo (no se toca salvo que aparezca un bug), y cubre el hueco de 'proyecto nuevo antes de estar en el registry' sin fricción.",
+     "recommended": true
+    },
+    {
+     "label": "Deprecarlo formalmente: borrar qa-board.py y actualizar SKILL.md para que registrar el proyecto en registry.json sea un paso obligatorio antes de poder correr QA.",
+     "why": "Una sola fuente de verdad del tablero (menos superficie para que diverjan). El costo es forzar un paso de registro antes de la primera pasada de QA de un proyecto nuevo, que hoy es opcional.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-14T00:59:27.345887+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Dejarlo como fallback permanente: si un repo nuevo no está en registry.json todavía, el skill usa el script standalone hasta que se registre. Cero mantenimiento extra -- es código que ya funciona y no estorba."
+   },
+   "execution_note": "Sin trabajo que ejecutar: la decisión es dejar el código existente tal cual está."
+  },
+  {
+   "id": "qa-board-palette-per-project",
+   "project": null,
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "El tablero de QA embebido (`qa_board.py`) heredó la paleta Hextech (LoL 2016) tal cual del script original -- pensada para MOBA Warmup. Ahora que el mismo tablero sirve a cualquier proyecto del registry (LE2, SkateGang, Weedgang, etc.), ¿se generaliza a un tema neutro o por-proyecto, o se deja fija?",
+   "context": "13/8, durante la migración a Modo God: no toqué la paleta -- 'no cambiarla sin necesidad' era la instrucción explícita, y hoy es el único proyecto con docs/qa/items.json (MOBA Warmup) así que no hay conflicto real todavía. Pero en cuanto otro juego arme su primer docs/qa/items.json, va a ver el tablero con colores de MOBA Warmup encima del suyo -- lo mismo que STUDIO.md §6 dice que no hay que hacer al revés (aplicar tokens del estudio a un juego).",
+   "options": [
+    {
+     "label": "Dejarla fija en Hextech por ahora. Se revisita cuando un segundo proyecto realmente tenga una pasada de QA que correr.",
+     "why": "Cero trabajo hasta que el problema sea real -- hoy sigue siendo cosmético y sin usuario afectado.",
+     "recommended": true
+    },
+    {
+     "label": "Tema neutro (paleta de Modo God: dorado/crema sobre negro) para todos, sin identidad de juego.",
+     "why": "Consistente con que QA es una herramienta del estudio, no del juego -- pero pierde la señal visual de 'esto es MOBA Warmup' que hoy da la paleta LoL.",
+     "recommended": false
+    },
+    {
+     "label": "Tema por proyecto (un campo `theme` en registry.json o en items.json que elige la paleta).",
+     "why": "Lo más prolijo a largo plazo, pero es trabajo real de diseño+código por cada juego que sume su identidad -- no se justifica todavía con un solo proyecto activo.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-14T00:59:45.537341+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Dejarla fija en Hextech por ahora. Se revisita cuando un segundo proyecto realmente tenga una pasada de QA que correr."
+   },
+   "execution_note": "Sin trabajo que ejecutar: la decisión es dejar la paleta tal cual está."
+  },
+  {
+   "id": "moba-launch-eve-qa-gap",
+   "project": "moba-warmup",
+   "asana_task_gid": "1216540339869285",
+   "due_on": "2026-08-14",
+   "question": "ADCKite y Loading (núcleo, no beta) tienen grabación y GIFs listos para el lanzamiento de mañana, pero la mini-QA formal de esos dos modos (mini-qa-checklist.md secciones 2 y 3, K1-K11 / F1-F8) nunca se corrió. ¿Se corre esa pasada antes de lanzar, o se lanza asumiendo el riesgo?",
+   "context": "om-qa confirmó 13/8 (docs/recording-log.md): LastHit sí tiene mini-QA cerrada (pasada del 13/7, 2 fixes aplicados). ADCKite/Loading solo tuvieron una tanda mucho más liviana sobre el build final (AK1-AK2, L1 -- 3 ítems, no los 19 de la checklist original). No es lo mismo: la checklist original cubre casos como windup del bot, kite-cancel, dodge, VFX de silence (ADCKite) y piso de hexágonos / caída / salida limpia (Loading). Nadie puede decidir por Roi si ese riesgo es aceptable a horas del lanzamiento.",
+   "options": [
+    {
+     "label": "Correr la pasada completa (K1-K11 + F1-F8) desde el tablero web de QA (skill qa) antes de lanzar mañana.",
+     "why": "Es lo que la constitución del estudio pide (QA no se improvisa, §5) -- cierra el hueco real antes de que lo vea el público.",
+     "recommended": true
+    },
+    {
+     "label": "Lanzar igual, asumiendo la deuda a propósito: son modos ya jugados extensamente en sesiones previas (ver commits 'Loading:' y 'ADCKite' en el git log), el riesgo es de regresión puntual, no de que el modo no funcione.",
+     "why": "El tiempo entre hoy y el lanzamiento es corto y hay otras tareas de marketing/infra compitiendo por él -- es una decisión de prioridad, no solo de QA.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-14T13:15:00-03:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Correr la pasada completa (K1-K11 + F1-F8) desde el tablero web de QA (skill qa) antes de lanzar mañana."
+   },
+   "executed_at": "2026-08-14T13:10:35-03:00",
+   "execution_note": "Pasada completa corrida por Roi sobre el build 5fe3a48 (equivalente al HEAD b99306a, sin diffs de código entre ambos). Resultado: 19/19 OK, cero fallas. Detalle en docs/qa/runs/5fe3a48.json y en MOBAWarmup/docs/recording-log.md. Hallazgo colateral en F2: el código apaga el auto-attack en Loading a propósito -- el GDD (sección 08, prosa) quedó desalineado, no el código; abrir tarea de docs si hace falta corregirlo."
+  },
+  {
+   "id": "zapamooke-gateway-relay-vs-protocol",
+   "project": "zapamooke",
+   "asana_task_gid": "1217512483700918",
+   "due_on": null,
+   "question": "El gateway de ZAPAMOoKE! (BACKLINE) hoy es un relay transparente WebSocket<->TCP: el frontend termina hablando NINJAM directo a través de él. La spec (§2.3) dice textual que el frontend NUNCA debería hablar NINJAM -- debería hablar un protocolo propio (JSON de control + binario de audio) sobre WebSocket. ¿Se sigue construyendo sobre el relay transparente, o se para a meter el protocolo propio antes de seguir?",
+   "context": "Verificado 15/8 por om-dev: `gateway/src/server.ts` reenvía bytes 1:1 sin traducir el protocolo NINJAM. Funciona bien para validar riesgos técnicos (R1-R4 ya lo usan así) y es la vía más rápida para probar el criterio de salida de Fase 1 (dos ciudades, NINJAM real). El problema no es hoy: es que cuanto más cliente se construya asumiendo bytes NINJAM crudos (auth handshake, canal de chat, audio), más caro sale después insertar el protocolo propio en el medio sin reescribir el cliente entero. La spec dice que el protocolo propio es lo que habilita la Fase 3 (moneda, reputación, moderación) -- no es un detalle de implementación descartable.",
+   "options": [
+    {
+     "label": "Seguir construyendo sobre el relay transparente para cerrar la validación de Fase 1 (auth + chat + audio + prueba de dos ciudades), y recién ahí evaluar meter el protocolo propio antes de construir Fase 2.",
+     "why": "Es la vía más rápida para saber si el producto entero es viable (Fase 1 sigue siendo la prueba que decide eso). El costo de reescribir se paga una sola vez, después de la validación, no antes de saber si vale la pena.",
+     "recommended": true
+    },
+    {
+     "label": "Parar la construcción del cliente y meter el protocolo propio (JSON control + binario audio) en el gateway ANTES de seguir con auth/chat/audio, siguiendo la spec al pie de la letra.",
+     "why": "Evita cualquier retrabajo futuro y respeta la arquitectura documentada desde el día uno -- pero agrega una capa de diseño/implementación antes de tener ninguna evidencia de que el resto del producto funciona, y retrasa la prueba de Fase 1.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-15T22:44:08.971670+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Seguir construyendo sobre el relay transparente para cerrar la validación de Fase 1 (auth + chat + audio + prueba de dos ciudades), y recién ahí evaluar meter el protocolo propio antes de construir Fase 2."
+   }
+  },
+  {
+   "id": "zapamooke-client-custom-domain",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "El cliente mínimo de BACKLINE ya deploya a `https://backline-client.pages.dev/` (proyecto Cloudflare Pages creado 15/8). ¿Se ata un dominio custom, y cuál subdominio de `obscuromediaworks.com.ar`?",
+   "context": "Infraestructura lista (client/wrangler.toml, DEPLOY.md), pero sin dominio atado a propósito: es un acto separado que requiere el OK explícito de Roi (STUDIO.md §7), y encima había una pregunta abierta en memoria sobre qué subdominio usar dado el nombre comercial nuevo (BACKLINE, decidido 15/8) vs. el slug interno (zapamooke). Hoy sirve solo en la URL default de pages.dev, que nadie conoce.",
+   "options": [
+    {
+     "label": "No atar dominio todavía. El cliente sigue siendo el prototipo mínimo (sin R2/R3/audio real integrado), no vale la pena gastar un subdominio de marca hasta que el producto tenga algo más que mostrar.",
+     "why": "Evita fijar un subdominio (`backline.` vs algo con `zapamooke`) antes de tener claro si BACKLINE es el nombre final de cara al público en todos los contextos, o solo del wordmark/logo.",
+     "recommended": true
+    },
+    {
+     "label": "Atar `backline.obscuromediaworks.com.ar` ahora, siguiendo la decisión de marca del 15/8.",
+     "why": "Consistente con que Roi ya cerró el nombre comercial. Pero publica un subdominio de marca para un cliente que hoy es feo a propósito y no tiene integración de audio real -- podría generar expectativa prematura si alguien lo encuentra.",
+     "recommended": false
+    },
+    {
+     "label": "Atar un subdominio interno/de staging (ej. `zapamooke-test.obscuromediaworks.com.ar`) para pruebas del equipo, y dejar `backline.` para el lanzamiento real.",
+     "why": "Separa 'URL que el equipo prueba con más comodidad que un hash de pages.dev' de 'lanzamiento real con la marca pública' -- pero es una capa de infraestructura extra que hoy no hace falta (pages.dev ya funciona para que Roi pruebe).",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-16T03:38:04.798272+00:00",
+   "decision": {
+    "option_index": 1,
+    "label": "Atar `backline.obscuromediaworks.com.ar` ahora, siguiendo la decisión de marca del 15/8."
+   },
+   "execution_note": "Ejecutado 16/8/2026: dominio backline.obscuromediaworks.com.ar agregado al proyecto Cloudflare Pages backline-client via API (POST /pages/projects/{name}/domains, zona ya en la misma cuenta). Confirmado por Roi en el chat antes de ejecutar (el auto-mode classifier bloqueo el comando inicial de wrangler por ser accion de infra publica). CORRECCION al note anterior: el registro DNS NO se resolvio solo por estar en la misma zona -- quedo en pending con 'CNAME record not set' y lo tuvo que crear Roi a mano en el dashboard (backline CNAME -> backline-client.pages.dev, proxied), porque el token OAuth de wrangler lee la zona pero no puede editar DNS (haria falta un API Token con scope Zone:DNS:Edit). VERIFICADO 16/8/2026 desde afuera: https://backline.obscuromediaworks.com.ar/ responde HTTP 200 con TLS valido y con los headers COOP/COEP (require-corp / same-origin) intactos, sirviendo el mismo bundle que backline-client.pages.dev."
+  },
+  {
+   "id": "zapamooke-gateway-hosting",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "El gateway (`gateway/`, relay WS<->TCP hacia `ninjamsrv`) no está deployado en ningún lado -- ¿Cloudflare Workers vía `cloudflare:sockets`, o un host aparte tipo Fly.io?",
+   "context": "Verificado 15/8 por om-dev al armar el deploy de client/: el gateway mantiene un socket TCP persistente por sesión, una forma de runtime distinta al request/response de Workers/Pages que usa el resto del estudio. `cloudflare:sockets` existe pero no está evaluado para esta carga (límites de duración/CPU de Workers pensados para requests cortos, no relays de sesión larga). Fly.io ya no tiene el bloqueo de tarjeta que lo frenaba antes (ver dossier zapamooke.md, nota de hosting del 15/8), pero es infraestructura fuera de la cuenta de Cloudflare del estudio, con su propio costo/ops.",
+   "options": [
+    {
+     "label": "No decidir todavía -- seguir probando local (docker + npm start) hasta que el cliente integre audio real de punta a punta y haga falta una corrida con latencia real de internet.",
+     "why": "Nadie más que Roi está probando esto hoy; local ya alcanza. Evita comprometerse a una plataforma antes de que el gateway haga algo más que relay de bytes (falta chat, audio real, sesión/auth).",
+     "recommended": true
+    },
+    {
+     "label": "Investigar `cloudflare:sockets` primero (mismo proveedor que el resto del estudio, un solo panel de facturación/DNS).",
+     "why": "Mantiene todo en una cuenta. Riesgo: si los límites de Workers no bancan una sesión de zapada de 20+ minutos con el socket abierto, es trabajo de investigación que no llega a ningún lado.",
+     "recommended": false
+    },
+    {
+     "label": "Deployar directo a Fly.io (proceso Node tal cual, sin reescritura).",
+     "why": "Camino más directo técnicamente -- es el mismo `gateway/` que ya corre local. Costo: sale de la cuenta de Cloudflare, nueva superficie de infraestructura a mantener (otro login, otro billing, otro dominio/URL a asegurar).",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-16T03:39:08.488699+00:00",
+   "decision": {
+    "option_index": 2,
+    "label": "Deployar directo a Fly.io (proceso Node tal cual, sin reescritura)."
+   }
+  },
+  {
+   "id": "zapamooke-client-restyle-vs-merge",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "El cliente funcional (backline.obscuromediaworks.com.ar) usaba estilos genéricos de placeholder mientras la landing de marketing (backline-landing.pages.dev) ya tenía el look tolex/cabinet validado. Al pedir Roi \"incorporar el cliente mínimo\" a ese look, ¿se restylea solo el cliente existente, o se fusiona con la landing de marketing en un solo sitio/deploy?",
+   "context": "18/8/2026: ambigüedad real entre dos lecturas de \"incorporemos el cliente mínimo acá\" -- (a) aplicarle el sistema visual de la landing al cliente funcional que ya existe, dejando los dos deploys separados, o (b) combinar landing (hero/proof/status) + cliente real en un mismo sitio. Preguntado a Roi en el chat, no vía dashboard -- se resuelve y ejecuta en la misma sesión, se registra acá para que quede en el historial de decisiones del proyecto.",
+   "options": [
+    {
+     "label": "Solo restylear el cliente existente con el look cabinet, redeployado en el mismo dominio (backline.obscuromediaworks.com.ar). La landing de marketing queda separada, sin cambios de arquitectura.",
+     "why": "Menos trabajo, cero riesgo de tocar la lógica funcional del cliente, y no obliga a decidir todavía cómo conviven marketing y producto en un solo dominio.",
+     "recommended": true
+    },
+    {
+     "label": "Fusionar landing + cliente funcional en un solo sitio/deploy (ej. landing arriba, cliente real más abajo o detrás de un CTA).",
+     "why": "Un solo dominio para las dos cosas, pero es más trabajo y mezcla dos audiencias (visitante nuevo vs. alguien que ya sabe qué es esto) en una sola página.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-19T01:00:00.000000+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Solo restylear el cliente existente con el look cabinet, redeployado en el mismo dominio (backline.obscuromediaworks.com.ar)."
+   },
+   "executed_at": "2026-08-19T01:10:00.000000+00:00",
+   "execution_note": "Ejecutado en la misma sesión: client/src/style.css reescrito completo con los tokens tolex/cream/brass de design/README.md (antes genéricos violeta/azul), client/src/main.ts con header faceplate + botones footswitch (jewel), sin tocar IDs ni lógica. Verificado con `vite preview` local (incl. cambio de idioma, el jewel sobrevive el re-render porque data-i18n se movió a un span hijo) antes de deployar. Deployado a backline-client (Cloudflare Pages) y confirmado en vivo en backline.obscuromediaworks.com.ar. Commit 5632661, pusheado a main."
+  },
+  {
+   "id": "zapamooke-shared-bus-clipping-fix",
+   "project": "zapamooke",
+   "asana_task_gid": "1217512483700918",
+   "due_on": "2026-08-20",
+   "question": "Varias voces remotas boosteadas (x2.5) sumandose sin limite en el bus compartido de descarga podian superar 0dBFS y clipear -- que hacer?",
+   "context": "Roi probo con 2-3 pestanas simultaneas y noto que el sonido 'cambiaba' al cerrar una sesion ajena. Se investigo: no era el leak de sesiones huerfanas (bug real encontrado y arreglado aparte), sino que sacar una voz de la suma cambia si el bus clipea. Dos opciones sobre la mesa.",
+   "options": [
+    {
+     "label": "Limiter (DynamicsCompressorNode) en el bus compartido de descarga.",
+     "why": "Evita clipping sin importar cuanta gente este sonando, y el volumen percibido no cambia al entrar/salir gente -- mas robusto.",
+     "recommended": true
+    },
+    {
+     "label": "Escalar PLAYBACK_GAIN segun downloadSessions.size.",
+     "why": "Mas simple, pero el volumen total puede notarse distinto al entrar/salir alguien -- no ataca el problema de raiz si igual se suman muchas voces.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-20T00:00:00Z",
+   "decision": {
+    "option_index": 0,
+    "label": "Limiter (DynamicsCompressorNode) en el bus compartido de descarga."
+   },
+   "executed_at": "2026-08-20T00:00:00Z",
+   "execution_note": "Implementado en client/src/main.ts (ensureDownloadAudioCtx): DynamicsCompressorNode entre downloadGainNode y destination, threshold -3dB, ratio 20:1, hard knee. Verificado con typecheck/test/build limpios y deployado a backline.obscuromediaworks.com.ar (commit 059cd46, confirmado con curl 200 + hash de bundle)."
+  },
+  {
+   "id": "zapamooke-deploy-permission-gap",
+   "project": "zapamooke",
+   "asana_task_gid": "1217689258733313",
+   "due_on": null,
+   "question": "El deploy de backline-client (compartir pantalla + chat NINJAM, 4 commits listos en main) se bloqueó dos veces por el clasificador de auto-mode local -- backline-client nunca se agregó a autoMode.allow cuando arrancó a deployar (12/8 solo cubrió obscuro-lux, Modo God, mobawarmup, don-atilio). Un agente no puede editarlo solo (el clasificador bloquea tocar su propio archivo de permisos). ¿Cómo se resuelve?",
+   "context": "20/8/2026: código verificado y listo (typecheck/test/build limpios, gateway/ sin cambios de código), pero `npm run deploy` salió bloqueado dos veces seguidas con 'Permission for this action was denied by the Claude Code auto mode classifier'. Ver reference_automode_classifier_wrangler en memoria para el detalle técnico completo.",
+   "options": [
+    {
+     "label": "Agregar 'Zapamooke/BACKLINE (Pages project backline-client)' a la entrada de autoMode.allow en C:\\Users\\ro1\\.claude\\settings.local.json, mismo patrón que los otros 4 proyectos ya cubiertos.",
+     "why": "Resuelve el bloqueo de forma permanente para todos los deploys futuros de este proyecto, no solo el de hoy. Roi ya dijo que lo va a hacer él mismo más tarde.",
+     "recommended": true
+    },
+    {
+     "label": "Aprobar el deploy a mano cada vez, sin tocar la config permanente.",
+     "why": "Sirve para un deploy puntual, pero el mismo bloqueo va a repetirse en cada deploy futuro de Zapamooke hasta que se agregue la regla.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-20T23:30:00Z",
+   "decision": {
+    "option_index": 0,
+    "label": "Agregar 'Zapamooke/BACKLINE (Pages project backline-client)' a la entrada de autoMode.allow en C:\\Users\\ro1\\.claude\\settings.local.json, mismo patrón que los otros 4 proyectos ya cubiertos."
+   },
+   "executed_at": "2026-08-20T23:30:00Z",
+   "execution_note": "Roi editó settings.local.json a mano agregando la entrada. El clasificador igual bloqueó el reintento automático una vez más (no 100% determinístico), así que Roi terminó corriendo `npm run deploy` él mismo desde client/. Verificado desde afuera: backline.obscuromediaworks.com.ar responde 200 con headers COOP/COEP, deployment de producción activo (08365318) confirma que sirve el commit a50447e (compartir pantalla + chat NINJAM)."
+  },
+  {
+   "id": "zapamooke-room-identity-anonymous-users",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "La sala publica de BACKLINE solo acepta dos cuentas de prueba (myuser/mypass y booga/anotherpass), porque el ninjam_server.cfg de la imagen uzer/ninjamserver trae AnonymousUsers no. Hoy dos personas NO pueden entrar con su propio nombre. Como se resuelve la identidad de los musicos?",
+   "context": "Encontrado el 20/8/2026 midiendo con dos clientes reales (experimento R8): el primer intento entro con nombres propios y el servidor respondio 'invalid login/password'. El cliente muestra el error de forma clara y correcta, no es un bug del cliente. Pero significa que cualquiera que entre a backline.obscuromediaworks.com.ar no puede participar sin conocer credenciales de prueba. La spec (docs/spec-zapamooke.md) distingue 'zapada' (sala abierta, gratis, con reputacion) de 'ensayo' (sala privada, paga), asi que esto toca el modelo de producto, no solo la config del servidor.",
+   "options": [
+    {
+     "label": "Habilitar usuarios anonimos en el ninjamsrv (AnonymousUsers yes) para las salas abiertas, dejando el nombre libre y sin password.",
+     "why": "Es lo mas cercano a la 'zapada' de la spec: entrar y tocar sin fri ccion. Requiere rehacer la imagen de backline-ninjam (hoy el cfg viene de upstream y solo se le reescribe el Port) y decidir que pasa con nombres repetidos y moderacion, que la spec pide.",
+     "recommended": true
+    },
+    {
+     "label": "Mantener cuentas fijas y crear usuarios a mano por banda mientras sea prototipo.",
+     "why": "Cero trabajo de infra ahora y control total de quien entra, pero no escala ni permite mostrar el producto a nadie sin intervencion manual de Roi."
+    },
+    {
+     "label": "Poner autenticacion propia adelante (el gateway emite las credenciales NINJAM despues de validar al usuario).",
+     "why": "Es la forma correcta a futuro y encaja con las salas privadas pagas, pero es trabajo real de backend y hoy el gateway es un relay transparente a proposito (ver zapamooke-gateway-relay-vs-protocol)."
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-20T23:22:18.288754+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Habilitar usuarios anonimos en el ninjamsrv (AnonymousUsers yes) para las salas abiertas, dejando el nombre libre y sin password."
+   },
+   "executed_at": "2026-08-21T00:12:00.000000+00:00",
+   "execution_note": "Implementado en gateway/Dockerfile.ninjam (commit 775707e) y redeployado a produccion (om-deploy, flyctl deploy --config fly.ninjam.toml --app backline-ninjam). Verificado desde afuera contra wss://backline-gateway.fly.dev/ real: un usuario arbitrario (anonymous:test123-xxxx, sin password) autentica y recibe display name '<nombre>@<ip>'. myuser/booga/administrator siguen andando igual. Convencion NINJAM real: el username se manda como 'anonymous:<nombre>', el cliente ya lo soporta via el campo message del Auth Reply -- falta UI (el campo de usuario del cliente sigue hardcodeado a 'myuser', sin concepto de anonimo), pendiente para quien toque el login del cliente despues. RE-VERIFICADO 21/8/2026 tarde-noche (om-deploy): backline-ninjam habia quedado con la imagen del 16/8 (sin el patch), pese a que este execution_note decia lo contrario -- flyctl apps list mostraba deploy de hace 16h+, sin AnonymousUsers yes en el cfg corriendo. Redeployado de nuevo (mismo comando) y reverificado con evidencia real: musician-bot.mjs contra wss://backline-gateway.fly.dev (sala legacy, sin ?room=) con --username \"anonymous:qatest\" da RESULT: PASS (auth OK, 3 intervalos de audio subidos, chat TOPIC recibido). Las tres instancias del pool (backline-ninjam/-1/-2) confirmadas con la misma imagen/patch. Hallazgo nuevo, fuera de este alcance: client/ no arma el username con el prefijo 'anonymous:' en ningun lado -- un usuario real sin cuenta registrada hoy tambien recibiria 'invalid login/password' desde la UI real, pendiente de om-dev."
+  },
+  {
+   "id": "zapamooke-gate-third-state",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "El portero tecnico tiene tres estados en la spec (pasa / advertencia / solo oyente). Hace falta un CUARTO estado de puerta cerrada, donde la conexion es tan mala que directamente no se entra?",
+   "context": "20/8/2026: al disenar el mockup del portero (design/portero-tecnico.html), el encargo pedia que el tercer estado fuera 'no da para entrar', pero docs/spec-zapamooke.md 3.1 es explicito en que el rojo significa rol distinto (solo oyente), no puerta cerrada. Se diseno siguiendo la spec y se dejo la discrepancia anotada en el propio mockup. Es una decision de producto: cambia que le pasa a alguien con una conexion mala de verdad.",
+   "options": [
+    {
+     "label": "Quedarse con los tres estados de la spec: nunca se cierra la puerta, la peor conexion entra como oyente.",
+     "why": "Coherente con la spec vigente y mas amable: el que tiene mala conexion igual participa escuchando, en vez de quedarse afuera. Es lo que ya esta disenado.",
+     "recommended": true
+    },
+    {
+     "label": "Agregar un cuarto estado de puerta cerrada por debajo de cierto umbral.",
+     "why": "Protege la sala de alguien cuya conexion arruina el ensayo de los demas, pero hay que definir el umbral y escribir un copy que no expulse gente sin explicarle como arreglarlo."
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-20T23:22:51.305715+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Quedarse con los tres estados de la spec: nunca se cierra la puerta, la peor conexion entra como oyente."
+   },
+   "executed_at": null,
+   "execution_note": null
+  },
+  {
+   "id": "zapamooke-roster-layout-bug-priority",
+   "project": "zapamooke",
+   "asana_task_gid": "1217713159735978",
+   "due_on": null,
+   "question": "A ~1600x1000 el nombre del musico en el roster de la sala colapsa a 0px (invisible) -- las columnas fijas del grid mas el panel de chat superan el espacio disponible. Encontrado 20/8 armando el DM, reproducido tambien en main sin ese cambio (no lo causa la feature nueva, ya afecta el roster de produccion hoy). Fix estimado chico (ajuste de grid/breakpoint), pero compite con el resto del backlog de Fase 2.",
+   "context": "Reportado por om-dev en client/README.md S8.1. No se toco porque estaba fuera del alcance pedido (UI de DM). El bug es real en produccion a un ancho de ventana comun (laptop/desktop con ventana no maximizada).",
+   "options": [
+    {
+     "label": "Arreglarlo en la proxima sesion de dev antes de seguir con Fase 2, es chico y ya esta diagnosticado.",
+     "why": "Bug real en produccion, visible a un ancho de ventana comun -- afecta la usabilidad del roster hoy, no es cosmetico.",
+     "recommended": true
+    },
+    {
+     "label": "Dejarlo en el backlog y priorizar Fase 2 (login/lobby) primero.",
+     "why": "Si el ancho de ventana problematico es poco frecuente en la practica, puede esperar sin bloquear nada.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-20T23:23:09.642485+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Arreglarlo en la proxima sesion de dev antes de seguir con Fase 2, es chico y ya esta diagnosticado."
+   },
+   "execution_note": "Ejecutado 20/8 noche: causa real era .wrap con max-width:720px fijo (colapsaba en CUALQUIER ancho >860px, no solo 1600px). Fix con media query, verificado en 7 anchos, deployado y verificado en produccion (commit 41b3aa7)."
+  },
+  {
+   "id": "zapamooke-login-mockup-open-questions",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "om-art entrego los mockups de login/lobby de Fase 2 (design/login-registro.html, design/lobby.html) y dejo 4 preguntas de producto anotadas adentro que no le correspondia resolver: (1) que fallback ofrecer a quien no tiene/no quiere cuenta de Google, dado que la spec S7.1 cierra la autenticacion en Google-only sin dar alternativa visible; (2) donde van a vivir el contrato de sala y los terminos (linkeados en el login, sin pantalla propia todavia); (3) si el roster de instrumentos que faltan va en la card del lobby (necesita que el backend exponga esa data por sala); (4) confirmar la decision de NO mostrar reputacion en la card de zapada (om-art lo decidio a proposito por R15/R16, sin preguntar).",
+   "context": "Fase 2 recien se desbloqueo (R1 resuelto). Estas preguntas no bloquean seguir iterando el mockup visual, pero si bloquean pasar el login/lobby a implementacion real.",
+   "options": [
+    {
+     "label": "Roi las responde en el chat o en el propio mockup antes de que om-dev empiece a implementar login/lobby.",
+     "why": "Son decisiones de producto chicas pero necesarias antes de cablear a datos reales -- mejor resolverlas ahora que a mitad de implementacion.",
+     "recommended": true
+    },
+    {
+     "label": "Dejarlas abiertas y que om-dev implemente con los defaults que eligio om-art (sin fallback visible, sin mostrar instrumentos faltantes, sin reputacion), ajustando despues si hace falta.",
+     "why": "Mas rapido para tener algo andando, pero arriesga tener que rehacer UI si Roi no esta de acuerdo con algun default.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-20T23:23:47.593054+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Roi las responde en el chat o en el propio mockup antes de que om-dev empiece a implementar login/lobby.",
+    "answers": {
+     "fallback_sin_google": "Sumar un segundo metodo de login (magic link por email), no solo un link de soporte. Reabre antes de lo previsto la nota de la spec S7.1/R12 (\"identidad propia para poder sumar otro metodo sin migrar\", pensada para mas adelante, no para el lanzamiento).",
+     "terminos_y_contrato_de_sala": "Modal inline en la propia pantalla de login, no una pagina aparte.",
+     "instrumentos_faltantes_en_lobby": "Priorizarlo ya en la primera version del lobby -- requiere que el backend (todavia no existe, es parte de Fase 2) exponga esa data por sala.",
+     "reputacion_en_card_de_zapada": "Confirmado: NO se muestra, como propuso om-art (R15/R16)."
+    }
+   },
+   "execution_note": "Las 4 respuestas de Roi aplicadas: magic link se adelanta al lanzamiento (spec S7.1), terminos en modal inline (implementado y verificado en design/login-registro.html), instrumentos faltantes SI se prioriza (tarea de backend creada, bloqueada por modelo de datos), reputacion NO se muestra en el lobby (confirmado)."
+  },
+  {
+   "id": "zapamooke-admin-dashboard-scope",
+   "project": "zapamooke",
+   "asana_task_gid": "1217703800987381",
+   "due_on": null,
+   "question": "Roi pidió un dashboard de admin para Zapamooke (21/8). No existe hoy ningún concepto de rol admin en el schema -- ¿qué alcance tiene?",
+   "context": "Con lo que ya hay en D1 (server/) se puede armar sin trabajo nuevo de backend: salas activas (GET /rooms) y lista de usuarios. Pero moderación/reportes no tiene tabla ni endpoints, y el estado en vivo del gateway/ninjam (quién está conectado ahora a una sala) vive en memoria del proceso de Fly.io, no en D1 -- verlo requeriría un endpoint de status nuevo en el gateway. Borrador completo en el comentario de la tarea de Asana.",
+   "options": [
+    {
+     "label": "Alcance mínimo: solo lo que ya está en D1 (salas + usuarios), sin moderación ni estado en vivo del gateway.",
+     "why": "No requiere tocar el gateway ni diseñar un modelo de reportes todavía -- se puede construir ya con lo que existe, y se amplía después si hace falta.",
+     "recommended": true
+    },
+    {
+     "label": "Alcance completo desde el arranque: sumar tabla de reportes/moderación + endpoint de status en el gateway para ver conexiones en vivo.",
+     "why": "Da una herramienta más útil de entrada, pero es var proyectos de infra nuevos (rol admin + reportes + status del gateway) antes de saber si Roi realmente los va a usar.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-21T13:14:01.538195+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Alcance mínimo: solo lo que ya está en D1 (salas + usuarios), sin moderación ni estado en vivo del gateway."
+   }
+  },
+  {
+   "id": "zapamooke-google-oauth-e2e-pending",
+   "project": "zapamooke",
+   "asana_task_gid": "1217704307864015",
+   "due_on": null,
+   "question": "Fase 2 de Zapamooke ya está deployada a producción (21/8) con magic link verificado de punta a punta. Google OAuth quedó solo parcialmente verificado -- ¿lo prueba Roi manualmente o se espera a que una sesión con browser lo confirme?",
+   "context": "El /start ya redirige correcto a Google (confirmado por Roi en su propio browser), pero ninguna sesión de agente tiene tooling de browser para completar el consentimiento real y confirmar que /callback crea sesión. No es una decisión de arquitectura, es una acción pendiente que solo un humano (o una sesión con browser real) puede ejecutar.",
+   "options": [
+    {
+     "label": "Roi completa el login de Google a mano desde backline.obscuromediaworks.com.ar y confirma.",
+     "why": "Es el camino más directo -- ya tiene el browser y la cuenta a mano.",
+     "recommended": true
+    },
+    {
+     "label": "Pedir a una próxima sesión que use Claude Browser / Chrome MCP para automatizar el click-through.",
+     "why": "Sirve si Roi no tiene tiempo, pero requiere una sesión nueva armada para eso y sigue necesitando una cuenta de Google real con consentimiento.",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-21T13:14:19.031197+00:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Roi completa el login de Google a mano desde backline.obscuromediaworks.com.ar y confirma."
+   }
+  },
+  {
+   "id": "zapamooke-lobby-to-real-ninjam-room-mapping",
+   "project": "zapamooke",
+   "asana_task_gid": "1217686484311368",
+   "due_on": null,
+   "question": "El lobby (#/lobby) deja elegir/crear una sala real en D1 (nombre, tipo, BPM, cupos, roster), pero \"Entrar\" te lleva siempre a la MISMA sala NINJAM fija (client/src/main.ts se conecta siempre al mismo gateway/ninjamsrv, hoy backline-gateway.fly.dev -> backline-ninjam en Fly, un solo proceso). Confirmado leyendo codigo, no sospecha: gateway/src/server.ts es un relay transparente 1:1 por conexion hacia UN host:puerto fijo (env NINJAM_HOST/NINJAM_PORT), sin concepto de \"sala\" -- y NINJAM como protocolo no soporta multiples salas logicas dentro de un mismo proceso ninjamsrv (confirmado tambien por el propio diseno de la spec, seccion 10, tabla room_instances(room_id, container_id, host, port, started_at, ended_at) -- ya prevista como infraestructura efimera POR SALA, nunca construida). Elegir sala en el lobby hoy es cosmetico: cualquiera termina en el mismo audio compartido sin importar que sala eligio. Como se cierra esa brecha?",
+   "context": "Investigado por om-dev 21/8/2026 a partir de un hallazgo de om-test (dos usuarios reales probando la pantalla de sala, tarea Asana 1217686484311368). No es un parametro que el protocolo ya soporte y falte pasar: requiere que cada sala tenga su propio proceso ninjamsrv (o un pool de ellos), lo cual es trabajo de infraestructura real (provisioning dinamico via Fly Machines API, o un pool estatico), no un cambio de codigo chico en el cliente. Alcance estimado: la opcion recomendada (pool estatico) es un dia de trabajo enfocado; el provisioning dinamico completo (arranca al primer musico, se apaga al ultimo, como dice la spec S7.4) es varios dias e incluye decisiones de costo/ops nuevas (Fly Machines API, limites de maquinas simultaneas, billing).",
+   "options": [
+    {
+     "label": "Pool estatico chico de ninjamsrv (ej. 3-5 procesos ya corriendo en Fly, mismo Dockerfile.ninjam de hoy), y el gateway/servidor asigna cada room.id de D1 a una instancia por hash/round-robin, guardando el mapeo. El cliente sigue viendo 'una sala eligio, a esa sala entra' -- ahora es real, aunque el pool sea compartido entre varias salas de D1 si hay mas salas que instancias.",
+     "why": "Cierra la brecha real (elegir sala en el lobby SI cambia a que audio NINJAM entras) sin construir provisioning dinamico todavia. Honesto con lo que hay: documentar el limite (N salas simultaneas como maximo, colision si se pasa) en vez de prometer escala infinita. Un dia de trabajo, no varios.",
+     "recommended": true
+    },
+    {
+     "label": "Provisioning dinamico completo (Fly Machines API): arranca un ninjamsrv nuevo por sala al primer musico que entra, lo apaga cuando el ultimo se va, guarda host/port real en una tabla room_instances nueva en D1 -- exactamente el diseno que ya preve la spec S7.4/S10.",
+     "why": "Es la arquitectura correcta y la que ya esta documentada como destino -- pero es infraestructura nueva real (API de Fly, ciclo de vida de maquinas, limites de concurrencia, costo por maquina activa) que no se resuelve en una sesion.",
+     "recommended": false
+    },
+    {
+     "label": "No tocar el mapeo todavia: dejar UNA sola sala NINJAM real (la actual) y que el lobby sea honesto al respecto -- ocultar/deshabilitar 'crear sala' o mostrar aviso de que todas las salas comparten el mismo audio por ahora.",
+     "why": "Cero trabajo de infra, resuelve la mentira de la UI (no promete algo que no existe) sin construir nada nuevo -- pero no resuelve el problema de fondo que motivo la tarea (bandas distintas necesitan salas de audio separadas).",
+     "recommended": false
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-21T00:00:00-03:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Pool estatico chico de ninjamsrv (ej. 3-5 procesos ya corriendo en Fly, mismo Dockerfile.ninjam de hoy), y el gateway/servidor asigna cada room.id de D1 a una instancia por hash/round-robin, guardando el mapeo. El cliente sigue viendo 'una sala eligio, a esa sala entra' -- ahora es real, aunque el pool sea compartido entre varias salas de D1 si hay mas salas que instancias."
+   },
+   "execution_note": "Confirmado por Roi en el chat de la sesión principal, ejecutado por om-dev 21/8/2026 -- código y verificación local, deploy real a Fly PENDIENTE (ver abajo). `gateway/src/server.ts` ahora es room-aware: cada conexión WS con `?room=<id>` hashea el id (FNV-1a, `hashRoomId()`) contra un pool de `ninjamsrv` (`NINJAM_POOL` env, formato `host:port,host:port`) y abre su leg TCP contra la instancia que le toca -- misma sala siempre a la misma instancia, sin tabla nueva que mantener. Sin `room` (flujo legado de conectar directo sin pasar por el lobby) sigue yendo a pool[0], igual que hoy. `client/src/main.ts` ya manda `?room=` con la sala activa del lobby (`demo-room.ts`'s `getActiveRoomId()`, misma clave que `views/lobby.ts` ya escribía). Detalle completo y punto de mapeo justificado en `gateway/README.md` sección 'Room pool routing'. Verificado: `gateway/test/relay-room-pool.test.mjs` (hash determinístico + ruteo real contra mocks, en `npm test`), typecheck limpio en `client/` y `gateway/`, y `experiments/r10-room-pool-isolation` -- dos contenedores `ninjamsrv` REALES locales (mismo `Dockerfile.ninjam` que corre en Fly, puertos 2049/2051), gateway real, 4 sesiones NINJAM reales (2 por sala), mensaje de chat real (`0xc0`) que confirma aislamiento total entre salas + funcionamiento interno de cada una (6/6 checks OK, sin reintentos). PENDIENTE, a propósito, no ejecutado por esta sesión: crear las N-1 instancias nuevas de `ninjamsrv` en Fly (infra que factura de forma continua -- `studio/roles/deploy.md` reglas duras #1/#3 piden el OK explícito en el momento de crearla, no solo la decisión de arquitectura ya aprobada). Costo proyectado documentado en `DEPLOY.md`/`gateway/README.md`: hoy USD 0,06/día (1 instancia); pool de 3 (punto de partida sugerido) ≈USD 0,12/día; pool de 5 ≈USD 0,18/día. Próximo paso: Roi confirma tamaño de pool, se crean los Fly apps, se setea `NINJAM_POOL` en `backline-gateway`, se redeploya, y se repite una verificación equivalente a R10 contra producción real.\n\nActualización 21/8/2026 (om-deploy): Roi confirmó explícitamente en el chat de la sesión principal (AskUserQuestion) pool de 3 instancias y 'Sí, crear y deployar ahora'. Se prepararon `gateway/fly.ninjam-1.toml` y `gateway/fly.ninjam-2.toml` (mismo patrón que `fly.ninjam.toml`, mismo `Dockerfile.ninjam`), pero `flyctl apps create backline-ninjam-1` quedó BLOQUEADO por el clasificador de auto-mode dos veces seguidas (mismo comando, misma herramienta Bash, sin cambiar de vía, siguiendo `studio/roles/deploy.md` sección 'Si el clasificador de auto-mode bloquea un comando'). Causa: `backline-ninjam-1`/`backline-ninjam-2` son apps nuevas, no están nombradas en `autoMode.allow` de `C:\\Users\\ro1\\.claude\\settings.local.json` (esa entrada solo cubre `backline-gateway` y `backline-ninjam`, las dos ya existentes). Nada se creó en Fly todavía -- `flyctl apps list` sigue mostrando únicamente esas dos apps. Falta: que Roi agregue `backline-ninjam-1`/`backline-ninjam-2` a `autoMode.allow` (o corra él mismo `flyctl apps create` para esas dos), después de lo cual el resto del plan (deploy de las 2 imágenes nuevas, `NINJAM_POOL` en `backline-gateway`, redeploy, verificación R10 contra producción real) queda listo para ejecutarse.\n\nActualización 21/8/2026 (tarde, om-deploy) -- TODAVÍA NO RESUELTA, avance parcial. Roi agregó `backline-ninjam-1`/`backline-ninjam-2` a `autoMode.allow`. `flyctl apps create` para las dos corrió sin bloqueo (confirma que la causa del bloqueo anterior era exactamente esa ausencia). `flyctl deploy --config fly.ninjam-1.toml --app backline-ninjam-1` corrió sin bloqueo y quedó DEPLOYADO (`flyctl apps list`: `deployed`, 2 máquinas en `gru`). `flyctl deploy --config fly.ninjam-2.toml --app backline-ninjam-2` quedó BLOQUEADO por el clasificador dos veces seguidas, mismo comando/herramienta -- esta vez el nombre SÍ está en `autoMode.allow` (es literalmente el mismo comando que para ninjam-1, que pasó), así que parece el patrón 'bloqueo no 100% determinístico' ya documentado para otros deploys de este proyecto, no una causa nueva. Estado real de plataforma: `backline-ninjam-2` existe como app vacía (`pending`, sin imagen, sin máquinas, sin costo agregado); `backline-ninjam-1` sí está corriendo y ya factura (~USD 0,03/día, mismo patrón que `backline-ninjam`). `NINJAM_POOL` SIN setear todavía en `backline-gateway` -- el tráfico real sigue yendo 100% al pool de 1 de siempre, nada de esto afecta producción todavía. Detalle completo en `Zapamooke/DEPLOY.md`, sección 'Reintento del 21/8/2026 (tarde, om-deploy)'. Falta: reintentar el deploy de ninjam-2 (o que Roi lo corra a mano), setear `NINJAM_POOL` en `backline-gateway` y redeployarlo, y repetir la verificación R10 contra producción real -- esta decisión sigue en `decided`/ejecución parcial, NO cerrar como resuelta hasta que el pool de 3 esté completo y verificado en producción.\n\nCierre 21/8/2026 (tarde/noche, om-deploy) -- RESUELTA de punta a punta. Continuacion directa de la corrida anterior, mismo alcance ya aprobado por Roi, sin decision nueva. flyctl deploy --config fly.ninjam-2.toml --app backline-ninjam-2 corrio limpio en el primer intento (el bloqueo anterior era el patron no-determinista ya documentado, no una causa nueva). NINJAM_POOL seteado en gateway/fly.toml (backline-ninjam-1.internal:2049,backline-ninjam-2.internal:2049) y backline-gateway redeployado. Verificacion real contra produccion (no local): experiments/r10-room-pool-isolation/src/room-pool-isolation-prod.mjs conecta directo a wss://backline-gateway.fly.dev/ con room ids elegidos via hashRoomId() real para caer en pool[1] y pool[2] -- 6/6 assertions OK (autenticacion real anonima contra ninjamsrv real, chat interno de cada sala llega a su otro miembro, ninguna sala recibe rastro de la otra). Cruzado con flyctl logs de las 3 instancias: backline-ninjam-1 muestra Accepted user: roomA-musician1/2@127.0.0.x, backline-ninjam-2 muestra roomB-musician1/2, backline-ninjam (pool[0], la original) no muestra ningun rastro de ninguna de las dos salas de prueba -- confirma tres procesos ninjamsrv reales y separados. Costo real confirmado con flyctl scale show (misma forma que backline-ninjam en las 3 apps, ~USD 0,03/dia cada una): total ~USD 0,12/dia (~3,60/mes) con gateway incluido, igual a lo proyectado. Estado final de plataforma (flyctl apps list): backline-gateway, backline-ninjam, backline-ninjam-1, backline-ninjam-2 todas deployed. NINJAM_POOL en uso real: el trafico de produccion ahora se reparte entre las 3 instancias segun hash de room.id. Detalle completo en Zapamooke/DEPLOY.md seccion \"Reintento del 21/8/2026 (tarde/noche, om-deploy) -- CERRADO\" y gateway/README.md. Pendiente, fuera de esta tarea: UI del cliente sin concepto de anonimo (campo de usuario hardcodea myuser), techo real de N=3 salas simultaneas sin colision de hash."
+  },
+  {
+   "id": "zapamooke-identity-sso-e2e-pending",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "El deploy de identidad NINJAM real (SSO por cuenta + salas por invitacion, commits 4ed8448/3f7a2a2/1047fe8) ya esta publicado y el mecanismo de token compartido esta verificado tecnicamente contra el gateway real -- pero nadie completo el camino humano real (login -> crear/entrar a una sala -> conectar) en el cliente de produccion. Lo prueba Roi a mano, o se automatiza con un browser real?",
+   "context": "21-22/8/2026, om-deploy. Migracion 0002_room_invites aplicada a D1 remota, NINJAM_IDENTITY_SECRET seteado igual en Cloudflare (wrangler secret) y Fly (flyctl secrets), server/gateway/client deployados. Se verifico el mecanismo criptografico firmando un token a mano con el secreto real y conectandolo directo al gateway de produccion (wss://backline-gateway.fly.dev): Auth Reply success=1, username derivado correctamente del uid, el gateway rechaza sin token (4001) -- confirma que el riesgo central del deploy (que el secreto no coincida entre los dos lados) esta resuelto. Lo que NO se probo es el flujo real desde el cliente con una cuenta logueada de verdad: el camino habitual para esto (insertar un token de magic-link de prueba en D1 remota con wrangler d1 execute) quedo BLOQUEADO por el clasificador de auto-mode dos veces seguidas, mismo comando, misma herramienta -- siguiendo `studio/roles/deploy.md` se freno ahi en vez de buscar una via alternativa. Mismo patron que `zapamooke-google-oauth-e2e-pending` (ya resuelta asi): un login real necesita un browser real.",
+   "options": [
+    {
+     "label": "Roi entra a https://backline.obscuromediaworks.com.ar/, se loguea (magic link o Google), crea o entra a una sala, y confirma que conecta.",
+     "why": "Es el camino mas directo -- ya tiene el browser y la cuenta a mano, y es el mismo patron que ya se uso para cerrar zapamooke-google-oauth-e2e-pending.",
+     "recommended": true
+    },
+    {
+     "label": "Autorizar el comando de D1 bloqueado (INSERT de prueba en auth_tokens contra backline-db --remote) para que una proxima sesion complete el flujo automatico sin login humano.",
+     "why": "Permite verificacion automatica de punta a punta sin depender de que Roi este disponible, pero requiere decidir si ese tipo de escritura directa a la D1 de produccion debe quedar permitida para el agente."
+    },
+    {
+     "label": "Pedir a una proxima sesion que use Claude Browser / Chrome MCP para automatizar el click-through del login real.",
+     "why": "Sirve si Roi no tiene tiempo, pero sigue necesitando una cuenta real con consentimiento (magic link real o Google) y una sesion armada para eso."
+    }
+   ],
+   "status": "open"
+  },
+  {
+   "id": "zapamooke-audio-dos-caminos-novatos-pro",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "Como hace un musico para tocar con SU tono (ampsim/VST) en BACKLINE? Hoy el onboarding asume que trae su DAW y manda el audio por un cable virtual (Opcion B). Probado con hardware real, ese camino es impracticable para un usuario comun.",
+   "context": "21/8/2026. Roi probo el flujo real con su Scarlett 2i4 2a gen + Reaper + Archetype Gojira. Hallazgos: (1) la 2i4 NO tiene canal Loopback, la funcion que haria esto trivial; (2) sin Loopback no hay combinacion posible -- o Reaper corre en ASIO nativo (monitoreo con FX a ~4ms, buen feel, pero sin forma de alimentar al browser) o se mete un puente por software (ASIO4ALL/VB-Cable/VoiceMeeter) y el monitoreo se degrada a ~20-40ms; (3) en el intento real se llego a \"Device in use\" en el browser por exclusividad de dispositivo de ASIO4ALL sobre VB-Cable. Roi: \"imaginate todo lo que tiene que hacer el user, lo quiero minimizar\". Investigacion posterior (a partir de su pregunta sobre los presets de la M-Vave KPT Pro): el formato de M-Vave (AM4DATA) es propietario y la conversion es unidireccional NAM->AM4DATA, no hay nada que aprovechar; pero lo que ese pedal reproduce SI es abierto -- NAM (Neural Amp Modeler) es MIT con uso comercial sin fees (motor NeuralAmpModelerCore + archivos .nam), y ya existe port a WebAssembly corriendo en AudioWorklet, tambien MIT: tone-3000/neural-amp-modeler-wasm (npm), single-threaded, sin SharedArrayBuffer. Arquitectura: NAM WASM para el ampli + ConvolverNode nativo para el IR de gabinete. Catalogo publico gratis de modelos en tone3000.com. OJO: el motor es MIT sin discusion, pero cada .nam subido por un usuario puede traer sus propios terminos (muchos son capturas de amplis comerciales) -- si el usuario carga su propio archivo no hay problema, si BACKLINE empaqueta modelos hay que revisar caso por caso.",
+   "options": [
+    {
+     "label": "Dos caminos: version NOVATOS con ampsim dentro de BACKLINE (NAM en WASM), y version PRO con VoiceMeeter/DAW propio para quien ya tiene su rig armado.",
+     "why": "El camino por defecto pasa a ser cero setup (guitarra -> interfaz -> elegis la interfaz en el cliente -> tocas con tono), y el flujo actual de cable virtual deja de ser EL camino para pasar a ser el avanzado.",
+     "recommended": true
+    },
+    {
+     "label": "Mantener solo el camino actual (DAW + cable virtual) y mejorar la documentacion.",
+     "why": "Cero trabajo de producto nuevo, pero deja afuera a cualquiera que no tenga interfaz con Loopback ni ganas de instalar y rutear tres programas."
+    },
+    {
+     "label": "Solo ampsim en el browser, sin camino avanzado.",
+     "why": "Maxima simplicidad, pero cierra la puerta al musico que ya tiene su rig/plugins pagos y quiere usarlos."
+    }
+   ],
+   "status": "decided",
+   "decided_at": "2026-08-21T00:00:00-03:00",
+   "decision": {
+    "option_index": 0,
+    "label": "Dos caminos: version NOVATOS con ampsim dentro de BACKLINE (NAM en WASM), y version PRO con VoiceMeeter/DAW propio para quien ya tiene su rig armado."
+   },
+   "execution_note": "Decidido por Roi en el chat 21/8/2026 (\"vamos a tener que hacer esta version NOVATOS con ampsimps y la version PRO con Voicemeteer y demas\"). NO implementado todavia. Bloqueante antes de construir: medicion en curso de om-test -- latencia real de monitoreo del browser en la maquina de Roi (baseLatency/outputLatency, round-trip si es medible) + costo de CPU de NAM WASM por tamano de modelo (nano/feather/standard) corriendo EN PARALELO con el encoder Vorbis del cliente, memoria, y latencia agregada del AudioWorklet. Umbrales acordados: <10ms imperceptible, 10-20ms tocable, 20-30ms molesto, >30ms no sirve para tocar. Tambien pendiente: reescribir la seccion 4 (VST) de docs/onboarding.md y sus dos copias publicadas cuando esto se implemente, para reflejar los dos caminos en vez del actual unico. Nota de criterio a no repetir: se le recomendo a Roi monitorear con el knob Direct Monitor en dry -- esta mal para quien usa ampsim (escuchas la guitarra pelada); lo correcto es monitorear POR el DAW con buffer bajo (ASIO nativo 64-128 samples, ~3-6ms)."
+  }
+ ]
 }
