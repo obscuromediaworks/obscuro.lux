@@ -1,7 +1,7 @@
 {
  "$comment": "Decisiones que un agente no puede tomar solo (alcance, arquitectura, borrado/publicación de infra, clasificación ambigua). Las escribe un agente al correr la rutina de arranque de un proyecto (ver STUDIO.md #9); las resuelve Roi desde /modo-god o en el chat. Cada una tiene 2-4 opciones con una recomendación marcada -- la recomendación es una propuesta, no una ejecución.",
- "generated_at": "2026-08-21T13:58:51.189484Z",
- "generated_by": "primera corrida de la rutina de arranque, sesión 2026-08-12",
+ "generated_at": "2026-08-22T21:51:45.587Z",
+ "generated_by": "sesion principal 22/8/2026 (Zapamooke: R11 cerrado, R12 cerrado)",
  "decisions": [
   {
    "id": "worker-git-integration-policy",
@@ -796,7 +796,55 @@
     "option_index": 0,
     "label": "Dos caminos: version NOVATOS con ampsim dentro de BACKLINE (NAM en WASM), y version PRO con VoiceMeeter/DAW propio para quien ya tiene su rig armado."
    },
-   "execution_note": "Decidido por Roi en el chat 21/8/2026 (\"vamos a tener que hacer esta version NOVATOS con ampsimps y la version PRO con Voicemeteer y demas\"). NO implementado todavia. Bloqueante antes de construir: medicion en curso de om-test -- latencia real de monitoreo del browser en la maquina de Roi (baseLatency/outputLatency, round-trip si es medible) + costo de CPU de NAM WASM por tamano de modelo (nano/feather/standard) corriendo EN PARALELO con el encoder Vorbis del cliente, memoria, y latencia agregada del AudioWorklet. Umbrales acordados: <10ms imperceptible, 10-20ms tocable, 20-30ms molesto, >30ms no sirve para tocar. Tambien pendiente: reescribir la seccion 4 (VST) de docs/onboarding.md y sus dos copias publicadas cuando esto se implemente, para reflejar los dos caminos en vez del actual unico. Nota de criterio a no repetir: se le recomendo a Roi monitorear con el knob Direct Monitor en dry -- esta mal para quien usa ampsim (escuchas la guitarra pelada); lo correcto es monitorear POR el DAW con buffer bajo (ASIO nativo 64-128 samples, ~3-6ms). || ACTUALIZACION 22/8/2026: experimento R11 (experiments/r11-browser-ampsim-monitoring/) corrido a medias -- el agente de om-test fue cortado por limite de sesion pero los resultados validos quedaron escritos en results/. RESUELTO: el costo de CPU de NAM NO es problema. Con IR de gabinete incluido, sobre un core: WaveNet nano 2,8%, LSTM 2x8 3,6%, LSTM 1x16 3,7%, WaveNet feather 8,1%, WaveNet a2 23,5%, official A2 22,9%, WaveNet standard 33,8%. Hallazgo clave: el slimming de NAM A2 (slimSize=0) corta el costo 5-6x sin cambiar de modelo -- a2 pasa de 23,5% a 4,2% y official-A2 de 22,9% a 4,0%, o sea que hasta los modelos grandes entran comodos. Latencia algoritmica agregada por NAM: 0,125 ms (6 samples), despreciable. Heap de JS con el modelo standard cargado: 45 MB. NO RESUELTO y sigue siendo el bloqueante: la corrida fue en Chrome HEADLESS, donde el audio no llega a un dispositivo real (outputReachesRealDevice=false, peak grabado 0), asi que los outputLatency que dio (46-70 ms) NO son validos -- son artefacto del sink nulo, no la latencia real del equipo. El round-trip no detecto nada y la prueba de glitches quedo sin correr (el reporte lo marca explicitamente como NOT a result, no lo inflo); la medicion de memoria a nivel proceso tambien fallo. PROXIMO PASO: re-correr R11 con browser REAL con salida de audio funcionando en la maquina de Roi, para obtener (1) la latencia real de monitoreo -- el numero que decide, (2) si NAM y el encoder Vorbis conviven sin cortes, (3) memoria a nivel proceso. El experimento ya tiene bajados los 7 modelos .nam y el motor WASM, no hay que rehacer nada. Pendiente aparte: Roi tiene que terminar su propia prueba a mano del camino PRO (Reaper/Focusrite), que quedo frenada en Device in use por la exclusividad de ASIO4ALL sobre VB-Cable."
+   "execution_note": "Decidido por Roi en el chat 21/8/2026 (\"vamos a tener que hacer esta version NOVATOS con ampsimps y la version PRO con Voicemeteer y demas\"). NO implementado todavia. Bloqueante antes de construir: medicion en curso de om-test -- latencia real de monitoreo del browser en la maquina de Roi (baseLatency/outputLatency, round-trip si es medible) + costo de CPU de NAM WASM por tamano de modelo (nano/feather/standard) corriendo EN PARALELO con el encoder Vorbis del cliente, memoria, y latencia agregada del AudioWorklet. Umbrales acordados: <10ms imperceptible, 10-20ms tocable, 20-30ms molesto, >30ms no sirve para tocar. Tambien pendiente: reescribir la seccion 4 (VST) de docs/onboarding.md y sus dos copias publicadas cuando esto se implemente, para reflejar los dos caminos en vez del actual unico. Nota de criterio a no repetir: se le recomendo a Roi monitorear con el knob Direct Monitor en dry -- esta mal para quien usa ampsim (escuchas la guitarra pelada); lo correcto es monitorear POR el DAW con buffer bajo (ASIO nativo 64-128 samples, ~3-6ms). || ACTUALIZACION 22/8/2026: experimento R11 (experiments/r11-browser-ampsim-monitoring/) corrido a medias -- el agente de om-test fue cortado por limite de sesion pero los resultados validos quedaron escritos en results/. RESUELTO: el costo de CPU de NAM NO es problema. Con IR de gabinete incluido, sobre un core: WaveNet nano 2,8%, LSTM 2x8 3,6%, LSTM 1x16 3,7%, WaveNet feather 8,1%, WaveNet a2 23,5%, official A2 22,9%, WaveNet standard 33,8%. Hallazgo clave: el slimming de NAM A2 (slimSize=0) corta el costo 5-6x sin cambiar de modelo -- a2 pasa de 23,5% a 4,2% y official-A2 de 22,9% a 4,0%, o sea que hasta los modelos grandes entran comodos. Latencia algoritmica agregada por NAM: 0,125 ms (6 samples), despreciable. Heap de JS con el modelo standard cargado: 45 MB. NO RESUELTO y sigue siendo el bloqueante: la corrida fue en Chrome HEADLESS, donde el audio no llega a un dispositivo real (outputReachesRealDevice=false, peak grabado 0), asi que los outputLatency que dio (46-70 ms) NO son validos -- son artefacto del sink nulo, no la latencia real del equipo. El round-trip no detecto nada y la prueba de glitches quedo sin correr (el reporte lo marca explicitamente como NOT a result, no lo inflo); la medicion de memoria a nivel proceso tambien fallo. PROXIMO PASO: re-correr R11 con browser REAL con salida de audio funcionando en la maquina de Roi, para obtener (1) la latencia real de monitoreo -- el numero que decide, (2) si NAM y el encoder Vorbis conviven sin cortes, (3) memoria a nivel proceso. El experimento ya tiene bajados los 7 modelos .nam y el motor WASM, no hay que rehacer nada. Pendiente aparte: Roi tiene que terminar su propia prueba a mano del camino PRO (Reaper/Focusrite), que quedo frenada en Device in use por la exclusividad de ASIO4ALL sobre VB-Cable. || CIERRE 22/8/2026 -- R11 RESUELTO EN BROWSER REAL, y el resultado cambia el plan. Se re-corrio R11 en Chrome REAL (no headless): el proceso del agente no puede abrir ventanas (spawn UNKNOWN), asi que se lanzo el Chrome instalado con --remote-debugging-port y se lo maneja con playwright connectOverCDP (harness/run-r11-real.mjs). Con eso la precondicion que faltaba quedo cumplida: outputReachesRealDevice=true, peak 0,60 contra 0 en headless. NUMERO QUE DECIDE, medido con loopback fisico Output 1 -> Input 1 de la Scarlett: 204,3 ms de round-trip (6/6 detecciones, senal a -38 dBFS). Contra los umbrales acordados (>30 ms = no sirve) esta un orden de magnitud afuera. NO es culpa de NAM (2,8-4,2% de un core, +0,125 ms): es el camino de audio del browser -- el loopback puramente digital por VB-Cable ya da 124-144 ms, Chrome declara ~65 ms (50-60 de salida + 10 de entrada) y los otros ~140 ms son buffering de captura que no aparece en ninguna API. Pedir getUserMedia({latency:{ideal:0.003}}) NO hace nada: concede 10 ms igual y el round-trip no se mueve (204,3 vs 205,5). No hay perilla del lado del cliente. LO QUE SI QUEDO PROBADO Y SIRVE PARA CUANDO SE RETOME: NAM + encoder Vorbis conviven 60 s con 0 discontinuidades sobre 22.169 bloques, 0 overruns, deriva de reloj 0,5 ms; el audio-service del browser no se mueve con el modelo cargado (25,1 -> 25,3 MB). TRAMPA DE METODO ENCONTRADA Y TAPADA: la primera pasada reporto 204-217 ms SIN que entrara senal (peak 1,6e-6 = -116 dBFS) porque el detector solo exigia SNR relativo -- sobre una entrada muda el correlador devuelve un numero confiado e inventado. roundTrip() ahora exige amplitud absoluta (>=1e-3) y devuelve signalPresent:false en vez de un numero. DECISION DE PRODUCTO DE ROI (22/8, en el chat): se parte el camino -- NOVATOS pasa a FASE 2 o 3, recien cuando el PRO funcione a full; el workflow ideal es DAW + VB-Cable/VoiceMeeter con monitoreo en Reaper, y lo que escucha en Reaper es lo que sube al navegador. Su razonamiento: no tiene sentido escucharse a uno mismo por la vuelta de la sala -- si escuchar a los demas (coincide con como funciona NINJAM)."
+  },
+  {
+   "id": "zapamooke-cliente-apagar-automonitor-modo-pro",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "El cliente hoy devuelve la senal propia del musico por el navegador (client/src/main.ts ~2576 conecta la entrada capturada directo a audioCtx.destination, con fader/pan/mute). En el camino PRO eso te devuelve tu propia senal ~200 ms tarde encima de lo que escuchas en Reaper. Que se cambia en el cliente?",
+   "context": "22/8/2026. Sale de la decision de Roi de partir los caminos (ver zapamooke-audio-dos-caminos-novatos-pro) y de la medicion de R11: el round-trip del browser es 204 ms, o sea que cualquier auto-monitor por el navegador es un eco, no un monitoreo. Roi: la vuelta por la sala no tiene sentido que se escuche uno mismo, si escuchar a los demas. Tres piezas identificadas leyendo el codigo, ninguna implementada todavia: (1) apagar el auto-monitor por defecto, con lo que el fader YO pasa a significar cuanto te mandas a los demas y no cuanto te escuchas -- sirve igual para el usuario de microfono comun, que se escucha por el aire; (2) falta un selector de salida (setSinkId): hoy el retorno de sala sale por el dispositivo default de Windows sin forma de elegirlo; (3) que el chequeo tecnico reconozca el modo -- si el device de entrada dice VB-Audio/Voicemeeter es PRO, self-monitor off y guia de DAW.",
+   "options": [
+    {
+     "label": "Las tres piezas juntas: self-monitor off por defecto, selector de salida con setSinkId, y deteccion de modo PRO por nombre del dispositivo de entrada.",
+     "why": "Es el minimo para que el camino PRO sea usable de verdad; las tres son chicas y se tocan entre si (el selector de salida sin apagar el auto-monitor sigue dandote el eco).",
+     "recommended": true
+    },
+    {
+     "label": "Solo apagar el auto-monitor por defecto.",
+     "why": "Un cambio de una linea que elimina el problema concreto, pero deja el retorno de sala saliendo por donde Windows quiera."
+    },
+    {
+     "label": "No tocar nada hasta que la cadena PRO este validada por oido.",
+     "why": "Evita construir sobre una cadena que todavia nadie escucho, pero el auto-monitor ya es un defecto conocido independientemente de eso."
+    }
+   ],
+   "status": "open"
+  },
+  {
+   "id": "zapamooke-instalador-cadena-pro",
+   "project": "zapamooke",
+   "asana_task_gid": null,
+   "due_on": null,
+   "question": "La cadena PRO (VoiceMeeter + DAW) se configura con ~10 pasos en dos GUIs distintas. Se le pide al usuario que la arme a mano con una guia, o BACKLINE trae un instalador que la arma solo?",
+   "context": "22/8/2026, idea de Roi durante R12: \"es buen ejercicio para documentar y darles a los usuarios, hagamoslo, incluso si podemos hacer un instalador estaria perfecto\". Hay evidencia de que es viable: en esta sesion la cadena entera se configuro SIN tocar la GUI, por la API remota de VoiceMeeter (VoicemeeterRemote64.dll) -- enumerar dispositivos, preferir ASIO si existe, fijar 48 kHz, armar el ruteo A1/B1. Prototipo funcionando en experiments/r12-pro-path-coexistence/scripts/configure-voicemeeter.ps1 (+ set-monitoring.ps1 para prender/apagar el monitoreo). Reaper tambien se configuro headless editando reaper.ini. Dos trampas ya documentadas para quien lo construya: la API devuelve valores cacheados y hay que vaciar con VBVMR_IsParametersDirty() antes de leer, o parece que los cambios no se aplicaron; y con un loopback fisico patcheado, mandar el strip de entrada a A1 cierra un lazo de realimentacion.",
+   "options": [
+    {
+     "label": "Instalador/asistente que detecte la interfaz y arme la cadena por la API remota, con la guia escrita como respaldo.",
+     "why": "Saca la friccion del punto mas confuso del producto, y el 80% ya esta escrito como prototipo. Riesgo: es software que toca la configuracion de audio de la maquina del usuario, hay que ser conservador y reversible.",
+     "recommended": true
+    },
+    {
+     "label": "Solo guia paso a paso con capturas.",
+     "why": "Cero riesgo y cero mantenimiento, pero deja al usuario haciendo diez pasos en dos programas -- justo lo que Roi quiere minimizar."
+    },
+    {
+     "label": "Las dos cosas, guia primero y el instalador despues.",
+     "why": "La guia se necesita igual como respaldo y como documentacion; el instalador se construye sobre ella una vez validada por usuarios reales."
+    }
+   ],
+   "status": "open"
   }
  ]
 }
